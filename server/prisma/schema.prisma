@@ -91,6 +91,17 @@ enum FileType {
   OTHER
 }
 
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CREDIT_CARD
+  DEBIT_CARD
+  EASYPAISA
+  JAZZCASH
+  PAYPAL
+  STRIPE
+}
+
 enum FileModule {
   PROJECT
   CLIENT
@@ -147,6 +158,8 @@ model User {
   notifications Notification[]
   uploadedFiles File[]
   auditLogs AuditLog[]
+  @@index([roleId])
+  @@index([departmentId])
 }
 
 model Client {
@@ -183,6 +196,7 @@ model ContactPerson {
   updatedAt  DateTime @updatedAt
 
   client      Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  @@index([clientId])
 }
 
 model Project {
@@ -207,6 +221,8 @@ model Project {
   tasks           Task[]
   meetings        Meeting[]
   quotations      Quotation[]
+  @@index([clientId])
+  @@index([managerId])
 }
 
 model ProjectMember {
@@ -239,6 +255,8 @@ model Task {
 
   project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assignedTo     User    @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: Restrict)
+  @@index([projectId])
+  @@index([assignedToId])
 }
 
 model Meeting {
@@ -262,6 +280,8 @@ model Meeting {
   organizer     User           @relation("OrganizedMeetings", fields: [organizerId], references: [id], onDelete: Restrict)
 
   participants  MeetingParticipant[]
+  @@index([projectId])
+  @@index([organizerId])
 }
 
 model MeetingParticipant {
@@ -301,6 +321,8 @@ model Quotation {
 
   items           QuotationItem[]
   invoice         Invoice?
+  @@index([clientId])
+  @@index([projectId])
 }
 
 model QuotationItem {
@@ -317,6 +339,7 @@ model QuotationItem {
   updatedAt     DateTime @updatedAt
 
   quotation     Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  @@index([quotationId])
 }
 
 model Invoice {
@@ -360,6 +383,7 @@ model InvoiceItem {
   updatedAt    DateTime @updatedAt
 
   invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  @@index([invoiceId])
 }
 
 model Payment {
@@ -368,7 +392,7 @@ model Payment {
 
   paymentDate     DateTime
   amount          Decimal        @db.Decimal(12,2)
-  paymentMethod   String
+  paymentMethod   PaymentMethod
   transactionId   String?
   status          PaymentStatus  @default(PENDING)
   notes           String?
@@ -377,6 +401,7 @@ model Payment {
   updatedAt       DateTime       @updatedAt
 
   invoice         Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  @@index([invoiceId])
 }
 
 model Notification {
@@ -393,6 +418,7 @@ model Notification {
   createdAt   DateTime          @default(now())
 
   user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }
 
 model File {
@@ -412,6 +438,8 @@ model File {
   createdAt     DateTime  @default(now())
 
   uploadedBy    User @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  @@index([uploadedById])
+  @@index([referenceId])
 }
 
 model AuditLog {
@@ -428,12 +456,14 @@ model AuditLog {
   createdAt   DateTime @default(now())
 
   user         User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId])
+  @@index([referenceId])
 }
 
 model CompanySetting {
   id             String   @id @default(uuid()) @db.Uuid
 
-  companyName    String
+  companyName   String    @unique
   companyEmail   String
   companyPhone   String?
   companyAddress String?
