@@ -46,6 +46,26 @@ export class AuthService {
       },
     };
   }
+
+  async me(userId: string) {
+  const user = await authRepository.findUserById(userId);
+
+  if (!user) {
+    throw new Error("User not found.");
+  }
+
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    profileImage: user.profileImage,
+    status: user.status,
+    role: user.role.name,
+    department: user.department?.name ?? null,
+  };
+}
 }
 
 export const authService = new AuthService();

@@ -20,6 +20,24 @@ export class AuthController {
       next(error);
     }
   }
+
+  async me(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const result = await authService.me(req.user!.userId);
+
+    return successResponse(
+      res,
+      "User profile fetched successfully.",
+      result
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const authController = new AuthController();

@@ -15,3 +15,15 @@ export interface LoginResponse {
     role: UserRole;
   };
 }
+
+export interface MeResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  profileImage: string | null;
+  status: string;
+  role: string;
+  department: string | null;
+}

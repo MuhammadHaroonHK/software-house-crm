@@ -15,12 +15,7 @@ router.post(
 router.get(
   "/me",
   authenticate,
-  (req, res) => {
-    return res.json({
-      success: true,
-      data: req.user,
-    });
-  }
+  authController.me.bind(authController)
 );
 
 export default router;
