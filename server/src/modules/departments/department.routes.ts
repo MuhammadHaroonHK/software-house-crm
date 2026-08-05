@@ -2,19 +2,45 @@ import { Router } from "express";
 import { UserRole } from "@prisma/client";
 
 import { departmentController } from "./department.controller";
-import { validate } from "../../middleware/validate";
+import {
+  createDepartmentSchema,
+  updateDepartmentSchema,
+} from "./department.validation";
+
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
-import { createDepartmentSchema } from "./department.validation";
+import { validate } from "../../middleware/validate";
 
 const router = Router();
 
+router.use(authenticate);
+router.use(authorize(UserRole.SUPER_ADMIN));
+
 router.post(
   "/",
-  authenticate,
-  authorize(UserRole.SUPER_ADMIN),
   validate(createDepartmentSchema),
   departmentController.create.bind(departmentController)
+);
+
+router.get(
+  "/",
+  departmentController.findAll.bind(departmentController)
+);
+
+router.get(
+  "/:id",
+  departmentController.findById.bind(departmentController)
+);
+
+router.patch(
+  "/:id",
+  validate(updateDepartmentSchema),
+  departmentController.update.bind(departmentController)
+);
+
+router.delete(
+  "/:id",
+  departmentController.delete.bind(departmentController)
 );
 
 export default router;
