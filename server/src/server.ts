@@ -1,6 +1,7 @@
 import express from "express";
 import env from "./config/env";
 import { successResponse } from "./utils/apiResponse";
+import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 
@@ -16,6 +17,12 @@ app.get("/", (req, res) => {
     }
   );
 });
+
+app.get("/error", (req, res) => {
+  throw new Error("This is a test error.");
+});
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
