@@ -5,7 +5,12 @@ export const validate =
   (schema: z.ZodType) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      req.body = schema.parse(req.body);
+      schema.parse({
+        body: req.body,
+        params: req.params,
+        query: req.query,
+      });
+
       next();
     } catch (error) {
       if (error instanceof ZodError) {

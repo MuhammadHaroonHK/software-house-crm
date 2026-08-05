@@ -1,12 +1,14 @@
 import { Router } from "express";
+import { authController } from "./auth.controller";
+import { validate } from "../../middleware/validate";
+import { loginSchema } from "./auth.validation";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Authentication module is working.",
-  });
-});
+router.post(
+  "/login",
+  validate(loginSchema),
+  authController.login.bind(authController)
+);
 
 export default router;
