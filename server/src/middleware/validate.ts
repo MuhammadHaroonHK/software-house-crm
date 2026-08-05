@@ -5,23 +5,11 @@ export const validate =
   (schema: z.ZodObject<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      const validatedData = schema.parse({
+      schema.parse({
         body: req.body,
         query: req.query,
         params: req.params,
       });
-
-      if ("body" in validatedData) {
-        req.body = validatedData.body;
-      }
-
-      if ("query" in validatedData) {
-        req.query = validatedData.query as Request["query"];
-      }
-
-      if ("params" in validatedData) {
-        req.params = validatedData.params as Request["params"];
-      }
 
       next();
     } catch (error) {
