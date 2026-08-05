@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "./user.repository";
 import { CreateUserDTO } from "./user.types";
+import { AppError } from "../../utils/AppError";
 
 const userRepository = new UserRepository();
 
@@ -10,14 +11,14 @@ export class UserService {
     const existingUser = await userRepository.findByEmail(data.email);
 
     if (existingUser) {
-      throw new Error("Email already exists.");
+      throw new AppError(409, "Email already exists.");
     }
 
     // Check if role exists
     const role = await userRepository.findRoleByName(data.role);
 
     if (!role) {
-      throw new Error("Role not found.");
+      throw new AppError(404, "Role not found.");
     }
 
     // Check department (optional)
@@ -29,7 +30,7 @@ export class UserService {
       );
 
       if (!department) {
-        throw new Error("Department not found.");
+        throw new AppError(404, "Department not found.");
       }
     }
 

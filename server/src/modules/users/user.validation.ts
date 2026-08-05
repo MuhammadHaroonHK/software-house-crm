@@ -2,6 +2,7 @@ import { z } from "zod";
 import { UserRole } from "@prisma/client";
 
 export const createUserSchema = z.object({
+  body:z.object({
   firstName: z
     .string()
     .trim()
@@ -36,4 +37,5 @@ export const createUserSchema = z.object({
   departmentId: z
     .uuid()
     .optional(),
+})
 });

@@ -26,4 +26,10 @@ async findDepartmentById(id: string) {
   });
 }
 
+async findById(id: string): Promise<User | null> {
+  return prisma.user.findUnique({
+    where: { id },
+  });
+}
+
 }
