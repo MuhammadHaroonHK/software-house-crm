@@ -26,12 +26,51 @@ export class DepartmentRepository {
     });
   }
 
-  async findAll() {
-    return prisma.department.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+  async findAll(
+    skip: number,
+    limit: number,
+    search: string,
+    sortBy: string,
+    sortOrder: "asc" | "desc",
+  ) {
+    const where = search
+      ? {
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              description: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+          ],
+        }
+      : {};
+
+    const [departments, total] = await Promise.all([
+      prisma.department.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+      }),
+
+      prisma.department.count({
+        where,
+      }),
+    ]);
+
+    return {
+      departments,
+      total,
+    };
   }
 
   async update(
@@ -39,7 +78,7 @@ export class DepartmentRepository {
     data: {
       name?: string;
       description?: string;
-    }
+    },
   ) {
     return prisma.department.update({
       where: {

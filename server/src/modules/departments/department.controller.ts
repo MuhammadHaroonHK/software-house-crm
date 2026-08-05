@@ -13,7 +13,7 @@ export class DepartmentController {
         res,
         "Department created successfully.",
         department,
-        201
+        201,
       );
     } catch (error) {
       next(error);
@@ -22,13 +22,20 @@ export class DepartmentController {
 
   async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const departments = await departmentService.findAll();
+      const result = await departmentService.findAll({
+        page: req.query.page ? Number(req.query.page) : undefined,
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
+        search: req.query.search as string,
+        sortBy: req.query.sortBy as string,
+        sortOrder: req.query.sortOrder as "asc" | "desc",
+      });
 
-      return successResponse(
-        res,
-        "Departments fetched successfully.",
-        departments
-      );
+      return res.status(200).json({
+        success: true,
+        message: "Departments fetched successfully.",
+        data: result.data,
+        meta: result.meta,
+      });
     } catch (error) {
       next(error);
     }
@@ -43,7 +50,7 @@ export class DepartmentController {
       return successResponse(
         res,
         "Department fetched successfully.",
-        department
+        department,
       );
     } catch (error) {
       next(error);
@@ -59,7 +66,7 @@ export class DepartmentController {
       return successResponse(
         res,
         "Department updated successfully.",
-        department
+        department,
       );
     } catch (error) {
       next(error);
@@ -72,10 +79,7 @@ export class DepartmentController {
 
       await departmentService.delete(id);
 
-      return successResponse(
-        res,
-        "Department deleted successfully."
-      );
+      return successResponse(res, "Department deleted successfully.");
     } catch (error) {
       next(error);
     }

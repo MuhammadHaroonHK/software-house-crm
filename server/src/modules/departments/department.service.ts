@@ -1,5 +1,6 @@
 import { departmentRepository } from "./department.repository";
 import { AppError } from "../../utils/AppError";
+import { getPagination } from "../../utils/pagination";
 
 export class DepartmentService {
   async create(name: string, description?: string) {
@@ -12,8 +13,32 @@ export class DepartmentService {
     return departmentRepository.create(name, description);
   }
 
-  async findAll() {
-    return departmentRepository.findAll();
+  async findAll(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  }) {
+    const pagination = getPagination(query);
+
+    const { departments, total } = await departmentRepository.findAll(
+      pagination.skip,
+      pagination.limit,
+      pagination.search,
+      pagination.sortBy,
+      pagination.sortOrder,
+    );
+
+    return {
+      data: departments,
+      meta: {
+        page: pagination.page,
+        limit: pagination.limit,
+        total,
+        totalPages: Math.ceil(total / pagination.limit),
+      },
+    };
   }
 
   async findById(id: string) {
