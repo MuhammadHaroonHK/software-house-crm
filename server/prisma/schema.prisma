@@ -94,12 +94,8 @@ enum FileType {
 enum PaymentMethod {
   CASH
   BANK_TRANSFER
-  CREDIT_CARD
-  DEBIT_CARD
   EASYPAISA
   JAZZCASH
-  PAYPAL
-  STRIPE
 }
 
 enum FileModule {
@@ -387,21 +383,36 @@ model InvoiceItem {
 }
 
 model Payment {
-  id              String         @id @default(uuid()) @db.Uuid
-  invoiceId       String         @db.Uuid
+  id                String         @id @default(uuid()) @db.Uuid
+  invoiceId         String         @db.Uuid
 
-  paymentDate     DateTime
-  amount          Decimal        @db.Decimal(12,2)
-  paymentMethod   PaymentMethod
-  transactionId   String?
-  status          PaymentStatus  @default(PENDING)
-  notes           String?
+  amount            Decimal        @db.Decimal(12,2)
 
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  paymentMethod     PaymentMethod
+  paymentDate       DateTime?
 
-  invoice         Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  accountTitle      String?
+  accountNumber     String?
+
+  receiptImage      String?
+
+  referenceNumber   String?
+
+  status            PaymentStatus  @default(PENDING)
+
+  verifiedAt        DateTime?
+  verifiedById      String?        @db.Uuid
+
+  notes             String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  invoice           Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  verifiedBy        User?    @relation(fields: [verifiedById], references: [id], onDelete: SetNull)
+
   @@index([invoiceId])
+  @@index([verifiedById])
 }
 
 model Notification {
@@ -470,6 +481,13 @@ model CompanySetting {
 
   website        String?
   logo           String?
+
+  bankName          String?
+  accountTitle      String?
+  accountNumber     String?
+
+  easyPaisaNumber   String?
+  jazzCashNumber    String?
 
   currency       String   @default("PKR")
   timezone       String   @default("Asia/Karachi")
