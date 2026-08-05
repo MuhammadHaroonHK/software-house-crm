@@ -1,5 +1,5 @@
 import prisma from "../../lib/prisma";
-import { Prisma, User, UserRole } from "@prisma/client";
+import { Prisma, User, UserRole, UserStatus } from "@prisma/client";
 
 export class UserRepository {
   async findByEmail(email: string): Promise<User | null> {
@@ -8,11 +8,25 @@ export class UserRepository {
     });
   }
 
-  async create(data: Prisma.UserCreateInput): Promise<User> {
-    return prisma.user.create({
-      data,
-    });
-  }
+  async create(data: Prisma.UserCreateInput) {
+  return prisma.user.create({
+    data,
+    include: {
+      role: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      department: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
 
   async findRoleByName(name: UserRole) {
   return prisma.role.findUnique({
@@ -30,6 +44,101 @@ async findById(id: string): Promise<User | null> {
   return prisma.user.findUnique({
     where: { id },
   });
+}
+
+async findAll(
+  page: number,
+  limit: number,
+  search?: string,
+  role?: UserRole,
+  status?: UserStatus,
+  departmentId?: string,
+  sortBy: string = "createdAt",
+  sortOrder: "asc" | "desc" = "desc"
+) {
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.UserWhereInput = {
+    ...(search && {
+      OR: [
+        {
+          firstName: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          lastName: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          email: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          phone: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ],
+    }),
+
+    ...(role && {
+      role: {
+        name: role,
+      },
+    }),
+
+    ...(status && {
+      status,
+    }),
+
+    ...(departmentId && {
+      departmentId,
+    }),
+  };
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip,
+      take: limit,
+
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        department: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    }),
+
+    prisma.user.count({
+      where,
+    }),
+  ]);
+
+  return {
+    users,
+    total,
+  };
 }
 
 }

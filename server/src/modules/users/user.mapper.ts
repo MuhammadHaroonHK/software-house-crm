@@ -1,6 +1,23 @@
-import { User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-export function toUserResponse(user: User) {
+type UserWithRelations = Prisma.UserGetPayload<{
+  include: {
+    role: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+    department: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+  };
+}>;
+
+export function toUserResponse(user: UserWithRelations) {
   return {
     id: user.id,
     firstName: user.firstName,
@@ -9,8 +26,11 @@ export function toUserResponse(user: User) {
     phone: user.phone,
     profileImage: user.profileImage,
     status: user.status,
-    roleId: user.roleId,
-    departmentId: user.departmentId,
+
+    role: user.role,
+
+    department: user.department,
+
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

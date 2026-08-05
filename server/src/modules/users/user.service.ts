@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "./user.repository";
 import { CreateUserDTO } from "./user.types";
+import { UserRole, UserStatus } from "@prisma/client";
 import { AppError } from "../../utils/AppError";
 
 const userRepository = new UserRepository();
@@ -62,4 +63,34 @@ export class UserService {
 
     return user;
   }
+
+  async findAll(params: {
+  page: number;
+  limit: number;
+  search?: string;
+  role?: UserRole;
+  status?: UserStatus;
+  departmentId?: string;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+}) {
+  const { users, total } = await userRepository.findAll(
+    params.page,
+    params.limit,
+    params.search,
+    params.role,
+    params.status,
+    params.departmentId,
+    params.sortBy,
+    params.sortOrder
+  );
+
+  return {
+    users,
+    total,
+    page: params.page,
+    limit: params.limit,
+    totalPages: Math.ceil(total / params.limit),
+  };
+}
 }

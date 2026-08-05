@@ -4,12 +4,14 @@ export const successResponse = (
   res: Response,
   message: string,
   data: unknown = null,
-  statusCode = 200
+  statusCode = 200,
+  meta?: Record<string, unknown>
 ) => {
   return res.status(statusCode).json({
     success: true,
     message,
     data,
+    ...(meta ? { meta } : {}),
   });
 };
 

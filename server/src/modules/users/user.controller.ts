@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { UserService } from "./user.service";
 import { successResponse } from "../../utils/apiResponse";
 import { toUserResponse } from "./user.mapper";
+import { UserRole, UserStatus } from "@prisma/client";
 
 const userService = new UserService();
 
@@ -20,6 +21,56 @@ export class UserController {
       next(error);
     }
   }
+
+  async findAll(req: Request, res: Response, next: NextFunction) {
+  try {
+    const {
+      page,
+      limit,
+      search,
+      role,
+      status,
+      departmentId,
+      sortBy,
+      sortOrder,
+    } = req.query as {
+      page: string;
+      limit: string;
+      search?: string;
+      role?: UserRole;
+      status?: UserStatus;
+      departmentId?: string;
+      sortBy: string;
+      sortOrder: "asc" | "desc";
+    };
+
+    const result = await userService.findAll({
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 10,
+      search,
+      role,
+      status,
+      departmentId,
+      sortBy: sortBy ?? "createdAt",
+      sortOrder: sortOrder ?? "desc",
+    });
+
+    return successResponse(
+  res,
+  "Users fetched successfully.",
+  result.users.map(toUserResponse),
+  200,
+  {
+    page: result.page,
+    limit: result.limit,
+    total: result.total,
+    totalPages: result.totalPages,
+  }
+);
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const userController = new UserController();
