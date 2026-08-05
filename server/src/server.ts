@@ -1,17 +1,9 @@
 import express from "express";
-
-import prisma from "./lib/prisma";
-
-async function testConnection() {
-  await prisma.$connect();
-  console.log("✅ Prisma connected successfully");
-}
-
-testConnection();
+import env from "./config/env";
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(env.PORT);
 
 app.get("/", (req, res) => {
   res.send("Software House CRM API is running...");
