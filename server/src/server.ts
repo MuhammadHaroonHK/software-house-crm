@@ -1,27 +1,19 @@
 import express from "express";
 import env from "./config/env";
-import { successResponse } from "./utils/apiResponse";
+import routes from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 
 const PORT = Number(env.PORT);
 
-app.get("/", (req, res) => {
-  return successResponse(
-    res,
-    "Software House CRM API is running.",
-    {
-      version: "1.0.0",
-      status: "OK",
-    }
-  );
-});
+// Middlewares
+app.use(express.json());
 
-app.get("/error", (req, res) => {
-  throw new Error("This is a test error.");
-});
+// Routes
+app.use("/", routes);
 
+// Global Error Handler
 app.use(errorHandler);
 
 app.listen(PORT, () => {
