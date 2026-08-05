@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationSchema } from "../../common/schemas/pagination.schema";
 
 export const createDepartmentSchema = z.object({
   body: z.object({
@@ -31,4 +32,8 @@ export const updateDepartmentSchema = z.object({
       .max(500)
       .optional(),
   }),
+});
+
+export const getDepartmentsSchema = z.object({
+  query: paginationSchema,
 });

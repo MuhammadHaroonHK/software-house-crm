@@ -2,14 +2,26 @@ import { z, ZodError } from "zod";
 import { Request, Response, NextFunction } from "express";
 
 export const validate =
-  (schema: z.ZodType) =>
+  (schema: z.ZodObject<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse({
+      const validatedData = schema.parse({
         body: req.body,
-        params: req.params,
         query: req.query,
+        params: req.params,
       });
+
+      if ("body" in validatedData) {
+        req.body = validatedData.body;
+      }
+
+      if ("query" in validatedData) {
+        req.query = validatedData.query as Request["query"];
+      }
+
+      if ("params" in validatedData) {
+        req.params = validatedData.params as Request["params"];
+      }
 
       next();
     } catch (error) {

@@ -5,6 +5,7 @@ import { departmentController } from "./department.controller";
 import {
   createDepartmentSchema,
   updateDepartmentSchema,
+  getDepartmentsSchema,
 } from "./department.validation";
 
 import { authenticate } from "../../middleware/authenticate";
@@ -24,12 +25,8 @@ router.post(
 
 router.get(
   "/",
+  validate(getDepartmentsSchema),
   departmentController.findAll.bind(departmentController)
-);
-
-router.get(
-  "/:id",
-  departmentController.findById.bind(departmentController)
 );
 
 router.patch(
