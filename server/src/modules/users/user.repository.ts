@@ -240,4 +240,12 @@ async findRoleById(id: string) {
     },
   });
 }
+
+async delete(id: string) {
+  return prisma.user.delete({
+    where: {
+      id,
+    },
+  });
+}
 }

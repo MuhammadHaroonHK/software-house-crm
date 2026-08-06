@@ -53,4 +53,11 @@ router.patch(
   userController.updateStatus.bind(userController)
 );
 
+router.delete(
+  "/:id",
+  authenticate,
+  authorize(UserRole.SUPER_ADMIN),
+  userController.deleteUser.bind(userController)
+);
+
 export default router;

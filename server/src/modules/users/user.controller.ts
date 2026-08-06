@@ -135,6 +135,28 @@ async updateStatus(
     next(error);
   }
 }
+
+async deleteUser(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id = String(req.params.id);
+
+    await userService.deleteUser(
+      id,
+      req.user!.userId
+    );
+
+    return successResponse(
+      res,
+      "User deleted successfully."
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const userController = new UserController();

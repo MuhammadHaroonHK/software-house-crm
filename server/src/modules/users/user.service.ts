@@ -205,4 +205,27 @@ async updateStatus(
 
   return userRepository.updateStatus(id, status);
 }
+
+async deleteUser(
+  id: string,
+  currentUserId: string
+) {
+  if (id === currentUserId) {
+    throw new AppError(
+      400,
+      "You cannot delete your own account."
+    );
+  }
+
+  const user = await userRepository.findById(id);
+
+  if (!user) {
+    throw new AppError(
+      404,
+      "User not found."
+    );
+  }
+
+  await userRepository.delete(id);
+}
 }
