@@ -18,3 +18,15 @@ export interface UpdateUserDTO {
   role?: UserRole;
   departmentId?: string | null;
 }
+
+export interface UpdateProfileDTO {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface ChangePasswordDTO {
+  currentPassword: string;
+  newPassword: string;
+}

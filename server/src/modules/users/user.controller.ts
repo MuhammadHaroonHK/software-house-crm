@@ -157,6 +157,67 @@ async deleteUser(
     next(error);
   }
 }
+
+async getProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = await userService.getProfile(
+      req.user!.userId
+    );
+
+    return successResponse(
+      res,
+      "Profile fetched successfully.",
+      toUserResponse(user)
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async updateProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = await userService.updateProfile(
+      req.user!.userId,
+      req.body
+    );
+
+    return successResponse(
+      res,
+      "Profile updated successfully.",
+      toUserResponse(user)
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async changePassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    await userService.changePassword(
+      req.user!.userId,
+      req.body
+    );
+
+    return successResponse(
+      res,
+      "Password changed successfully."
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const userController = new UserController();

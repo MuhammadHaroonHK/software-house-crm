@@ -9,6 +9,8 @@ import {
   getUsersSchema,
   updateUserSchema,
   updateUserStatusSchema,
+  updateProfileSchema,
+  changePasswordSchema,
 } from "./user.validation";
 
 
@@ -28,6 +30,26 @@ router.get(
   authorize(UserRole.SUPER_ADMIN),
   validate(getUsersSchema),
   userController.findAll.bind(userController)
+);
+
+router.get(
+  "/profile",
+  authenticate,
+  userController.getProfile.bind(userController)
+);
+
+router.patch(
+  "/profile",
+  authenticate,
+  validate(updateProfileSchema),
+  userController.updateProfile.bind(userController)
+);
+
+router.patch(
+  "/change-password",
+  authenticate,
+  validate(changePasswordSchema),
+  userController.changePassword.bind(userController)
 );
 
 router.get(

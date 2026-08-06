@@ -219,6 +219,21 @@ async updateStatus(
   });
 }
 
+async updatePassword(
+  id: string,
+  password: string
+) {
+  return prisma.user.update({
+    where: {
+      id,
+    },
+
+    data: {
+      password,
+    },
+  });
+}
+
 async findByEmailExceptId(
   email: string,
   id: string

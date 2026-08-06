@@ -1,8 +1,13 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "./user.repository";
-import { CreateUserDTO, UpdateUserDTO } from "./user.types";
 import { UserRole, UserStatus } from "@prisma/client";
 import { AppError } from "../../utils/AppError";
+import {
+  CreateUserDTO,
+  UpdateUserDTO,
+  UpdateProfileDTO,
+  ChangePasswordDTO,
+} from "./user.types";
 
 const userRepository = new UserRepository();
 
@@ -204,6 +209,102 @@ async updateStatus(
   }
 
   return userRepository.updateStatus(id, status);
+}
+
+async getProfile(userId: string) {
+  const user = await userRepository.findById(userId);
+
+  if (!user) {
+    throw new AppError(404, "User not found.");
+  }
+
+  return user;
+}
+
+async updateProfile(
+  userId: string,
+  data: UpdateProfileDTO
+) {
+  const existingUser = await userRepository.findById(userId);
+
+  if (!existingUser) {
+    throw new AppError(404, "User not found.");
+  }
+
+  // Check email uniqueness
+  if (data.email) {
+    const emailExists = await userRepository.findByEmailExceptId(
+      data.email,
+      userId
+    );
+
+    if (emailExists) {
+      throw new AppError(409, "Email already exists.");
+    }
+  }
+
+  return userRepository.update(userId, {
+    ...(data.firstName && {
+      firstName: data.firstName,
+    }),
+
+    ...(data.lastName && {
+      lastName: data.lastName,
+    }),
+
+    ...(data.email && {
+      email: data.email,
+    }),
+
+    ...(data.phone !== undefined && {
+      phone: data.phone,
+    }),
+  });
+}
+
+async changePassword(
+  userId: string,
+  data: ChangePasswordDTO
+) {
+  const user = await userRepository.findById(userId);
+
+  if (!user) {
+    throw new AppError(404, "User not found.");
+  }
+
+  const passwordMatched = await bcrypt.compare(
+    data.currentPassword,
+    user.password
+  );
+
+  if (!passwordMatched) {
+    throw new AppError(
+      400,
+      "Current password is incorrect."
+    );
+  }
+
+  const samePassword = await bcrypt.compare(
+    data.newPassword,
+    user.password
+  );
+
+  if (samePassword) {
+    throw new AppError(
+      400,
+      "New password must be different from the current password."
+    );
+  }
+
+  const hashedPassword = await bcrypt.hash(
+    data.newPassword,
+    10
+  );
+
+  await userRepository.updatePassword(
+    userId,
+    hashedPassword
+  );
 }
 
 async deleteUser(
