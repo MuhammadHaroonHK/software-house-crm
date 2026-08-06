@@ -25,4 +25,11 @@ router.get(
   userController.findAll.bind(userController)
 );
 
+router.get(
+  "/:id",
+  authenticate,
+  authorize(UserRole.SUPER_ADMIN),
+  userController.findById.bind(userController)
+);
+
 export default router;

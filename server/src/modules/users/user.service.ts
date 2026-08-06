@@ -93,4 +93,14 @@ export class UserService {
     totalPages: Math.ceil(total / params.limit),
   };
 }
+
+async findById(id: string) {
+  const user = await userRepository.findById(id);
+
+  if (!user) {
+    throw new AppError(404, "User not found.");
+  }
+
+  return user;
+}
 }

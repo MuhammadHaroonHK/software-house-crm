@@ -40,12 +40,6 @@ async findDepartmentById(id: string) {
   });
 }
 
-async findById(id: string): Promise<User | null> {
-  return prisma.user.findUnique({
-    where: { id },
-  });
-}
-
 async findAll(
   page: number,
   limit: number,
@@ -139,6 +133,30 @@ async findAll(
     users,
     total,
   };
+}
+
+async findById(id: string) {
+  return prisma.user.findUnique({
+    where: {
+      id,
+    },
+
+    include: {
+      role: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+
+      department: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
 }
 
 }

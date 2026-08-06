@@ -71,6 +71,22 @@ export class UserController {
     next(error);
   }
 }
+
+async findById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = String(req.params.id);
+
+    const user = await userService.findById(id);
+
+    return successResponse(
+      res,
+      "User fetched successfully.",
+      toUserResponse(user)
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const userController = new UserController();
