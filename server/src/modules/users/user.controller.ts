@@ -110,6 +110,31 @@ async updateUser(
     next(error);
   }
 }
+
+async updateStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id = String(req.params.id);
+
+    const { status } = req.body;
+
+    const user = await userService.updateStatus(
+      id,
+      status
+    );
+
+    return successResponse(
+      res,
+      "User status updated successfully.",
+      toUserResponse(user)
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const userController = new UserController();

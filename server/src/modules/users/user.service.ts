@@ -192,4 +192,17 @@ async updateUser(id: string, data: UpdateUserDTO) {
     ...departmentData,
   });
 }
+
+async updateStatus(
+  id: string,
+  status: UserStatus
+) {
+  const user = await userRepository.findById(id);
+
+  if (!user) {
+    throw new AppError(404, "User not found.");
+  }
+
+  return userRepository.updateStatus(id, status);
+}
 }

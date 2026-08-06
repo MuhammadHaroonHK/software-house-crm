@@ -8,6 +8,7 @@ import {
   createUserSchema,
   getUsersSchema,
   updateUserSchema,
+  updateUserStatusSchema,
 } from "./user.validation";
 
 
@@ -42,6 +43,14 @@ router.patch(
   authorize(UserRole.SUPER_ADMIN),
   validate(updateUserSchema),
   userController.updateUser.bind(userController)
+);
+
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize(UserRole.SUPER_ADMIN),
+  validate(updateUserStatusSchema),
+  userController.updateStatus.bind(userController)
 );
 
 export default router;

@@ -188,6 +188,37 @@ async update(
   });
 }
 
+async updateStatus(
+  id: string,
+  status: UserStatus
+) {
+  return prisma.user.update({
+    where: {
+      id,
+    },
+
+    data: {
+      status,
+    },
+
+    include: {
+      role: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+
+      department: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
+
 async findByEmailExceptId(
   email: string,
   id: string

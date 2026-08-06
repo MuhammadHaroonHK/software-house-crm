@@ -57,6 +57,12 @@ export const updateUserSchema = z.object({
   }),
 });
 
+export const updateUserStatusSchema = z.object({
+  body: z.object({
+    status: z.enum(UserStatus),
+  }),
+});
+
 export const getUsersSchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).default(1),
