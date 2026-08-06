@@ -1,11 +1,15 @@
 import { Router } from "express";
 import { userController } from "./user.controller";
 import { validate } from "../../middleware/validate";
-import { createUserSchema } from "./user.validation";
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
 import { UserRole } from "@prisma/client";
-import { getUsersSchema } from "./user.validation";
+import {
+  createUserSchema,
+  getUsersSchema,
+  updateUserSchema,
+} from "./user.validation";
+
 
 const router = Router();
 
@@ -30,6 +34,14 @@ router.get(
   authenticate,
   authorize(UserRole.SUPER_ADMIN),
   userController.findById.bind(userController)
+);
+
+router.patch(
+  "/:id",
+  authenticate,
+  authorize(UserRole.SUPER_ADMIN),
+  validate(updateUserSchema),
+  userController.updateUser.bind(userController)
 );
 
 export default router;

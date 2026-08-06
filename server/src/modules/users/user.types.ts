@@ -9,3 +9,12 @@ export interface CreateUserDTO {
   role: UserRole;
   departmentId?: string;
 }
+
+export interface UpdateUserDTO {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  role?: UserRole;
+  departmentId?: string | null;
+}

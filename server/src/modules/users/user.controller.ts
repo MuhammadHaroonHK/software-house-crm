@@ -87,6 +87,29 @@ async findById(req: Request, res: Response, next: NextFunction) {
     next(error);
   }
 }
+
+async updateUser(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id = String(req.params.id);
+
+    const user = await userService.updateUser(
+      id,
+      req.body
+    );
+
+    return successResponse(
+      res,
+      "User updated successfully.",
+      toUserResponse(user)
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const userController = new UserController();

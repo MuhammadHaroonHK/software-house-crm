@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "./user.repository";
-import { CreateUserDTO } from "./user.types";
+import { CreateUserDTO, UpdateUserDTO } from "./user.types";
 import { UserRole, UserStatus } from "@prisma/client";
 import { AppError } from "../../utils/AppError";
 
@@ -102,5 +102,94 @@ async findById(id: string) {
   }
 
   return user;
+}
+
+async updateUser(id: string, data: UpdateUserDTO) {
+  // Check user exists
+  const existingUser = await userRepository.findById(id);
+
+  if (!existingUser) {
+    throw new AppError(404, "User not found.");
+  }
+
+  // Check email uniqueness
+  if (data.email) {
+    const emailExists = await userRepository.findByEmailExceptId(
+      data.email,
+      id
+    );
+
+    if (emailExists) {
+      throw new AppError(409, "Email already exists.");
+    }
+  }
+
+  let roleData = {};
+
+  if (data.role) {
+    const role = await userRepository.findRoleByName(data.role);
+
+    if (!role) {
+      throw new AppError(404, "Role not found.");
+    }
+
+    roleData = {
+      role: {
+        connect: {
+          id: role.id,
+        },
+      },
+    };
+  }
+
+  let departmentData = {};
+
+  if (data.departmentId !== undefined) {
+    if (data.departmentId === null) {
+      departmentData = {
+        department: {
+          disconnect: true,
+        },
+      };
+    } else {
+      const department = await userRepository.findDepartmentById(
+        data.departmentId
+      );
+
+      if (!department) {
+        throw new AppError(404, "Department not found.");
+      }
+
+      departmentData = {
+        department: {
+          connect: {
+            id: department.id,
+          },
+        },
+      };
+    }
+  }
+
+  return userRepository.update(id, {
+    ...(data.firstName && {
+      firstName: data.firstName,
+    }),
+
+    ...(data.lastName && {
+      lastName: data.lastName,
+    }),
+
+    ...(data.email && {
+      email: data.email,
+    }),
+
+    ...(data.phone !== undefined && {
+      phone: data.phone,
+    }),
+
+    ...roleData,
+
+    ...departmentData,
+  });
 }
 }

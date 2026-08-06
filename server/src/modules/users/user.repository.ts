@@ -159,4 +159,54 @@ async findById(id: string) {
   });
 }
 
+async update(
+  id: string,
+  data: Prisma.UserUpdateInput
+) {
+  return prisma.user.update({
+    where: {
+      id,
+    },
+
+    data,
+
+    include: {
+      role: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+
+      department: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
+
+async findByEmailExceptId(
+  email: string,
+  id: string
+) {
+  return prisma.user.findFirst({
+    where: {
+      email,
+      NOT: {
+        id,
+      },
+    },
+  });
+}
+
+async findRoleById(id: string) {
+  return prisma.role.findUnique({
+    where: {
+      id,
+    },
+  });
+}
 }

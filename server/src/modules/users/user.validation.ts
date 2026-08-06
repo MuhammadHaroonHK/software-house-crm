@@ -41,6 +41,22 @@ export const createUserSchema = z.object({
 })
 });
 
+export const updateUserSchema = z.object({
+  body: z.object({
+    firstName: z.string().trim().min(2).max(50).optional(),
+
+    lastName: z.string().trim().min(2).max(50).optional(),
+
+    email: z.email().trim().toLowerCase().optional(),
+
+    phone: z.string().optional(),
+
+    role: z.enum(UserRole).optional(),
+
+    departmentId: z.uuid().nullable().optional(),
+  }),
+});
+
 export const getUsersSchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).default(1),
