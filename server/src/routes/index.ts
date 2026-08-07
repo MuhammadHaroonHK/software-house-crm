@@ -12,6 +12,7 @@ import meetingRoutes from "../modules/meetings/meeting.routes";
 import meetingParticipantRoutes from "../modules/meetingParticipants/meetingParticipant.routes";
 import quotationRoutes from "../modules/quotations/quotation.routes";
 import quotationItemRoutes from "../modules/quotationItems/quotationItem.routes";
+import invoiceRoutes from "../modules/invoices/invoice.routes";
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use("/meetings", meetingRoutes);
 router.use("/meetings", meetingParticipantRoutes);
 router.use("/quotations", quotationRoutes);
 router.use("/", quotationItemRoutes);
+router.use("/invoices", invoiceRoutes);
 
 export default router;
