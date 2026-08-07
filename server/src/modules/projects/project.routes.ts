@@ -4,6 +4,7 @@ import { authorize } from "../../middleware/authorize";
 import { validate } from "../../middleware/validate";
 import { UserRole } from "@prisma/client";
 import { projectController } from "./project.controller";
+import projectMemberRoutes from "../project-members/projectMember.routes";
 import {
   createProjectSchema,
   getProjectsSchema,
@@ -63,6 +64,11 @@ router.delete(
     UserRole.PROJECT_MANAGER
   ),
   projectController.delete.bind(projectController)
+);
+
+router.use(
+  "/:projectId/members",
+  projectMemberRoutes
 );
 
 export default router;
