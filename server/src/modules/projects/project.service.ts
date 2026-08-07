@@ -1,6 +1,8 @@
 import { AppError } from "../../utils/AppError";
 import { ProjectRepository } from "./project.repository";
 import { CreateProjectDTO } from "./project.types";
+import { ProjectStatus } from "@prisma/client";
+import { getPagination } from "../../utils/pagination";
 
 const projectRepository = new ProjectRepository();
 
@@ -63,4 +65,42 @@ export class ProjectService {
       },
     });
   }
+
+  async findAll(query: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: ProjectStatus;
+  clientId?: string;
+  managerId?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}) {
+  const pagination = getPagination(query);
+
+  const { projects, total } =
+    await projectRepository.findAll(
+      pagination.skip,
+      pagination.limit,
+      pagination.search,
+      query.status,
+      query.clientId,
+      query.managerId,
+      pagination.sortBy,
+      pagination.sortOrder
+    );
+
+  return {
+    data: projects,
+
+    meta: {
+      page: pagination.page,
+      limit: pagination.limit,
+      total,
+      totalPages: Math.ceil(
+        total / pagination.limit
+      ),
+    },
+  };
+}
 }

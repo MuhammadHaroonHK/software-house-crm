@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ProjectStatus } from "@prisma/client";
+import { paginationSchema } from "../../common/schemas/pagination.schema";
 
 export const createProjectSchema = z.object({
   body: z
@@ -97,4 +98,25 @@ export const updateProjectSchema = z.object({
         path: ["endDate"],
       }
     ),
+});
+
+export const getProjectsSchema = z.object({
+  query: paginationSchema.extend({
+    status: z.enum(ProjectStatus).optional(),
+
+    clientId: z.uuid().optional(),
+
+    managerId: z.uuid().optional(),
+
+    sortBy: z
+      .enum([
+        "name",
+        "status",
+        "budget",
+        "createdAt",
+        "startDate",
+        "endDate",
+      ])
+      .default("createdAt"),
+  }),
 });

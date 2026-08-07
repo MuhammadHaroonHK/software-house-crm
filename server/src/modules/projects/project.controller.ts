@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ProjectService } from "./project.service";
 import { successResponse } from "../../utils/apiResponse";
+import { ProjectStatus } from "@prisma/client";
 
 const projectService = new ProjectService();
 
@@ -23,6 +24,48 @@ export class ProjectController {
       next(error);
     }
   }
+
+  async findAll(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const result = await projectService.findAll({
+      page: req.query.page
+        ? Number(req.query.page)
+        : undefined,
+
+      limit: req.query.limit
+        ? Number(req.query.limit)
+        : undefined,
+
+      search: req.query.search as string,
+
+      status: req.query.status as ProjectStatus,
+
+      clientId: req.query.clientId as string,
+
+      managerId: req.query.managerId as string,
+
+      sortBy: req.query.sortBy as string,
+
+      sortOrder: req.query.sortOrder as
+        | "asc"
+        | "desc",
+    });
+
+    return successResponse(
+      res,
+      "Projects fetched successfully.",
+      result.data,
+      200,
+      result.meta
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const projectController = new ProjectController();
