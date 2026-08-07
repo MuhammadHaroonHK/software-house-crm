@@ -4,8 +4,11 @@ import { authorize } from "../../middleware/authorize";
 import { validate } from "../../middleware/validate";
 import { UserRole } from "@prisma/client";
 import { projectController } from "./project.controller";
-import { createProjectSchema } from "./project.validation";
-import { getProjectsSchema } from "./project.validation";
+import {
+  createProjectSchema,
+  getProjectsSchema,
+  updateProjectSchema,
+} from "./project.validation";
 
 const router = Router();
 
@@ -29,6 +32,37 @@ router.get(
   ),
   validate(getProjectsSchema),
   projectController.findAll.bind(projectController)
+);
+
+router.get(
+  "/:id",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  projectController.findById.bind(projectController)
+);
+
+router.patch(
+  "/:id",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  validate(updateProjectSchema),
+  projectController.update.bind(projectController)
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  projectController.delete.bind(projectController)
 );
 
 export default router;

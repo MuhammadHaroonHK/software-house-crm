@@ -66,6 +66,70 @@ export class ProjectController {
     next(error);
   }
 }
+
+async findById(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id = String(req.params.id);
+
+    const project =
+      await projectService.findById(id);
+
+    return successResponse(
+      res,
+      "Project fetched successfully.",
+      project
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async update(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id = String(req.params.id);
+
+    const project =
+      await projectService.update(
+        id,
+        req.body
+      );
+
+    return successResponse(
+      res,
+      "Project updated successfully.",
+      project
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async delete(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id = String(req.params.id);
+
+    await projectService.delete(id);
+
+    return successResponse(
+      res,
+      "Project deleted successfully."
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const projectController = new ProjectController();

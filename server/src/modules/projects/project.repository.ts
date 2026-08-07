@@ -60,6 +60,38 @@ export class ProjectRepository {
     });
   }
 
+  async countMembers(projectId: string) {
+  return prisma.projectMember.count({
+    where: {
+      projectId,
+    },
+  });
+}
+
+async countTasks(projectId: string) {
+  return prisma.task.count({
+    where: {
+      projectId,
+    },
+  });
+}
+
+async countMeetings(projectId: string) {
+  return prisma.meeting.count({
+    where: {
+      projectId,
+    },
+  });
+}
+
+async countQuotations(projectId: string) {
+  return prisma.quotation.count({
+    where: {
+      projectId,
+    },
+  });
+}
+
   async findAll(
     skip: number,
     limit: number,

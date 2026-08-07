@@ -1,6 +1,6 @@
 import { AppError } from "../../utils/AppError";
 import { ProjectRepository } from "./project.repository";
-import { CreateProjectDTO } from "./project.types";
+import { CreateProjectDTO, UpdateProjectDTO } from "./project.types";
 import { ProjectStatus } from "@prisma/client";
 import { getPagination } from "../../utils/pagination";
 
@@ -102,5 +102,148 @@ export class ProjectService {
       ),
     },
   };
+}
+
+async findById(id: string) {
+  const project =
+    await projectRepository.findById(id);
+
+  if (!project) {
+    throw new AppError(
+      404,
+      "Project not found."
+    );
+  }
+
+  return project;
+}
+
+async update(
+  id: string,
+  data: UpdateProjectDTO
+) {
+  const project = await projectRepository.findById(id);
+
+  if (!project) {
+    throw new AppError(404, "Project not found.");
+  }
+
+  if (data.clientId) {
+    const client =
+      await projectRepository.findClientById(
+        data.clientId
+      );
+
+    if (!client) {
+      throw new AppError(404, "Client not found.");
+    }
+  }
+
+  if (data.managerId) {
+    const manager =
+      await projectRepository.findManagerById(
+        data.managerId
+      );
+
+    if (!manager) {
+      throw new AppError(
+        404,
+        "Project manager not found."
+      );
+    }
+
+    const isProjectManager =
+      await projectRepository.isProjectManager(
+        data.managerId
+      );
+
+    if (!isProjectManager) {
+      throw new AppError(
+        400,
+        "Selected user is not a project manager."
+      );
+    }
+  }
+
+  return projectRepository.update(id, {
+    ...(data.name && {
+      name: data.name,
+    }),
+
+    ...(data.description !== undefined && {
+      description: data.description,
+    }),
+
+    ...(data.startDate !== undefined && {
+      startDate: data.startDate
+        ? new Date(data.startDate)
+        : null,
+    }),
+
+    ...(data.endDate !== undefined && {
+      endDate: data.endDate
+        ? new Date(data.endDate)
+        : null,
+    }),
+
+    ...(data.budget !== undefined && {
+      budget: data.budget,
+    }),
+
+    ...(data.status && {
+      status: data.status,
+    }),
+
+    ...(data.clientId && {
+      client: {
+        connect: {
+          id: data.clientId,
+        },
+      },
+    }),
+
+    ...(data.managerId && {
+      manager: {
+        connect: {
+          id: data.managerId,
+        },
+      },
+    }),
+  });
+}
+
+async delete(id: string) {
+  const project =
+    await projectRepository.findById(id);
+
+  if (!project) {
+    throw new AppError(404, "Project not found.");
+  }
+
+  const [
+    members,
+    tasks,
+    meetings,
+    quotations,
+  ] = await Promise.all([
+    projectRepository.countMembers(id),
+    projectRepository.countTasks(id),
+    projectRepository.countMeetings(id),
+    projectRepository.countQuotations(id),
+  ]);
+
+  if (
+    members > 0 ||
+    tasks > 0 ||
+    meetings > 0 ||
+    quotations > 0
+  ) {
+    throw new AppError(
+      409,
+      "Project cannot be deleted because related records exist."
+    );
+  }
+
+  await projectRepository.delete(id);
 }
 }
