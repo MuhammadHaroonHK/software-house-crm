@@ -5,6 +5,7 @@ import userRoutes from "../modules/users/user.routes";
 import departmentRoutes from "../modules/departments/department.routes";
 import companyRoutes from "../modules/company/company.routes";
 import clientRoutes from "../modules/clients/client.routes";
+import contactPersonRoutes from "../modules/contact-persons/contactPerson.routes";
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use("/users", userRoutes);
 router.use("/departments", departmentRoutes);
 router.use("/company", companyRoutes);
 router.use("/clients", clientRoutes);
+router.use("/contact-persons", contactPersonRoutes);
 
 export default router;
