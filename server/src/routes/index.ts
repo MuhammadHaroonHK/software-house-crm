@@ -10,6 +10,7 @@ import projectRoutes from "../modules/projects/project.routes";
 import taskRoutes from "../modules/tasks/task.routes";
 import meetingRoutes from "../modules/meetings/meeting.routes";
 import meetingParticipantRoutes from "../modules/meetingParticipants/meetingParticipant.routes";
+import quotationRoutes from "../modules/quotations/quotation.routes";
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/meetings", meetingRoutes);
 router.use("/meetings", meetingParticipantRoutes);
+router.use("/quotations", quotationRoutes);
 
 export default router;
