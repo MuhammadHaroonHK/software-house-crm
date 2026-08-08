@@ -17,6 +17,7 @@ import invoiceItemRoutes from "../modules/invoiceItems/invoiceItem.routes";
 import paymentRoutes from "../modules/payments/payment.routes";
 import notificationRoutes from "../modules/notifications/notification.routes";
 import fileRoutes from "../modules/files/file.routes";
+import auditLogRoutes from "../modules/auditLogs/auditLog.routes";
 
 const router = Router();
 
@@ -38,5 +39,6 @@ router.use("/", invoiceItemRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/files", fileRoutes);
+router.use("/audit-logs", auditLogRoutes);
 
 export default router;
