@@ -14,6 +14,7 @@ import quotationRoutes from "../modules/quotations/quotation.routes";
 import quotationItemRoutes from "../modules/quotationItems/quotationItem.routes";
 import invoiceRoutes from "../modules/invoices/invoice.routes";
 import invoiceItemRoutes from "../modules/invoiceItems/invoiceItem.routes";
+import paymentRoutes from "../modules/payments/payment.routes";
 
 const router = Router();
 
@@ -32,5 +33,6 @@ router.use("/quotations", quotationRoutes);
 router.use("/", quotationItemRoutes);
 router.use("/invoices", invoiceRoutes);
 router.use("/", invoiceItemRoutes);
+router.use("/payments", paymentRoutes);
 
 export default router;
