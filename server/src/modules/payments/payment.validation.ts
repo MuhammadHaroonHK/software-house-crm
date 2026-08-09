@@ -9,7 +9,9 @@ export const createPaymentSchema = z.object({
   body: z.object({
     invoiceId: z.uuid(),
 
-    amount: z.coerce.number().positive(),
+    amount: z.coerce
+      .number()
+      .positive(),
 
     paymentMethod: z.enum(PaymentMethod),
 
@@ -17,15 +19,29 @@ export const createPaymentSchema = z.object({
       .date()
       .optional(),
 
-    accountTitle: z.string().optional(),
+    accountTitle: z
+      .string()
+      .trim()
+      .optional(),
 
-    accountNumber: z.string().optional(),
+    accountNumber: z
+      .string()
+      .trim()
+      .optional(),
 
-    receiptImage: z.string().optional(),
+    receiptImage: z
+      .string()
+      .optional(),
 
-    referenceNumber: z.string().optional(),
+    referenceNumber: z
+      .string()
+      .trim()
+      .optional(),
 
-    notes: z.string().optional(),
+    notes: z
+      .string()
+      .trim()
+      .optional(),
   }),
 });
 

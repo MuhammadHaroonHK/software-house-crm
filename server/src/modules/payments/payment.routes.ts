@@ -4,6 +4,7 @@ import { UserRole } from "@prisma/client";
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
 import { validate } from "../../middleware/validate";
+import { paymentProofUpload } from "../../middleware/upload";
 
 import {
   createPaymentSchema,
@@ -21,8 +22,10 @@ router.post(
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.CLIENT
   ),
+  paymentProofUpload.single("receiptImage"),
   validate(createPaymentSchema),
   paymentController.create.bind(
     paymentController

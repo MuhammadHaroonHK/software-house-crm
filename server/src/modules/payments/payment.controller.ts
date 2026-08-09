@@ -12,26 +12,31 @@ const paymentService =
 
 export class PaymentController {
   async create(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const payment =
-        await paymentService.create(
-          req.body
-        );
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const receiptImage = req.file
+      ? `/uploads/payments/${req.file.filename}`
+      : undefined;
 
-      return successResponse(
-        res,
-        "Payment created successfully.",
-        payment,
-        201
-      );
-    } catch (error) {
-      next(error);
-    }
+    const payment =
+      await paymentService.create({
+        ...req.body,
+        receiptImage,
+      });
+
+    return successResponse(
+      res,
+      "Payment created successfully.",
+      payment,
+      201
+    );
+  } catch (error) {
+    next(error);
   }
+}
 
   async findAll(
     req: Request,
