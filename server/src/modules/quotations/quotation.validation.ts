@@ -22,8 +22,6 @@ export const createQuotationSchema = z.object({
       tax: z.coerce.number().nonnegative().optional(),
 
       notes: z.string().optional(),
-
-      status: z.enum(QuotationStatus).optional(),
     })
     .refine(
       (data) =>
@@ -66,8 +64,6 @@ export const updateQuotationSchema = z.object({
       tax: z.coerce.number().nonnegative().optional(),
 
       notes: z.string().optional(),
-
-      status: z.enum(QuotationStatus).optional(),
     })
     .refine(
       (data) =>

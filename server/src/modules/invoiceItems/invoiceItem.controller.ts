@@ -50,45 +50,45 @@ export class InvoiceItemController {
   }
 
   async update(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const item =
-        await invoiceItemService.update(
-          String(req.params.invoiceId),
-          req.body
-        );
-
-      return successResponse(
-        res,
-        "Invoice item updated successfully.",
-        item
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const item =
+      await invoiceItemService.update(
+        String(req.params.itemId),
+        req.body
       );
-    } catch (error) {
-      next(error);
-    }
+
+    return successResponse(
+      res,
+      "Invoice item updated successfully.",
+      item
+    );
+  } catch (error) {
+    next(error);
   }
+}
 
   async delete(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      await invoiceItemService.delete(
-        String(req.params.invoiceId)
-      );
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    await invoiceItemService.delete(
+      String(req.params.itemId)
+    );
 
-      return successResponse(
-        res,
-        "Invoice item deleted successfully."
-      );
-    } catch (error) {
-      next(error);
-    }
+    return successResponse(
+      res,
+      "Invoice item deleted successfully."
+    );
+  } catch (error) {
+    next(error);
   }
+}
 }
 
 export const invoiceItemController =

@@ -199,32 +199,30 @@ export class PaymentRepository {
   }
 
   async getInvoicePaymentsTotal(
-    invoiceId: string,
-    excludePaymentId?: string
-  ) {
-    const result =
-      await prisma.payment.aggregate({
-        where: {
-          invoiceId,
+  invoiceId: string,
+  excludePaymentId?: string
+) {
+  const result =
+    await prisma.payment.aggregate({
+      where: {
+        invoiceId,
 
-          ...(excludePaymentId && {
-            id: {
-              not: excludePaymentId,
-            },
-          }),
-
-          status: {
-            not: PaymentStatus.FAILED,
+        ...(excludePaymentId && {
+          id: {
+            not: excludePaymentId,
           },
-        },
+        }),
 
-        _sum: {
-          amount: true,
-        },
-      });
+        status: PaymentStatus.COMPLETED,
+      },
 
-    return Number(result._sum.amount ?? 0);
-  }
+      _sum: {
+        amount: true,
+      },
+    });
+
+  return Number(result._sum.amount ?? 0);
+}
 
   async updateInvoiceFinancials(
     invoiceId: string,

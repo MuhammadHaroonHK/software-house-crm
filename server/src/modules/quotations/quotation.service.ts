@@ -88,10 +88,6 @@ export class QuotationService {
         notes: data.notes,
       }),
 
-      ...(data.status && {
-        status: data.status,
-      }),
-
       client: {
         connect: {
           id: data.clientId,
@@ -174,6 +170,15 @@ export class QuotationService {
         "Quotation not found."
       );
     }
+
+    if (
+  quotation.status !== QuotationStatus.DRAFT
+) {
+  throw new AppError(
+    400,
+    "Only draft quotations can be modified."
+  );
+}
 
     if (
       data.quotationNumber &&
@@ -272,10 +277,6 @@ export class QuotationService {
       ...(data.notes !== undefined && {
         notes: data.notes,
       }),
-
-      ...(data.status && {
-        status: data.status,
-      }),
     };
 
     if (data.clientId) {
@@ -305,6 +306,145 @@ export class QuotationService {
       updateData
     );
   }
+
+  async send(id: string) {
+  const quotation =
+    await quotationRepository.findById(id);
+
+  if (!quotation) {
+    throw new AppError(
+      404,
+      "Quotation not found."
+    );
+  }
+
+  if (
+    quotation.status !== QuotationStatus.DRAFT
+  ) {
+    throw new AppError(
+      400,
+      "Only draft quotations can be sent."
+    );
+  }
+
+  const items =
+    await quotationRepository.findItemsByQuotationId(
+      id
+    );
+
+  if (items.length === 0) {
+    throw new AppError(
+      400,
+      "Quotation must contain at least one item before it can be sent."
+    );
+  }
+
+  if (Number(quotation.totalAmount) <= 0) {
+    throw new AppError(
+      400,
+      "Quotation total amount must be greater than zero."
+    );
+  }
+
+  return quotationRepository.update(id, {
+    status: QuotationStatus.SENT,
+  });
+}
+
+async accept(id: string) {
+  const quotation =
+    await quotationRepository.findById(id);
+
+  if (!quotation) {
+    throw new AppError(
+      404,
+      "Quotation not found."
+    );
+  }
+
+  if (
+    quotation.status !== QuotationStatus.SENT
+  ) {
+    throw new AppError(
+      400,
+      "Only sent quotations can be accepted."
+    );
+  }
+
+  if (
+    quotation.expiryDate &&
+    quotation.expiryDate < new Date()
+  ) {
+    throw new AppError(
+      400,
+      "This quotation has expired."
+    );
+  }
+
+  return quotationRepository.update(id, {
+    status: QuotationStatus.ACCEPTED,
+  });
+}
+
+async reject(id: string) {
+  const quotation =
+    await quotationRepository.findById(id);
+
+  if (!quotation) {
+    throw new AppError(
+      404,
+      "Quotation not found."
+    );
+  }
+
+  if (
+    quotation.status !== QuotationStatus.SENT
+  ) {
+    throw new AppError(
+      400,
+      "Only sent quotations can be rejected."
+    );
+  }
+
+  return quotationRepository.update(id, {
+    status: QuotationStatus.REJECTED,
+  });
+}
+
+async expire(id: string) {
+  const quotation =
+    await quotationRepository.findById(id);
+
+  if (!quotation) {
+    throw new AppError(
+      404,
+      "Quotation not found."
+    );
+  }
+
+  if (
+    quotation.status !== QuotationStatus.SENT
+  ) {
+    throw new AppError(
+      400,
+      "Only sent quotations can expire."
+    );
+  }
+
+  if (
+    !quotation.expiryDate ||
+    quotation.expiryDate > new Date()
+  ) {
+    throw new AppError(
+      400,
+      "Quotation expiry date has not been reached."
+    );
+  }
+
+  return quotationRepository.update(id, {
+    status: QuotationStatus.EXPIRED,
+  });
+}
 
   async delete(id: string) {
     const quotation =

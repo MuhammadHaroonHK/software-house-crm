@@ -4,6 +4,7 @@ import {
   UpdateQuotationItemDTO,
 } from "./quotationItem.types";
 import { QuotationItemRepository } from "./quotationItem.repository";
+import { QuotationStatus } from "@prisma/client";
 
 const quotationItemRepository =
   new QuotationItemRepository();
@@ -14,28 +15,30 @@ export class QuotationItemService {
     data: CreateQuotationItemDTO
   ) {
     const quotation =
-      await quotationItemRepository.findQuotationById(
-        quotationId
-      );
+  await quotationItemRepository.findQuotationById(
+    quotationId
+  );
 
-    if (!quotation) {
-      throw new AppError(
-        404,
-        "Quotation not found."
-      );
-    }
+if (!quotation) {
+  throw new AppError(
+    404,
+    "Quotation not found."
+  );
+}
 
-    const locked =
-      await quotationItemRepository.isQuotationLocked(
-        quotationId
-      );
+const lockedStatuses: QuotationStatus[] = [
+  QuotationStatus.SENT,
+  QuotationStatus.ACCEPTED,
+  QuotationStatus.REJECTED,
+  QuotationStatus.EXPIRED,
+];
 
-    if (locked) {
-      throw new AppError(
-        400,
-        "This quotation can no longer be modified."
-      );
-    }
+if (lockedStatuses.includes(quotation.status)) {
+  throw new AppError(
+    400,
+    "This quotation can no longer be modified."
+  );
+}
 
     const totalPrice =
       data.quantity * data.unitPrice;

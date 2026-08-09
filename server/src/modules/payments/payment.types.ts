@@ -20,8 +20,6 @@ export interface CreatePaymentDTO {
 
   referenceNumber?: string;
 
-  status?: PaymentStatus;
-
   notes?: string;
 }
 

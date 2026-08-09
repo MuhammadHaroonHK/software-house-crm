@@ -148,6 +148,16 @@ export class QuotationRepository {
     };
   }
 
+  async findItemsByQuotationId(
+  quotationId: string
+) {
+  return prisma.quotationItem.findMany({
+    where: {
+      quotationId,
+    },
+  });
+}
+
   async update(
     id: string,
     data: Prisma.QuotationUpdateInput

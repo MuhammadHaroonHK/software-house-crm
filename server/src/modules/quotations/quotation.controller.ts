@@ -116,6 +116,90 @@ export class QuotationController {
     }
   }
 
+  async send(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const quotation =
+      await quotationService.send(
+        String(req.params.id)
+      );
+
+    return successResponse(
+      res,
+      "Quotation sent successfully.",
+      quotation
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async accept(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const quotation =
+      await quotationService.accept(
+        String(req.params.id)
+      );
+
+    return successResponse(
+      res,
+      "Quotation accepted successfully.",
+      quotation
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async reject(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const quotation =
+      await quotationService.reject(
+        String(req.params.id)
+      );
+
+    return successResponse(
+      res,
+      "Quotation rejected successfully.",
+      quotation
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async expire(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const quotation =
+      await quotationService.expire(
+        String(req.params.id)
+      );
+
+    return successResponse(
+      res,
+      "Quotation expired successfully.",
+      quotation
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
   async delete(
     req: Request,
     res: Response,

@@ -37,6 +37,54 @@ router.get(
   quotationController.findAll.bind(quotationController)
 );
 
+router.patch(
+  "/:id/send",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  quotationController.send.bind(
+    quotationController
+  )
+);
+
+router.patch(
+  "/:id/accept",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  quotationController.accept.bind(
+    quotationController
+  )
+);
+
+router.patch(
+  "/:id/reject",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  quotationController.reject.bind(
+    quotationController
+  )
+);
+
+router.patch(
+  "/:id/expire",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  quotationController.expire.bind(
+    quotationController
+  )
+);
+
 router.get(
   "/:id",
   authenticate,

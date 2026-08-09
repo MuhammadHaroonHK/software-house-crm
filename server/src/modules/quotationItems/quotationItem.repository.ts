@@ -17,12 +17,22 @@ export class QuotationItemRepository {
   }
 
   async findQuotationById(id: string) {
-    return prisma.quotation.findUnique({
-      where: {
-        id,
-      },
-    });
-  }
+  return prisma.quotation.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      clientId: true,
+      projectId: true,
+      status: true,
+      subtotal: true,
+      discount: true,
+      tax: true,
+      totalAmount: true,
+    },
+  });
+}
 
   async findItemsByQuotationId(quotationId: string) {
     return prisma.quotationItem.findMany({
@@ -89,20 +99,17 @@ export class QuotationItemRepository {
   }
 
   async isQuotationLocked(id: string) {
-    const quotation = await prisma.quotation.findUnique({
-      where: {
-        id,
-      },
-    });
+  const quotation = await this.findQuotationById(id);
 
-    if (!quotation) return false;
+  if (!quotation) return false;
 
-    const lockedStatuses: QuotationStatus[] = [
-      QuotationStatus.ACCEPTED,
-      QuotationStatus.REJECTED,
-      QuotationStatus.EXPIRED,
-    ];
+  const lockedStatuses: QuotationStatus[] = [
+    QuotationStatus.SENT,
+    QuotationStatus.ACCEPTED,
+    QuotationStatus.REJECTED,
+    QuotationStatus.EXPIRED,
+  ];
 
-    return lockedStatuses.includes(quotation.status);
-  }
+  return lockedStatuses.includes(quotation.status);
+}
 }

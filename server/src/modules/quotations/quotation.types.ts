@@ -14,8 +14,6 @@ export interface CreateQuotationDTO {
   tax?: number;
 
   notes?: string;
-
-  status?: QuotationStatus;
 }
 
 export interface UpdateQuotationDTO {
@@ -32,6 +30,4 @@ export interface UpdateQuotationDTO {
   tax?: number;
 
   notes?: string;
-
-  status?: QuotationStatus;
 }

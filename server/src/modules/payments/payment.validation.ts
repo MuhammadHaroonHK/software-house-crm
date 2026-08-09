@@ -25,10 +25,6 @@ export const createPaymentSchema = z.object({
 
     referenceNumber: z.string().optional(),
 
-    status: z
-      .enum(PaymentStatus)
-      .optional(),
-
     notes: z.string().optional(),
   }),
 });

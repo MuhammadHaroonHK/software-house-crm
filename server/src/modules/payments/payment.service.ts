@@ -54,10 +54,6 @@ export class PaymentService {
       );
     }
 
-    const paymentStatus =
-      data.status ??
-      PaymentStatus.COMPLETED;
-
     const payment =
       await paymentRepository.create({
         amount: data.amount,
@@ -90,7 +86,7 @@ export class PaymentService {
             data.referenceNumber,
         }),
 
-        status: paymentStatus,
+        status: PaymentStatus.PENDING,
 
         ...(data.notes !== undefined && {
           notes: data.notes,
@@ -324,52 +320,48 @@ export class PaymentService {
   }
 
   private async recalculateInvoice(
-    invoiceId: string
-  ) {
-    const invoice =
-      await paymentRepository.findInvoiceById(
-        invoiceId
-      );
+  invoiceId: string
+) {
+  const invoice =
+    await paymentRepository.findInvoiceById(
+      invoiceId
+    );
 
-    if (!invoice) {
-      throw new AppError(
-        404,
-        "Invoice not found."
-      );
-    }
-
-    const amountPaid =
-      await paymentRepository.getInvoicePaymentsTotal(
-        invoiceId
-      );
-
-    const totalAmount =
-      Number(invoice.totalAmount);
-
-    const balanceDue =
-      Math.max(
-        totalAmount - amountPaid,
-        0
-      );
-
-    let status: InvoiceStatus;
-
-    if (amountPaid <= 0) {
-      status = InvoiceStatus.DRAFT;
-    } else if (
-      amountPaid >= totalAmount
-    ) {
-      status = InvoiceStatus.PAID;
-    } else {
-      status =
-        InvoiceStatus.PARTIALLY_PAID;
-    }
-
-    await paymentRepository.updateInvoiceFinancials(
-      invoiceId,
-      amountPaid,
-      balanceDue,
-      status
+  if (!invoice) {
+    throw new AppError(
+      404,
+      "Invoice not found."
     );
   }
+
+  const amountPaid =
+    await paymentRepository.getInvoicePaymentsTotal(
+      invoiceId
+    );
+
+  const totalAmount =
+    Number(invoice.totalAmount);
+
+  const balanceDue =
+    Math.max(
+      totalAmount - amountPaid,
+      0
+    );
+
+  let status = invoice.status;
+
+  if (amountPaid >= totalAmount) {
+    status = InvoiceStatus.PAID;
+  } else if (amountPaid > 0) {
+    status =
+      InvoiceStatus.PARTIALLY_PAID;
+  }
+
+  await paymentRepository.updateInvoiceFinancials(
+    invoiceId,
+    amountPaid,
+    balanceDue,
+    status
+  );
+}
 }
