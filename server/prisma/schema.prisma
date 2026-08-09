@@ -497,6 +497,7 @@ model CompanySetting {
   bankName      String?
   accountTitle  String?
   accountNumber String?
+  iban          String?
 
   easyPaisaNumber String?
   jazzCashNumber  String?
