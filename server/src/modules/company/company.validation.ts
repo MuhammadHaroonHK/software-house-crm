@@ -60,6 +60,11 @@ export const updateCompanySchema = z.object({
       .trim()
       .optional(),
 
+    iban: z
+  .string()
+  .trim()
+  .optional(),
+
     currency: z
       .string()
       .trim()

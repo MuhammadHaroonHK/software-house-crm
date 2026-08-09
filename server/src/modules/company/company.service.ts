@@ -70,6 +70,10 @@ export class CompanyService {
         data.jazzCashNumber ??
         existing?.jazzCashNumber,
 
+      iban:
+  data.iban ??
+  existing?.iban,
+
       currency:
         data.currency ??
         existing?.currency ??

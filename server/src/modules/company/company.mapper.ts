@@ -15,6 +15,7 @@ export function toCompanyResponse(
     bankName: company.bankName,
     accountTitle: company.accountTitle,
     accountNumber: company.accountNumber,
+    iban: company.iban,
 
     easyPaisaNumber: company.easyPaisaNumber,
     jazzCashNumber: company.jazzCashNumber,

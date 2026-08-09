@@ -10,6 +10,7 @@ export interface UpdateCompanyDTO {
   bankName?: string;
   accountTitle?: string;
   accountNumber?: string;
+  iban?: string;
 
   easyPaisaNumber?: string;
   jazzCashNumber?: string;
