@@ -242,4 +242,18 @@ export class PaymentRepository {
       },
     });
   }
+
+  async getReceiverDetails() {
+  return prisma.companySetting.findFirst({
+    select: {
+      bankName: true,
+      accountTitle: true,
+      accountNumber: true,
+      iban: true,
+      easyPaisaNumber: true,
+      jazzCashNumber: true,
+      currency: true,
+    },
+  });
+}
 }

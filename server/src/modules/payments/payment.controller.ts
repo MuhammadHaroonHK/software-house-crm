@@ -117,6 +117,25 @@ export class PaymentController {
       next(error);
     }
   }
+
+  async getReceiverDetails(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const details =
+      await paymentService.getReceiverDetails();
+
+    return successResponse(
+      res,
+      "Payment receiver details fetched successfully.",
+      details
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const paymentController =

@@ -364,4 +364,18 @@ export class PaymentService {
     status
   );
 }
+
+async getReceiverDetails() {
+  const company =
+    await paymentRepository.getReceiverDetails();
+
+  if (!company) {
+    throw new AppError(
+      404,
+      "Company payment details not configured."
+    );
+  }
+
+  return company;
+}
 }

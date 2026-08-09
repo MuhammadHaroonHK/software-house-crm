@@ -44,6 +44,14 @@ router.get(
   )
 );
 
+router.get(
+  "/receiver-details",
+  authenticate,
+  paymentController.getReceiverDetails.bind(
+    paymentController
+  )
+);
+
 // Get Single Payment
 router.get(
   "/:id",
