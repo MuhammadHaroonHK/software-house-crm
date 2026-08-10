@@ -126,6 +126,14 @@ export class PaymentService {
       throw new AppError(404, "Payment not found.");
     }
 
+    if (payment.status === PaymentStatus.COMPLETED) {
+      throw new AppError(400, "Completed payment cannot be modified.");
+    }
+
+    if (payment.status === PaymentStatus.REFUNDED) {
+      throw new AppError(400, "Refunded payment cannot be modified.");
+    }
+
     const invoice = await paymentRepository.findInvoiceById(payment.invoiceId);
 
     if (!invoice) {
@@ -204,6 +212,14 @@ export class PaymentService {
 
     if (!payment) {
       throw new AppError(404, "Payment not found.");
+    }
+
+    if (payment.status === PaymentStatus.COMPLETED) {
+      throw new AppError(400, "Completed payment cannot be deleted.");
+    }
+
+    if (payment.status === PaymentStatus.REFUNDED) {
+      throw new AppError(400, "Refunded payment cannot be deleted.");
     }
 
     const invoice = await paymentRepository.findInvoiceById(payment.invoiceId);
