@@ -83,10 +83,6 @@ export const updatePaymentSchema = z.object({
       .nullable()
       .optional(),
 
-    status: z
-      .enum(PaymentStatus)
-      .optional(),
-
     notes: z
       .string()
       .nullable()

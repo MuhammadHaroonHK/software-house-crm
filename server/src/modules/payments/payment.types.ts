@@ -38,7 +38,5 @@ export interface UpdatePaymentDTO {
 
   referenceNumber?: string | null;
 
-  status?: PaymentStatus;
-
   notes?: string | null;
 }

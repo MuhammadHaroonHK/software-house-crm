@@ -141,6 +141,49 @@ export class PaymentController {
     next(error);
   }
 }
+
+async verify(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const payment =
+      await paymentService.verify(
+        String(req.params.id),
+        req.user!.userId
+      );
+
+    return successResponse(
+      res,
+      "Payment verified successfully.",
+      payment
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async reject(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const payment =
+      await paymentService.reject(
+        String(req.params.id)
+      );
+
+    return successResponse(
+      res,
+      "Payment rejected successfully.",
+      payment
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const paymentController =

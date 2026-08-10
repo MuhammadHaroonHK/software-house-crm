@@ -55,6 +55,30 @@ router.get(
   )
 );
 
+router.patch(
+  "/:id/verify",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  paymentController.verify.bind(
+    paymentController
+  )
+);
+
+router.patch(
+  "/:id/reject",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  paymentController.reject.bind(
+    paymentController
+  )
+);
+
 // Get Single Payment
 router.get(
   "/:id",

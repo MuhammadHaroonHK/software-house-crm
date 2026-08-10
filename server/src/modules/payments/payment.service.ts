@@ -1,111 +1,75 @@
 import { AppError } from "../../utils/AppError";
 import { getPagination } from "../../utils/pagination";
-import {
-  InvoiceStatus,
-  PaymentStatus,
-} from "@prisma/client";
-import {
-  CreatePaymentDTO,
-  UpdatePaymentDTO,
-} from "./payment.types";
+import { InvoiceStatus, PaymentStatus } from "@prisma/client";
+import { CreatePaymentDTO, UpdatePaymentDTO } from "./payment.types";
 import { PaymentRepository } from "./payment.repository";
 
-const paymentRepository =
-  new PaymentRepository();
+const paymentRepository = new PaymentRepository();
 
 export class PaymentService {
   async create(data: CreatePaymentDTO) {
-    const invoice =
-      await paymentRepository.findInvoiceById(
-        data.invoiceId
-      );
+    const invoice = await paymentRepository.findInvoiceById(data.invoiceId);
 
     if (!invoice) {
-      throw new AppError(
-        404,
-        "Invoice not found."
-      );
+      throw new AppError(404, "Invoice not found.");
     }
 
-    if (
-      invoice.status ===
-      InvoiceStatus.PAID
-    ) {
-      throw new AppError(
-        400,
-        "Invoice is already fully paid."
-      );
+    if (invoice.status === InvoiceStatus.PAID) {
+      throw new AppError(400, "Invoice is already fully paid.");
     }
 
     if (data.amount <= 0) {
+      throw new AppError(400, "Payment amount must be greater than zero.");
+    }
+
+    if (data.amount > Number(invoice.balanceDue)) {
       throw new AppError(
         400,
-        "Payment amount must be greater than zero."
+        "Payment amount cannot exceed the invoice balance due.",
       );
     }
 
-    if (
-      data.amount >
-      Number(invoice.balanceDue)
-    ) {
-      throw new AppError(
-        400,
-        "Payment amount cannot exceed the invoice balance due."
-      );
-    }
+    const payment = await paymentRepository.create({
+      amount: data.amount,
 
-    const payment =
-      await paymentRepository.create({
-        amount: data.amount,
+      paymentMethod: data.paymentMethod,
 
-        paymentMethod:
-          data.paymentMethod,
+      ...(data.paymentDate && {
+        paymentDate: new Date(data.paymentDate),
+      }),
 
-        ...(data.paymentDate && {
-          paymentDate:
-            new Date(data.paymentDate),
-        }),
+      ...(data.accountTitle !== undefined && {
+        accountTitle: data.accountTitle,
+      }),
 
-        ...(data.accountTitle !== undefined && {
-          accountTitle:
-            data.accountTitle,
-        }),
+      ...(data.accountNumber !== undefined && {
+        accountNumber: data.accountNumber,
+      }),
 
-        ...(data.accountNumber !== undefined && {
-          accountNumber:
-            data.accountNumber,
-        }),
+      ...(data.receiptImage !== undefined && {
+        receiptImage: data.receiptImage,
+      }),
 
-        ...(data.receiptImage !== undefined && {
-          receiptImage:
-            data.receiptImage,
-        }),
+      ...(data.referenceNumber !== undefined && {
+        referenceNumber: data.referenceNumber,
+      }),
 
-        ...(data.referenceNumber !== undefined && {
-          referenceNumber:
-            data.referenceNumber,
-        }),
+      status: PaymentStatus.PENDING,
 
-        status: PaymentStatus.PENDING,
+      ...(data.notes !== undefined && {
+        notes: data.notes,
+      }),
 
-        ...(data.notes !== undefined && {
-          notes: data.notes,
-        }),
-
-        invoice: {
-          connect: {
-            id: data.invoiceId,
-          },
+      invoice: {
+        connect: {
+          id: data.invoiceId,
         },
-      });
+      },
+    });
 
-    await this.recalculateInvoice(
-      data.invoiceId
-    );
+    await this.recalculateInvoice(data.invoiceId);
 
-    return paymentRepository.findById(
-      payment.id
-    );
+    return paymentRepository.findById(payment.id);
   }
 
   async findAll(query: {
@@ -117,27 +81,21 @@ export class PaymentService {
     sortBy?: string;
     sortOrder?: "asc" | "desc";
   }) {
-    const pagination =
-      getPagination(query);
+    const pagination = getPagination(query);
 
-    const paymentMethod =
-      query.paymentMethod as
-        | import("@prisma/client").PaymentMethod
-        | undefined;
+    const paymentMethod = query.paymentMethod as
+      | import("@prisma/client").PaymentMethod
+      | undefined;
 
-    const {
-      payments,
-      total,
-    } =
-      await paymentRepository.findAll(
-        pagination.skip,
-        pagination.limit,
-        query.invoiceId,
-        query.status,
-        paymentMethod,
-        pagination.sortBy,
-        pagination.sortOrder
-      );
+    const { payments, total } = await paymentRepository.findAll(
+      pagination.skip,
+      pagination.limit,
+      query.invoiceId,
+      query.status,
+      paymentMethod,
+      pagination.sortBy,
+      pagination.sortOrder,
+    );
 
     return {
       data: payments,
@@ -146,236 +104,253 @@ export class PaymentService {
         page: pagination.page,
         limit: pagination.limit,
         total,
-        totalPages: Math.ceil(
-          total / pagination.limit
-        ),
+        totalPages: Math.ceil(total / pagination.limit),
       },
     };
   }
 
   async findById(id: string) {
-    const payment =
-      await paymentRepository.findById(id);
+    const payment = await paymentRepository.findById(id);
 
     if (!payment) {
-      throw new AppError(
-        404,
-        "Payment not found."
-      );
+      throw new AppError(404, "Payment not found.");
     }
 
     return payment;
   }
 
-  async update(
-    id: string,
-    data: UpdatePaymentDTO
-  ) {
-    const payment =
-      await paymentRepository.findById(id);
+  async update(id: string, data: UpdatePaymentDTO) {
+    const payment = await paymentRepository.findById(id);
 
     if (!payment) {
-      throw new AppError(
-        404,
-        "Payment not found."
-      );
+      throw new AppError(404, "Payment not found.");
     }
 
-    const invoice =
-      await paymentRepository.findInvoiceById(
-        payment.invoiceId
-      );
+    const invoice = await paymentRepository.findInvoiceById(payment.invoiceId);
 
     if (!invoice) {
-      throw new AppError(
-        404,
-        "Invoice not found."
-      );
+      throw new AppError(404, "Invoice not found.");
     }
 
-    const amount =
-      data.amount ??
-      Number(payment.amount);
+    const amount = data.amount ?? Number(payment.amount);
 
     if (amount <= 0) {
-      throw new AppError(
-        400,
-        "Payment amount must be greater than zero."
-      );
+      throw new AppError(400, "Payment amount must be greater than zero.");
     }
 
-    if (
-      data.amount !== undefined
-    ) {
+    if (data.amount !== undefined) {
       const otherPaymentsTotal =
         await paymentRepository.getInvoicePaymentsTotal(
           payment.invoiceId,
-          payment.id
+          payment.id,
         );
 
-      if (
-        otherPaymentsTotal + amount >
-        Number(invoice.totalAmount)
-      ) {
+      if (otherPaymentsTotal + amount > Number(invoice.totalAmount)) {
         throw new AppError(
           400,
-          "Payment amount cannot make the invoice overpaid."
+          "Payment amount cannot make the invoice overpaid.",
         );
       }
     }
 
-    const updatedPayment =
-      await paymentRepository.update(
-        id,
-        {
-          ...(data.amount !== undefined && {
-            amount: data.amount,
-          }),
+    await paymentRepository.update(id, {
+      ...(data.amount !== undefined && {
+        amount: data.amount,
+      }),
 
-          ...(data.paymentMethod !==
-            undefined && {
-            paymentMethod:
-              data.paymentMethod,
-          }),
+      ...(data.paymentMethod !== undefined && {
+        paymentMethod: data.paymentMethod,
+      }),
 
-          ...(data.paymentDate !==
-            undefined && {
-            paymentDate:
-              data.paymentDate === null
-                ? null
-                : new Date(
-                    data.paymentDate
-                  ),
-          }),
+      ...(data.paymentDate !== undefined && {
+        paymentDate:
+          data.paymentDate === null ? null : new Date(data.paymentDate),
+      }),
 
-          ...(data.accountTitle !==
-            undefined && {
-            accountTitle:
-              data.accountTitle,
-          }),
+      ...(data.accountTitle !== undefined && {
+        accountTitle: data.accountTitle,
+      }),
 
-          ...(data.accountNumber !==
-            undefined && {
-            accountNumber:
-              data.accountNumber,
-          }),
+      ...(data.accountNumber !== undefined && {
+        accountNumber: data.accountNumber,
+      }),
 
-          ...(data.receiptImage !==
-            undefined && {
-            receiptImage:
-              data.receiptImage,
-          }),
+      ...(data.receiptImage !== undefined && {
+        receiptImage: data.receiptImage,
+      }),
 
-          ...(data.referenceNumber !==
-            undefined && {
-            referenceNumber:
-              data.referenceNumber,
-          }),
+      ...(data.referenceNumber !== undefined && {
+        referenceNumber: data.referenceNumber,
+      }),
 
-          ...(data.status !== undefined && {
-            status: data.status,
-          }),
+      ...(data.notes !== undefined && {
+        notes: data.notes,
+      }),
+    });
 
-          ...(data.notes !== undefined && {
-            notes: data.notes,
-          }),
-        }
-      );
+    await this.recalculateInvoice(payment.invoiceId);
 
-    await this.recalculateInvoice(
-      payment.invoiceId
-    );
+    const updatedPayment = await paymentRepository.findById(id);
+
+    if (!updatedPayment) {
+      throw new AppError(404, "Payment not found after update.");
+    }
 
     return updatedPayment;
   }
 
   async delete(id: string) {
-    const payment =
-      await paymentRepository.findById(id);
+    const payment = await paymentRepository.findById(id);
 
     if (!payment) {
-      throw new AppError(
-        404,
-        "Payment not found."
-      );
+      throw new AppError(404, "Payment not found.");
     }
 
-    const invoice =
-      await paymentRepository.findInvoiceById(
-        payment.invoiceId
-      );
+    const invoice = await paymentRepository.findInvoiceById(payment.invoiceId);
 
     if (!invoice) {
-      throw new AppError(
-        404,
-        "Invoice not found."
-      );
+      throw new AppError(404, "Invoice not found.");
     }
 
     await paymentRepository.delete(id);
 
-    await this.recalculateInvoice(
-      payment.invoiceId
+    await this.recalculateInvoice(payment.invoiceId);
+  }
+
+  private async recalculateInvoice(invoiceId: string) {
+    const invoice = await paymentRepository.findInvoiceById(invoiceId);
+
+    if (!invoice) {
+      throw new AppError(404, "Invoice not found.");
+    }
+
+    const amountPaid =
+      await paymentRepository.getInvoicePaymentsTotal(invoiceId);
+
+    const totalAmount = Number(invoice.totalAmount);
+
+    const balanceDue = Math.max(totalAmount - amountPaid, 0);
+
+    let status: InvoiceStatus;
+
+    if (amountPaid >= totalAmount) {
+      status = InvoiceStatus.PAID;
+    } else if (amountPaid > 0) {
+      status = InvoiceStatus.PARTIALLY_PAID;
+    } else if (invoice.dueDate < new Date()) {
+      status = InvoiceStatus.OVERDUE;
+    } else {
+      status = InvoiceStatus.SENT;
+    }
+
+    await paymentRepository.updateInvoiceFinancials(
+      invoiceId,
+      amountPaid,
+      balanceDue,
+      status,
     );
   }
 
-  private async recalculateInvoice(
-  invoiceId: string
-) {
-  const invoice =
-    await paymentRepository.findInvoiceById(
-      invoiceId
-    );
+  async getReceiverDetails() {
+    const company = await paymentRepository.getReceiverDetails();
 
-  if (!invoice) {
-    throw new AppError(
-      404,
-      "Invoice not found."
-    );
+    if (!company) {
+      throw new AppError(404, "Company payment details not configured.");
+    }
+
+    return company;
   }
 
-  const amountPaid =
-    await paymentRepository.getInvoicePaymentsTotal(
-      invoiceId
-    );
+  async verify(id: string, verifiedById: string) {
+    const payment = await paymentRepository.findById(id);
 
-  const totalAmount =
-    Number(invoice.totalAmount);
+    if (!payment) {
+      throw new AppError(404, "Payment not found.");
+    }
 
-  const balanceDue =
-    Math.max(
-      totalAmount - amountPaid,
-      0
-    );
+    if (payment.status === PaymentStatus.COMPLETED) {
+      throw new AppError(400, "Payment is already completed.");
+    }
 
-  let status = invoice.status;
+    if (payment.status === PaymentStatus.REFUNDED) {
+      throw new AppError(400, "Refunded payment cannot be completed.");
+    }
 
-  if (amountPaid >= totalAmount) {
-    status = InvoiceStatus.PAID;
-  } else if (amountPaid > 0) {
-    status =
-      InvoiceStatus.PARTIALLY_PAID;
+    if (payment.status === PaymentStatus.FAILED) {
+      throw new AppError(400, "Failed payment cannot be completed.");
+    }
+
+    const invoice = await paymentRepository.findInvoiceById(payment.invoiceId);
+
+    if (!invoice) {
+      throw new AppError(404, "Invoice not found.");
+    }
+
+    const otherCompletedPayments =
+      await paymentRepository.getInvoicePaymentsTotal(
+        payment.invoiceId,
+        payment.id,
+      );
+
+    const totalAfterPayment = otherCompletedPayments + Number(payment.amount);
+
+    if (totalAfterPayment > Number(invoice.totalAmount)) {
+      throw new AppError(
+        400,
+        "Payment cannot be completed because it would overpay the invoice.",
+      );
+    }
+
+    await paymentRepository.update(id, {
+      status: PaymentStatus.COMPLETED,
+
+      verifiedAt: new Date(),
+
+      verifiedBy: {
+        connect: {
+          id: verifiedById,
+        },
+      },
+    });
+
+    await this.recalculateInvoice(payment.invoiceId);
+
+    const updatedPayment = await paymentRepository.findById(id);
+
+    if (!updatedPayment) {
+      throw new AppError(404, "Payment not found after verification.");
+    }
+
+    return updatedPayment;
   }
 
-  await paymentRepository.updateInvoiceFinancials(
-    invoiceId,
-    amountPaid,
-    balanceDue,
-    status
-  );
-}
+  async reject(id: string) {
+    const payment = await paymentRepository.findById(id);
 
-async getReceiverDetails() {
-  const company =
-    await paymentRepository.getReceiverDetails();
+    if (!payment) {
+      throw new AppError(404, "Payment not found.");
+    }
 
-  if (!company) {
-    throw new AppError(
-      404,
-      "Company payment details not configured."
-    );
+    if (payment.status === PaymentStatus.COMPLETED) {
+      throw new AppError(400, "Completed payment cannot be marked as failed.");
+    }
+
+    if (payment.status === PaymentStatus.REFUNDED) {
+      throw new AppError(400, "Refunded payment cannot be marked as failed.");
+    }
+
+    await paymentRepository.update(id, {
+      status: PaymentStatus.FAILED,
+    });
+
+    await this.recalculateInvoice(payment.invoiceId);
+
+    const updatedPayment = await paymentRepository.findById(id);
+
+    if (!updatedPayment) {
+      throw new AppError(404, "Payment not found after rejection.");
+    }
+
+    return updatedPayment;
   }
-
-  return company;
-}
 }
