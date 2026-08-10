@@ -10,6 +10,7 @@ import {
   createTaskSchema,
   updateTaskSchema,
   getTasksSchema,
+  updateTaskStatusSchema,
 } from "./task.validation";
 
 const router = Router();
@@ -44,6 +45,20 @@ router.get(
     UserRole.PROJECT_MANAGER
   ),
   taskController.findById.bind(taskController)
+);
+
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER,
+    UserRole.EMPLOYEE
+  ),
+  validate(updateTaskStatusSchema),
+  taskController.updateStatus.bind(
+    taskController
+  )
 );
 
 router.patch(

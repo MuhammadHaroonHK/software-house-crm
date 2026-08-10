@@ -1,6 +1,5 @@
 import {
   TaskPriority,
-  TaskStatus,
 } from "@prisma/client";
 
 export interface CreateTaskDTO {
@@ -11,8 +10,6 @@ export interface CreateTaskDTO {
   description?: string;
 
   priority?: TaskPriority;
-  status?: TaskStatus;
-
   dueDate?: string;
 }
 
@@ -23,7 +20,6 @@ export interface UpdateTaskDTO {
   description?: string;
 
   priority?: TaskPriority;
-  status?: TaskStatus;
 
   dueDate?: string | null;
 }

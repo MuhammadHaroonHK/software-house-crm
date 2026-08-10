@@ -144,6 +144,38 @@ export class TaskController {
       next(error);
     }
   }
+
+  async updateStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id =
+      String(req.params.id);
+
+    const { status } =
+      req.body;
+
+    const actorRole =
+      req.user!.role;
+
+    const task =
+      await taskService.updateStatus(
+        id,
+        status,
+        actorRole
+      );
+
+    return successResponse(
+      res,
+      "Task status updated successfully.",
+      task
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const taskController =

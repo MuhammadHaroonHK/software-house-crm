@@ -23,10 +23,6 @@ export const createTaskSchema = z.object({
       .enum(TaskPriority)
       .optional(),
 
-    status: z
-      .enum(TaskStatus)
-      .optional(),
-
     dueDate: z.coerce.date().optional(),
   }),
 });
@@ -48,10 +44,6 @@ export const updateTaskSchema = z.object({
 
     priority: z
       .enum(TaskPriority)
-      .optional(),
-
-    status: z
-      .enum(TaskStatus)
       .optional(),
 
     dueDate: z
@@ -90,5 +82,15 @@ export const getTasksSchema = z.object({
         "createdAt",
       ])
       .default("createdAt"),
+  }),
+});
+
+export const updateTaskStatusSchema = z.object({
+  params: z.object({
+    id: z.uuid(),
+  }),
+
+  body: z.object({
+    status: z.enum(TaskStatus),
   }),
 });
