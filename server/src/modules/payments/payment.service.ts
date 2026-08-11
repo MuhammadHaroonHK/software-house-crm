@@ -1,7 +1,10 @@
+import { InvoiceStatus, PaymentStatus } from "@prisma/client";
+
 import { AppError } from "../../utils/AppError";
 import { getPagination } from "../../utils/pagination";
-import { InvoiceStatus, PaymentStatus } from "@prisma/client";
+
 import { CreatePaymentDTO, UpdatePaymentDTO } from "./payment.types";
+
 import { PaymentRepository } from "./payment.repository";
 
 const paymentRepository = new PaymentRepository();
@@ -14,6 +17,15 @@ export class PaymentService {
       throw new AppError(404, "Invoice not found.");
     }
 
+    // Payments cannot be created for draft invoices.
+    if (invoice.status === InvoiceStatus.DRAFT) {
+      throw new AppError(
+        400,
+        "Payment cannot be recorded for a draft invoice.",
+      );
+    }
+
+    // A fully paid invoice cannot receive another payment.
     if (invoice.status === InvoiceStatus.PAID) {
       throw new AppError(400, "Invoice is already fully paid.");
     }
@@ -29,6 +41,7 @@ export class PaymentService {
       );
     }
 
+    // New payments always require verification.
     const payment = await paymentRepository.create({
       amount: data.amount,
 
@@ -67,7 +80,9 @@ export class PaymentService {
       },
     });
 
-    await this.recalculateInvoice(data.invoiceId);
+    // IMPORTANT:
+    // Pending payments are not included in amountPaid.
+    // Invoice financials change only after verification.
 
     return paymentRepository.findById(payment.id);
   }
@@ -104,6 +119,7 @@ export class PaymentService {
         page: pagination.page,
         limit: pagination.limit,
         total,
+
         totalPages: Math.ceil(total / pagination.limit),
       },
     };
@@ -126,6 +142,8 @@ export class PaymentService {
       throw new AppError(404, "Payment not found.");
     }
 
+    // Completed payments are financial records
+    // and should not be edited.
     if (payment.status === PaymentStatus.COMPLETED) {
       throw new AppError(400, "Completed payment cannot be modified.");
     }
@@ -146,19 +164,17 @@ export class PaymentService {
       throw new AppError(400, "Payment amount must be greater than zero.");
     }
 
-    if (data.amount !== undefined) {
-      const otherPaymentsTotal =
-        await paymentRepository.getInvoicePaymentsTotal(
-          payment.invoiceId,
-          payment.id,
-        );
+    const completedPayments = await paymentRepository.getInvoicePaymentsTotal(
+      payment.invoiceId,
+    );
 
-      if (otherPaymentsTotal + amount > Number(invoice.totalAmount)) {
-        throw new AppError(
-          400,
-          "Payment amount cannot make the invoice overpaid.",
-        );
-      }
+    const remainingBalance = Number(invoice.totalAmount) - completedPayments;
+
+    if (amount > remainingBalance) {
+      throw new AppError(
+        400,
+        "Payment amount cannot exceed the remaining invoice balance.",
+      );
     }
 
     await paymentRepository.update(id, {
@@ -196,7 +212,11 @@ export class PaymentService {
       }),
     });
 
-    await this.recalculateInvoice(payment.invoiceId);
+    /*
+     * Updating a PENDING/FAILED payment does not
+     * affect invoice financials because only
+     * COMPLETED payments are counted.
+     */
 
     const updatedPayment = await paymentRepository.findById(id);
 
@@ -222,49 +242,7 @@ export class PaymentService {
       throw new AppError(400, "Refunded payment cannot be deleted.");
     }
 
-    const invoice = await paymentRepository.findInvoiceById(payment.invoiceId);
-
-    if (!invoice) {
-      throw new AppError(404, "Invoice not found.");
-    }
-
     await paymentRepository.delete(id);
-
-    await this.recalculateInvoice(payment.invoiceId);
-  }
-
-  private async recalculateInvoice(invoiceId: string) {
-    const invoice = await paymentRepository.findInvoiceById(invoiceId);
-
-    if (!invoice) {
-      throw new AppError(404, "Invoice not found.");
-    }
-
-    const amountPaid =
-      await paymentRepository.getInvoicePaymentsTotal(invoiceId);
-
-    const totalAmount = Number(invoice.totalAmount);
-
-    const balanceDue = Math.max(totalAmount - amountPaid, 0);
-
-    let status: InvoiceStatus;
-
-    if (amountPaid >= totalAmount) {
-      status = InvoiceStatus.PAID;
-    } else if (amountPaid > 0) {
-      status = InvoiceStatus.PARTIALLY_PAID;
-    } else if (invoice.dueDate < new Date()) {
-      status = InvoiceStatus.OVERDUE;
-    } else {
-      status = InvoiceStatus.SENT;
-    }
-
-    await paymentRepository.updateInvoiceFinancials(
-      invoiceId,
-      amountPaid,
-      balanceDue,
-      status,
-    );
   }
 
   async getReceiverDetails() {
@@ -302,13 +280,12 @@ export class PaymentService {
       throw new AppError(404, "Invoice not found.");
     }
 
-    const otherCompletedPayments =
-      await paymentRepository.getInvoicePaymentsTotal(
-        payment.invoiceId,
-        payment.id,
-      );
+    const completedPayments = await paymentRepository.getInvoicePaymentsTotal(
+      payment.invoiceId,
+      payment.id,
+    );
 
-    const totalAfterPayment = otherCompletedPayments + Number(payment.amount);
+    const totalAfterPayment = completedPayments + Number(payment.amount);
 
     if (totalAfterPayment > Number(invoice.totalAmount)) {
       throw new AppError(
@@ -317,27 +294,33 @@ export class PaymentService {
       );
     }
 
-    await paymentRepository.update(id, {
-      status: PaymentStatus.COMPLETED,
+    const amountPaid = totalAfterPayment;
 
-      verifiedAt: new Date(),
+    const balanceDue = Math.max(Number(invoice.totalAmount) - amountPaid, 0);
 
-      verifiedBy: {
-        connect: {
-          id: verifiedById,
-        },
-      },
-    });
+    let status: InvoiceStatus;
 
-    await this.recalculateInvoice(payment.invoiceId);
+    if (amountPaid >= Number(invoice.totalAmount)) {
+      status = InvoiceStatus.PAID;
+    } else {
+      status = InvoiceStatus.PARTIALLY_PAID;
+    }
 
-    const updatedPayment = await paymentRepository.findById(id);
+    const completedPayment =
+      await paymentRepository.completePaymentAndUpdateInvoice(
+        payment.id,
+        payment.invoiceId,
+        verifiedById,
+        amountPaid,
+        balanceDue,
+        status,
+      );
 
-    if (!updatedPayment) {
+    if (!completedPayment) {
       throw new AppError(404, "Payment not found after verification.");
     }
 
-    return updatedPayment;
+    return completedPayment;
   }
 
   async reject(id: string) {
@@ -355,11 +338,13 @@ export class PaymentService {
       throw new AppError(400, "Refunded payment cannot be marked as failed.");
     }
 
+    if (payment.status === PaymentStatus.FAILED) {
+      throw new AppError(400, "Payment is already marked as failed.");
+    }
+
     await paymentRepository.update(id, {
       status: PaymentStatus.FAILED,
     });
-
-    await this.recalculateInvoice(payment.invoiceId);
 
     const updatedPayment = await paymentRepository.findById(id);
 
@@ -370,3 +355,5 @@ export class PaymentService {
     return updatedPayment;
   }
 }
+
+export const paymentService = new PaymentService();

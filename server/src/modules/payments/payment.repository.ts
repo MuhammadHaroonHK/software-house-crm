@@ -1,13 +1,15 @@
 import prisma from "../../lib/prisma";
+
 import {
   Prisma,
   PaymentMethod,
   PaymentStatus,
-  InvoiceStatus,
 } from "@prisma/client";
 
 export class PaymentRepository {
-  async create(data: Prisma.PaymentCreateInput) {
+  async create(
+    data: Prisma.PaymentCreateInput
+  ) {
     return prisma.payment.create({
       data,
 
@@ -86,53 +88,55 @@ export class PaymentRepository {
       }),
     };
 
-    const [payments, total] =
-      await Promise.all([
-        prisma.payment.findMany({
-          where,
+    const [
+      payments,
+      total,
+    ] = await Promise.all([
+      prisma.payment.findMany({
+        where,
 
-          skip,
+        skip,
 
-          take: limit,
+        take: limit,
 
-          include: {
-            invoice: {
-              include: {
-                quotation: {
-                  include: {
-                    client: true,
-                    project: true,
-                  },
-                },
-              },
-            },
-
-            verifiedBy: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-
-                role: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+        include: {
+          invoice: {
+            include: {
+              quotation: {
+                include: {
+                  client: true,
+                  project: true,
                 },
               },
             },
           },
 
-          orderBy: {
-            [sortBy]: sortOrder,
-          },
-        }),
+          verifiedBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
 
-        prisma.payment.count({
-          where,
-        }),
-      ]);
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+      }),
+
+      prisma.payment.count({
+        where,
+      }),
+    ]);
 
     return {
       payments,
@@ -199,36 +203,39 @@ export class PaymentRepository {
   }
 
   async getInvoicePaymentsTotal(
-  invoiceId: string,
-  excludePaymentId?: string
-) {
-  const result =
-    await prisma.payment.aggregate({
-      where: {
-        invoiceId,
+    invoiceId: string,
+    excludePaymentId?: string
+  ) {
+    const result =
+      await prisma.payment.aggregate({
+        where: {
+          invoiceId,
 
-        ...(excludePaymentId && {
-          id: {
-            not: excludePaymentId,
-          },
-        }),
+          ...(excludePaymentId && {
+            id: {
+              not: excludePaymentId,
+            },
+          }),
 
-        status: PaymentStatus.COMPLETED,
-      },
+          status:
+            PaymentStatus.COMPLETED,
+        },
 
-      _sum: {
-        amount: true,
-      },
-    });
+        _sum: {
+          amount: true,
+        },
+      });
 
-  return Number(result._sum.amount ?? 0);
-}
+    return Number(
+      result._sum.amount ?? 0
+    );
+  }
 
   async updateInvoiceFinancials(
     invoiceId: string,
     amountPaid: number,
     balanceDue: number,
-    status: InvoiceStatus
+    status: Prisma.InvoiceUpdateInput["status"]
   ) {
     return prisma.invoice.update({
       where: {
@@ -244,16 +251,92 @@ export class PaymentRepository {
   }
 
   async getReceiverDetails() {
-  return prisma.companySetting.findFirst({
-    select: {
-      bankName: true,
-      accountTitle: true,
-      accountNumber: true,
-      iban: true,
-      easyPaisaNumber: true,
-      jazzCashNumber: true,
-      currency: true,
-    },
+    return prisma.companySetting.findFirst({
+      select: {
+        bankName: true,
+        accountTitle: true,
+        accountNumber: true,
+        iban: true,
+        easyPaisaNumber: true,
+        jazzCashNumber: true,
+        currency: true,
+      },
+    });
+  }
+
+  async completePaymentAndUpdateInvoice(
+  paymentId: string,
+  invoiceId: string,
+  verifiedById: string,
+  amountPaid: number,
+  balanceDue: number,
+  status: Prisma.InvoiceUpdateInput["status"]
+) {
+  return prisma.$transaction(async (tx) => {
+    await tx.payment.update({
+      where: {
+        id: paymentId,
+      },
+
+      data: {
+        status: PaymentStatus.COMPLETED,
+
+        verifiedAt: new Date(),
+
+        verifiedBy: {
+          connect: {
+            id: verifiedById,
+          },
+        },
+      },
+    });
+
+    await tx.invoice.update({
+      where: {
+        id: invoiceId,
+      },
+
+      data: {
+        amountPaid,
+        balanceDue,
+        status,
+      },
+    });
+
+    return tx.payment.findUnique({
+      where: {
+        id: paymentId,
+      },
+
+      include: {
+        invoice: {
+          include: {
+            quotation: {
+              include: {
+                client: true,
+                project: true,
+              },
+            },
+          },
+        },
+
+        verifiedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
   });
 }
 }
