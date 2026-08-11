@@ -1,10 +1,18 @@
 import { Router } from "express";
+
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
 import { validate } from "../../middleware/validate";
 import { UserRole } from "@prisma/client";
-import { meetingParticipantController } from "./meetingParticipant.controller";
-import { addMeetingParticipantSchema } from "./meetingParticipant.validation";
+import {
+  meetingParticipantController,
+} from "./meetingParticipant.controller";
+
+import {
+  addMeetingParticipantSchema,
+  getMeetingParticipantsSchema,
+  removeMeetingParticipantSchema,
+} from "./meetingParticipant.validation";
 
 const router = Router();
 
@@ -28,6 +36,7 @@ router.get(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
+  validate(getMeetingParticipantsSchema),
   meetingParticipantController.findParticipants.bind(
     meetingParticipantController
   )
@@ -40,6 +49,7 @@ router.delete(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
+  validate(removeMeetingParticipantSchema),
   meetingParticipantController.removeParticipant.bind(
     meetingParticipantController
   )

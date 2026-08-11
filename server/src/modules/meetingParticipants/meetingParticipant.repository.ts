@@ -4,8 +4,18 @@ export class MeetingParticipantRepository {
   async findMeetingById(id: string) {
     return prisma.meeting.findUnique({
       where: { id },
-      include: {
-        project: true,
+
+      select: {
+        id: true,
+        projectId: true,
+
+        project: {
+          select: {
+            id: true,
+            managerId: true,
+            status: true,
+          },
+        },
       },
     });
   }
@@ -13,6 +23,7 @@ export class MeetingParticipantRepository {
   async findUserById(id: string) {
     return prisma.user.findUnique({
       where: { id },
+
       include: {
         role: true,
       },
@@ -65,52 +76,70 @@ export class MeetingParticipantRepository {
           },
         },
       },
-    });
-  }
 
-  async findParticipants(meetingId: string) {
-  return prisma.meetingParticipant.findMany({
-    where: {
-      meetingId,
-    },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
 
-    orderBy: {
-      joinedAt: "asc",
-    },
-
-    include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-
-          role: {
-            select: {
-              id: true,
-              name: true,
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
-}
+    });
+  }
 
-async removeParticipant(
-  meetingId: string,
-  userId: string
-) {
-  return prisma.meetingParticipant.delete({
-    where: {
-      meetingId_userId: {
+  async findParticipants(meetingId: string) {
+    return prisma.meetingParticipant.findMany({
+      where: {
         meetingId,
-        userId,
       },
-    },
-  });
-}
+
+      orderBy: {
+        joinedAt: "asc",
+      },
+
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async removeParticipant(
+    meetingId: string,
+    userId: string
+  ) {
+    return prisma.meetingParticipant.delete({
+      where: {
+        meetingId_userId: {
+          meetingId,
+          userId,
+        },
+      },
+    });
+  }
 }
 
 export const meetingParticipantRepository =

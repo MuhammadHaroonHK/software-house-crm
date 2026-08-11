@@ -1,10 +1,49 @@
 import { AppError } from "../../utils/AppError";
+import {
+  ProjectStatus,
+  UserRole,
+} from "@prisma/client";
 import { meetingParticipantRepository } from "./meetingParticipant.repository";
 import { AddMeetingParticipantDTO } from "./meetingParticipant.types";
 
 export class MeetingParticipantService {
+  private validateProjectAccess(
+    project: {
+      managerId: string;
+      status: ProjectStatus;
+    },
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    if (
+      actorRole !== UserRole.SUPER_ADMIN &&
+      project.managerId !== actorId
+    ) {
+      throw new AppError(
+        403,
+        "Only the project manager can manage meeting participants."
+      );
+    }
+  }
+
+  private validateProjectStatus(
+    status: ProjectStatus
+  ) {
+    if (
+      status === ProjectStatus.COMPLETED ||
+      status === ProjectStatus.CANCELLED
+    ) {
+      throw new AppError(
+        400,
+        "Meeting participants cannot be modified for a completed or cancelled project."
+      );
+    }
+  }
+
   async addParticipant(
-    data: AddMeetingParticipantDTO
+    data: AddMeetingParticipantDTO,
+    actorId: string,
+    actorRole: UserRole
   ) {
     const meeting =
       await meetingParticipantRepository.findMeetingById(
@@ -12,8 +51,21 @@ export class MeetingParticipantService {
       );
 
     if (!meeting) {
-      throw new AppError(404, "Meeting not found.");
+      throw new AppError(
+        404,
+        "Meeting not found."
+      );
     }
+
+    this.validateProjectStatus(
+      meeting.project.status
+    );
+
+    this.validateProjectAccess(
+      meeting.project,
+      actorId,
+      actorRole
+    );
 
     const user =
       await meetingParticipantRepository.findUserById(
@@ -21,7 +73,10 @@ export class MeetingParticipantService {
       );
 
     if (!user) {
-      throw new AppError(404, "User not found.");
+      throw new AppError(
+        404,
+        "User not found."
+      );
     }
 
     const member =
@@ -56,58 +111,88 @@ export class MeetingParticipantService {
     );
   }
 
-  async findParticipants(meetingId: string) {
-  const meeting =
-    await meetingParticipantRepository.findMeetingById(
-      meetingId
+  async findParticipants(
+    meetingId: string,
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    const meeting =
+      await meetingParticipantRepository.findMeetingById(
+        meetingId
+      );
+
+    if (!meeting) {
+      throw new AppError(
+        404,
+        "Meeting not found."
+      );
+    }
+
+    this.validateProjectAccess(
+      meeting.project,
+      actorId,
+      actorRole
     );
 
-  if (!meeting) {
-    throw new AppError(404, "Meeting not found.");
+    const participants =
+      await meetingParticipantRepository.findParticipants(
+        meetingId
+      );
+
+    return participants.map(
+      (participant) => ({
+        ...participant.user,
+        joinedAt: participant.joinedAt,
+      })
+    );
   }
 
-  const participants =
-    await meetingParticipantRepository.findParticipants(
-      meetingId
+  async removeParticipant(
+    meetingId: string,
+    userId: string,
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    const meeting =
+      await meetingParticipantRepository.findMeetingById(
+        meetingId
+      );
+
+    if (!meeting) {
+      throw new AppError(
+        404,
+        "Meeting not found."
+      );
+    }
+
+    this.validateProjectStatus(
+      meeting.project.status
     );
 
-  return participants.map((participant) => ({
-    ...participant.user,
-    joinedAt: participant.joinedAt,
-  }));
-}
-
-async removeParticipant(
-  meetingId: string,
-  userId: string
-) {
-  const meeting =
-    await meetingParticipantRepository.findMeetingById(
-      meetingId
+    this.validateProjectAccess(
+      meeting.project,
+      actorId,
+      actorRole
     );
 
-  if (!meeting) {
-    throw new AppError(404, "Meeting not found.");
-  }
+    const exists =
+      await meetingParticipantRepository.participantExists(
+        meetingId,
+        userId
+      );
 
-  const exists =
-    await meetingParticipantRepository.participantExists(
+    if (!exists) {
+      throw new AppError(
+        404,
+        "Participant not found."
+      );
+    }
+
+    await meetingParticipantRepository.removeParticipant(
       meetingId,
       userId
     );
-
-  if (!exists) {
-    throw new AppError(
-      404,
-      "Participant not found."
-    );
   }
-
-  await meetingParticipantRepository.removeParticipant(
-    meetingId,
-    userId
-  );
-}
 }
 
 export const meetingParticipantService =

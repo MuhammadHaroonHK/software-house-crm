@@ -13,11 +13,23 @@ export class MeetingParticipantController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const participant =
-        await meetingParticipantService.addParticipant({
-          meetingId: String(req.params.meetingId),
-          userId: req.body.userId,
-        });
+        await meetingParticipantService.addParticipant(
+          {
+            meetingId: String(
+              req.params.meetingId
+            ),
+            userId: req.body.userId,
+          },
+          req.user.userId,
+          req.user.role
+        );
 
       return successResponse(
         res,
@@ -31,45 +43,61 @@ export class MeetingParticipantController {
   }
 
   async findParticipants(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const participants =
-      await meetingParticipantService.findParticipants(
-        String(req.params.meetingId)
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
+      const participants =
+        await meetingParticipantService.findParticipants(
+          String(req.params.meetingId),
+          req.user.userId,
+          req.user.role
+        );
+
+      return successResponse(
+        res,
+        "Participants fetched successfully.",
+        participants
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async removeParticipant(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
+      await meetingParticipantService.removeParticipant(
+        String(req.params.meetingId),
+        String(req.params.userId),
+        req.user.userId,
+        req.user.role
       );
 
-    return successResponse(
-      res,
-      "Participants fetched successfully.",
-      participants
-    );
-  } catch (error) {
-    next(error);
+      return successResponse(
+        res,
+        "Participant removed successfully."
+      );
+    } catch (error) {
+      next(error);
+    }
   }
-}
-
-async removeParticipant(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    await meetingParticipantService.removeParticipant(
-      String(req.params.meetingId),
-      String(req.params.userId)
-    );
-
-    return successResponse(
-      res,
-      "Participant removed successfully."
-    );
-  } catch (error) {
-    next(error);
-  }
-}
 }
 
 export const meetingParticipantController =
