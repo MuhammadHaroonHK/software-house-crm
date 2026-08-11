@@ -9,15 +9,11 @@ export interface CreateInvoiceDTO {
 
   dueDate: string;
 
-  status?: InvoiceStatus;
-
   notes?: string;
 }
 
 export interface UpdateInvoiceDTO {
   dueDate?: string;
-
-  status?: InvoiceStatus;
 
   notes?: string;
 }

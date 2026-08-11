@@ -2,11 +2,12 @@ import prisma from "../../lib/prisma";
 import {
   InvoiceStatus,
   Prisma,
-  QuotationStatus,
 } from "@prisma/client";
 
 export class InvoiceRepository {
-  async create(data: Prisma.InvoiceCreateInput) {
+  async create(
+    data: Prisma.InvoiceCreateInput
+  ) {
     return prisma.invoice.create({
       data,
 
@@ -17,6 +18,8 @@ export class InvoiceRepository {
             project: true,
           },
         },
+
+        items: true,
       },
     });
   }
@@ -34,6 +37,12 @@ export class InvoiceRepository {
             project: true,
           },
         },
+
+        items: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
       },
     });
   }
@@ -48,12 +57,157 @@ export class InvoiceRepository {
     });
   }
 
-  async findQuotationById(id: string) {
-    return prisma.quotation.findUnique({
-      where: {
-        id,
-      },
-    });
+  async findQuotationForInvoice(
+    id: string
+  ) {
+    const quotation =
+      await prisma.quotation.findUnique({
+        where: {
+          id,
+        },
+
+        include: {
+          items: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
+        },
+      });
+
+    if (!quotation) {
+      return null;
+    }
+
+    return {
+      ...quotation,
+
+      totalAmount:
+        Number(quotation.totalAmount),
+    };
+  }
+
+  async createFromQuotation(
+    quotationId: string,
+    data: {
+      invoiceNumber: string;
+      issueDate: Date;
+      dueDate: Date;
+      notes?: string;
+    }
+  ) {
+    return prisma.$transaction(
+      async (tx) => {
+        const quotation =
+          await tx.quotation.findUnique({
+            where: {
+              id: quotationId,
+            },
+
+            include: {
+              items: true,
+            },
+          });
+
+        if (!quotation) {
+          throw new Error(
+            "Quotation not found."
+          );
+        }
+
+        const invoice =
+          await tx.invoice.create({
+            data: {
+              invoiceNumber:
+                data.invoiceNumber,
+
+              issueDate:
+                data.issueDate,
+
+              dueDate:
+                data.dueDate,
+
+              status:
+                InvoiceStatus.DRAFT,
+
+              subtotal:
+                quotation.subtotal,
+
+              discount:
+                quotation.discount,
+
+              tax:
+                quotation.tax,
+
+              totalAmount:
+                quotation.totalAmount,
+
+              amountPaid: 0,
+
+              balanceDue:
+                quotation.totalAmount,
+
+              ...(data.notes !==
+                undefined && {
+                notes: data.notes,
+              }),
+
+              quotation: {
+                connect: {
+                  id: quotationId,
+                },
+              },
+            },
+          });
+
+        if (quotation.items.length > 0) {
+          await tx.invoiceItem.createMany({
+            data: quotation.items.map(
+              (item) => ({
+                invoiceId:
+                  invoice.id,
+
+                serviceName:
+                  item.serviceName,
+
+                description:
+                  item.description,
+
+                quantity:
+                  item.quantity,
+
+                unitPrice:
+                  item.unitPrice,
+
+                totalPrice:
+                  item.totalPrice,
+              })
+            ),
+          });
+        }
+
+        return tx.invoice.findUnique({
+          where: {
+            id: invoice.id,
+          },
+
+          include: {
+            quotation: {
+              include: {
+                client: true,
+                project: true,
+              },
+            },
+
+            items: {
+              orderBy: {
+                createdAt: "asc",
+              },
+            },
+          },
+        });
+      }
+    );
   }
 
   async findAll(
@@ -63,9 +217,12 @@ export class InvoiceRepository {
     status?: InvoiceStatus,
     quotationId?: string,
     sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc"
+    sortOrder:
+      | "asc"
+      | "desc" = "desc"
   ) {
-    const where: Prisma.InvoiceWhereInput = {
+    const where:
+      Prisma.InvoiceWhereInput = {
       ...(search && {
         invoiceNumber: {
           contains: search,
@@ -96,6 +253,12 @@ export class InvoiceRepository {
               include: {
                 client: true,
                 project: true,
+              },
+            },
+
+            items: {
+              orderBy: {
+                createdAt: "asc",
               },
             },
           },
@@ -134,6 +297,12 @@ export class InvoiceRepository {
             project: true,
           },
         },
+
+        items: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
       },
     });
   }
@@ -144,23 +313,5 @@ export class InvoiceRepository {
         id,
       },
     });
-  }
-
-  async isQuotationAccepted(id: string) {
-    const quotation =
-      await prisma.quotation.findUnique({
-        where: {
-          id,
-        },
-      });
-
-    if (!quotation) {
-      return false;
-    }
-
-    return (
-      quotation.status ===
-      QuotationStatus.ACCEPTED
-    );
   }
 }

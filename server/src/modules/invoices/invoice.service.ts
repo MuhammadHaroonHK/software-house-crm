@@ -1,4 +1,4 @@
-import { InvoiceStatus } from "@prisma/client";
+import { InvoiceStatus, QuotationStatus } from "@prisma/client";
 import { AppError } from "../../utils/AppError";
 import { getPagination } from "../../utils/pagination";
 
@@ -17,7 +17,7 @@ export class InvoiceService {
     data: CreateInvoiceDTO
   ) {
     const quotation =
-      await invoiceRepository.findQuotationById(
+      await invoiceRepository.findQuotationForInvoice(
         data.quotationId
       );
 
@@ -28,12 +28,10 @@ export class InvoiceService {
       );
     }
 
-    const accepted =
-      await invoiceRepository.isQuotationAccepted(
-        data.quotationId
-      );
-
-    if (!accepted) {
+    if (
+      quotation.status !==
+      QuotationStatus.ACCEPTED
+    ) {
       throw new AppError(
         400,
         "Invoice can only be generated from an accepted quotation."
@@ -47,50 +45,45 @@ export class InvoiceService {
 
     if (existingInvoice) {
       throw new AppError(
-        400,
+        409,
         "Invoice already exists for this quotation."
       );
     }
 
-    return invoiceRepository.create({
-      invoiceNumber: data.invoiceNumber,
+    if (quotation.items.length === 0) {
+      throw new AppError(
+        400,
+        "Cannot create an invoice from a quotation without items."
+      );
+    }
 
-      issueDate: new Date(
-        data.issueDate
-      ),
+    if (quotation.totalAmount <= 0) {
+      throw new AppError(
+        400,
+        "Cannot create an invoice with a zero or negative total amount."
+      );
+    }
 
-      dueDate: new Date(
-        data.dueDate
-      ),
+    const invoice =
+      await invoiceRepository.createFromQuotation(
+        data.quotationId,
+        {
+          invoiceNumber:
+            data.invoiceNumber,
 
-      subtotal: quotation.subtotal,
+          issueDate: new Date(
+            data.issueDate
+          ),
 
-      discount: quotation.discount,
+          dueDate: new Date(
+            data.dueDate
+          ),
 
-      tax: quotation.tax,
+          notes: data.notes,
+        }
+      );
 
-      totalAmount:
-        quotation.totalAmount,
-
-      amountPaid: 0,
-
-      balanceDue:
-        quotation.totalAmount,
-
-      ...(data.notes && {
-        notes: data.notes,
-      }),
-
-      ...(data.status && {
-        status: data.status,
-      }),
-
-      quotation: {
-        connect: {
-          id: data.quotationId,
-        },
-      },
-    });
+    return invoice;
   }
 
   async findAll(query: {
@@ -124,11 +117,8 @@ export class InvoiceService {
 
       meta: {
         page: pagination.page,
-
         limit: pagination.limit,
-
         total,
-
         totalPages: Math.ceil(
           total /
             pagination.limit
@@ -152,12 +142,15 @@ export class InvoiceService {
 
     return invoice;
   }
-    async update(
+
+  async update(
     id: string,
     data: UpdateInvoiceDTO
   ) {
     const invoice =
-      await invoiceRepository.findById(id);
+      await invoiceRepository.findById(
+        id
+      );
 
     if (!invoice) {
       throw new AppError(
@@ -166,24 +159,50 @@ export class InvoiceService {
       );
     }
 
-    return invoiceRepository.update(id, {
-      ...(data.dueDate && {
-        dueDate: new Date(data.dueDate),
-      }),
+    if (
+      invoice.status !==
+      InvoiceStatus.DRAFT
+    ) {
+      throw new AppError(
+        400,
+        "Only draft invoices can be modified."
+      );
+    }
 
-      ...(data.status && {
-        status: data.status,
-      }),
+    const dueDate =
+      data.dueDate
+        ? new Date(data.dueDate)
+        : invoice.dueDate;
 
-      ...(data.notes !== undefined && {
-        notes: data.notes,
-      }),
-    });
+    if (
+      dueDate < invoice.issueDate
+    ) {
+      throw new AppError(
+        400,
+        "Due date must be after issue date."
+      );
+    }
+
+    return invoiceRepository.update(
+      id,
+      {
+        ...(data.dueDate && {
+          dueDate,
+        }),
+
+        ...(data.notes !==
+          undefined && {
+          notes: data.notes,
+        }),
+      }
+    );
   }
 
   async delete(id: string) {
     const invoice =
-      await invoiceRepository.findById(id);
+      await invoiceRepository.findById(
+        id
+      );
 
     if (!invoice) {
       throw new AppError(
@@ -205,3 +224,6 @@ export class InvoiceService {
     await invoiceRepository.delete(id);
   }
 }
+
+export const invoiceService =
+  new InvoiceService();

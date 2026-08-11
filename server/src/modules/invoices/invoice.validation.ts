@@ -3,42 +3,44 @@ import { InvoiceStatus } from "@prisma/client";
 import { paginationSchema } from "../../common/schemas/pagination.schema";
 
 export const createInvoiceSchema = z.object({
-  body: z.object({
-    quotationId: z.uuid(),
+  body: z
+    .object({
+      quotationId: z.uuid(),
 
-    invoiceNumber: z
-      .string()
-      .trim()
-      .min(3)
-      .max(50),
+      invoiceNumber: z
+        .string()
+        .trim()
+        .min(3)
+        .max(50),
 
-    issueDate: z.coerce.date(),
+      issueDate: z.coerce.date(),
 
-    dueDate: z.coerce.date(),
+      dueDate: z.coerce.date(),
 
-    status: z
-      .enum(InvoiceStatus)
-      .optional(),
-
-    notes: z.string().optional(),
-  }).refine(
-    (data) => data.dueDate >= data.issueDate,
-    {
-      message: "Due date must be after issue date.",
-      path: ["dueDate"],
-    }
-  ),
+      notes: z
+        .string()
+        .trim()
+        .optional(),
+    })
+    .refine(
+      (data) =>
+        data.dueDate >= data.issueDate,
+      {
+        message:
+          "Due date must be after issue date.",
+        path: ["dueDate"],
+      }
+    ),
 });
 
 export const updateInvoiceSchema = z.object({
   body: z.object({
     dueDate: z.coerce.date().optional(),
 
-    status: z
-      .enum(InvoiceStatus)
+    notes: z
+      .string()
+      .trim()
       .optional(),
-
-    notes: z.string().optional(),
   }),
 });
 
@@ -56,6 +58,7 @@ export const getInvoicesSchema = z.object({
         "issueDate",
         "dueDate",
         "totalAmount",
+        "status",
         "createdAt",
       ])
       .default("createdAt"),
