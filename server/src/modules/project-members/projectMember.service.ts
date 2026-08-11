@@ -1,5 +1,9 @@
 import { AppError } from "../../utils/AppError";
-import { UserRole, UserStatus } from "@prisma/client";
+import {
+  UserRole,
+  UserStatus,
+  ProjectStatus,
+} from "@prisma/client";
 import { ProjectMemberRepository } from "./projectMember.repository";
 
 const projectMemberRepository =
@@ -8,7 +12,9 @@ const projectMemberRepository =
 export class ProjectMemberService {
   async addMember(
     projectId: string,
-    userId: string
+    userId: string,
+    actorId: string,
+    actorRole: UserRole
   ) {
     // Check project
     const project =
@@ -17,7 +23,32 @@ export class ProjectMemberService {
       );
 
     if (!project) {
-      throw new AppError(404, "Project not found.");
+      throw new AppError(
+        404,
+        "Project not found."
+      );
+    }
+
+    // Completed/cancelled projects cannot be modified
+    if (
+      project.status === ProjectStatus.COMPLETED ||
+      project.status === ProjectStatus.CANCELLED
+    ) {
+      throw new AppError(
+        400,
+        "Members cannot be added to a completed or cancelled project."
+      );
+    }
+
+    // Only project manager or super admin can manage members
+    if (
+      actorRole !== UserRole.SUPER_ADMIN &&
+      project.managerId !== actorId
+    ) {
+      throw new AppError(
+        403,
+        "Only the project manager can manage project members."
+      );
     }
 
     // Check user
@@ -27,7 +58,10 @@ export class ProjectMemberService {
       );
 
     if (!user) {
-      throw new AppError(404, "User not found.");
+      throw new AppError(
+        404,
+        "User not found."
+      );
     }
 
     // User must be active
@@ -38,18 +72,15 @@ export class ProjectMemberService {
       );
     }
 
-    // Allowed roles
-    if (
-      user.role.name !== UserRole.EMPLOYEE &&
-      user.role.name !== UserRole.PROJECT_MANAGER
-    ) {
+    // Only employees can be project members
+    if (user.role.name !== UserRole.EMPLOYEE) {
       throw new AppError(
         400,
-        "Only employees and project managers can be assigned."
+        "Only employees can be assigned as project members."
       );
     }
 
-    // Duplicate check
+    // Prevent duplicate membership
     const existing =
       await projectMemberRepository.isProjectMember(
         projectId,
@@ -69,14 +100,50 @@ export class ProjectMemberService {
     );
   }
 
-  async findMembers(projectId: string) {
+  async findMembers(
+    projectId: string,
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    // Check project
     const project =
       await projectMemberRepository.findProjectById(
         projectId
       );
 
     if (!project) {
-      throw new AppError(404, "Project not found.");
+      throw new AppError(
+        404,
+        "Project not found."
+      );
+    }
+
+    // Super admin can view all projects
+    if (actorRole === UserRole.SUPER_ADMIN) {
+      return projectMemberRepository.findMembers(
+        projectId
+      );
+    }
+
+    // Project manager can view their own project
+    if (project.managerId === actorId) {
+      return projectMemberRepository.findMembers(
+        projectId
+      );
+    }
+
+    // Assigned employees can view their project team
+    const isMember =
+      await projectMemberRepository.isProjectMember(
+        projectId,
+        actorId
+      );
+
+    if (!isMember) {
+      throw new AppError(
+        403,
+        "You are not a member of this project."
+      );
     }
 
     return projectMemberRepository.findMembers(
@@ -86,17 +153,46 @@ export class ProjectMemberService {
 
   async removeMember(
     projectId: string,
-    userId: string
+    userId: string,
+    actorId: string,
+    actorRole: UserRole
   ) {
+    // Check project
     const project =
       await projectMemberRepository.findProjectById(
         projectId
       );
 
     if (!project) {
-      throw new AppError(404, "Project not found.");
+      throw new AppError(
+        404,
+        "Project not found."
+      );
     }
 
+    // Completed/cancelled projects cannot be modified
+    if (
+      project.status === ProjectStatus.COMPLETED ||
+      project.status === ProjectStatus.CANCELLED
+    ) {
+      throw new AppError(
+        400,
+        "Members cannot be removed from a completed or cancelled project."
+      );
+    }
+
+    // Only project manager or super admin can manage members
+    if (
+      actorRole !== UserRole.SUPER_ADMIN &&
+      project.managerId !== actorId
+    ) {
+      throw new AppError(
+        403,
+        "Only the project manager can manage project members."
+      );
+    }
+
+    // Check membership
     const member =
       await projectMemberRepository.isProjectMember(
         projectId,
@@ -107,6 +203,20 @@ export class ProjectMemberService {
       throw new AppError(
         404,
         "Project member not found."
+      );
+    }
+
+    // Do not remove members who still have active tasks
+    const activeTaskCount =
+      await projectMemberRepository.countActiveTasks(
+        projectId,
+        userId
+      );
+
+    if (activeTaskCount > 0) {
+      throw new AppError(
+        409,
+        "Project member cannot be removed because they still have active tasks. Reassign or complete their tasks first."
       );
     }
 

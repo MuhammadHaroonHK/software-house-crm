@@ -17,7 +17,10 @@ export const createTaskSchema = z.object({
       .min(3)
       .max(150),
 
-    description: z.string().optional(),
+    description: z
+      .string()
+      .trim()
+      .optional(),
 
     priority: z
       .enum(TaskPriority)
@@ -40,7 +43,10 @@ export const updateTaskSchema = z.object({
       .max(150)
       .optional(),
 
-    description: z.string().optional(),
+    description: z
+      .string()
+      .trim()
+      .optional(),
 
     priority: z
       .enum(TaskPriority)

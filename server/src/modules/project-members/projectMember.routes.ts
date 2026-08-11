@@ -1,12 +1,9 @@
 import { Router } from "express";
 import { UserRole } from "@prisma/client";
-
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
 import { validate } from "../../middleware/validate";
-
 import { projectMemberController } from "./projectMember.controller";
-
 import {
   addProjectMemberSchema,
   getProjectMembersSchema,
@@ -23,7 +20,9 @@ router.post(
     UserRole.PROJECT_MANAGER
   ),
   validate(addProjectMemberSchema),
-  projectMemberController.addMember.bind(projectMemberController)
+  projectMemberController.addMember.bind(
+    projectMemberController
+  )
 );
 
 router.get(
@@ -31,10 +30,13 @@ router.get(
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.EMPLOYEE
   ),
   validate(getProjectMembersSchema),
-  projectMemberController.findMembers.bind(projectMemberController)
+  projectMemberController.findMembers.bind(
+    projectMemberController
+  )
 );
 
 router.delete(
@@ -45,7 +47,9 @@ router.delete(
     UserRole.PROJECT_MANAGER
   ),
   validate(removeProjectMemberSchema),
-  projectMemberController.removeMember.bind(projectMemberController)
+  projectMemberController.removeMember.bind(
+    projectMemberController
+  )
 );
 
 export default router;

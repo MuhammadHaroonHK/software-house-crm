@@ -16,6 +16,7 @@ export class TaskRepository {
             id: true,
             name: true,
             status: true,
+            managerId: true,
           },
         },
 
@@ -50,6 +51,7 @@ export class TaskRepository {
             id: true,
             name: true,
             status: true,
+            managerId: true,
           },
         },
 
@@ -134,6 +136,7 @@ export class TaskRepository {
                 id: true,
                 name: true,
                 status: true,
+                managerId: true,
               },
             },
 
@@ -187,6 +190,7 @@ export class TaskRepository {
             id: true,
             name: true,
             status: true,
+            managerId: true,
           },
         },
 
@@ -222,6 +226,13 @@ export class TaskRepository {
       where: {
         id,
       },
+
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        managerId: true,
+      },
     });
   }
 
@@ -229,6 +240,10 @@ export class TaskRepository {
     return prisma.user.findUnique({
       where: {
         id,
+      },
+
+      include: {
+        role: true,
       },
     });
   }

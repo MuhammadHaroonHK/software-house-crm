@@ -26,10 +26,6 @@ export const createProjectSchema = z.object({
         .number()
         .positive()
         .optional(),
-
-      status: z
-        .enum(ProjectStatus)
-        .optional(),
     })
     .refine(
       (data) =>
@@ -37,8 +33,7 @@ export const createProjectSchema = z.object({
         !data.endDate ||
         data.endDate >= data.startDate,
       {
-        message:
-          "End date must be after start date.",
+        message: "End date must be after start date.",
         path: ["endDate"],
       }
     ),
@@ -48,8 +43,6 @@ export const updateProjectSchema = z.object({
   body: z
     .object({
       clientId: z.uuid().optional(),
-
-      managerId: z.uuid().optional(),
 
       name: z
         .string()
@@ -80,10 +73,6 @@ export const updateProjectSchema = z.object({
           z.null(),
         ])
         .optional(),
-
-      status: z
-        .enum(ProjectStatus)
-        .optional(),
     })
     .refine(
       (data) =>
@@ -93,11 +82,30 @@ export const updateProjectSchema = z.object({
         data.endDate === null ||
         data.endDate >= data.startDate,
       {
-        message:
-          "End date must be after start date.",
+        message: "End date must be after start date.",
         path: ["endDate"],
       }
     ),
+});
+
+export const changeProjectManagerSchema = z.object({
+  params: z.object({
+    id: z.uuid(),
+  }),
+
+  body: z.object({
+    managerId: z.uuid(),
+  }),
+});
+
+export const changeProjectStatusSchema = z.object({
+  params: z.object({
+    id: z.uuid(),
+  }),
+
+  body: z.object({
+    status: z.enum(ProjectStatus),
+  }),
 });
 
 export const getProjectsSchema = z.object({

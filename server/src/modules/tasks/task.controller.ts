@@ -1,12 +1,20 @@
-import { Request, Response, NextFunction } from "express";
+import {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
+
 import { TaskService } from "./task.service";
+
 import { successResponse } from "../../utils/apiResponse";
+
 import {
   TaskPriority,
   TaskStatus,
 } from "@prisma/client";
 
-const taskService = new TaskService();
+const taskService =
+  new TaskService();
 
 export class TaskController {
   async create(
@@ -15,8 +23,18 @@ export class TaskController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const task =
-        await taskService.create(req.body);
+        await taskService.create(
+          req.body,
+          req.user.userId,
+          req.user.role
+        );
 
       return successResponse(
         res,
@@ -35,6 +53,12 @@ export class TaskController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const result =
         await taskService.findAll({
           page: req.query.page
@@ -67,6 +91,12 @@ export class TaskController {
             req.query.sortOrder as
               | "asc"
               | "desc",
+
+          actorId:
+            req.user.userId,
+
+          actorRole:
+            req.user.role,
         });
 
       return successResponse(
@@ -87,10 +117,21 @@ export class TaskController {
     next: NextFunction
   ) {
     try {
-      const id = String(req.params.id);
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
+      const id =
+        String(req.params.id);
 
       const task =
-        await taskService.findById(id);
+        await taskService.findById(
+          id,
+          req.user.userId,
+          req.user.role
+        );
 
       return successResponse(
         res,
@@ -108,12 +149,21 @@ export class TaskController {
     next: NextFunction
   ) {
     try {
-      const id = String(req.params.id);
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
+      const id =
+        String(req.params.id);
 
       const task =
         await taskService.update(
           id,
-          req.body
+          req.body,
+          req.user.userId,
+          req.user.role
         );
 
       return successResponse(
@@ -132,9 +182,20 @@ export class TaskController {
     next: NextFunction
   ) {
     try {
-      const id = String(req.params.id);
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
 
-      await taskService.delete(id);
+      const id =
+        String(req.params.id);
+
+      await taskService.delete(
+        id,
+        req.user.userId,
+        req.user.role
+      );
 
       return successResponse(
         res,
@@ -146,36 +207,40 @@ export class TaskController {
   }
 
   async updateStatus(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const id =
-      String(req.params.id);
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
 
-    const { status } =
-      req.body;
+      const id =
+        String(req.params.id);
 
-    const actorRole =
-      req.user!.role;
+      const { status } =
+        req.body;
 
-    const task =
-      await taskService.updateStatus(
-        id,
-        status,
-        actorRole
+      const task =
+        await taskService.updateStatus(
+          id,
+          status,
+          req.user.userId,
+          req.user.role
+        );
+
+      return successResponse(
+        res,
+        "Task status updated successfully.",
+        task
       );
-
-    return successResponse(
-      res,
-      "Task status updated successfully.",
-      task
-    );
-  } catch (error) {
-    next(error);
+    } catch (error) {
+      next(error);
+    }
   }
-}
 }
 
 export const taskController =

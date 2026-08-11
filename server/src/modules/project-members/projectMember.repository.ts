@@ -1,11 +1,15 @@
 import prisma from "../../lib/prisma";
-import { UserRole, UserStatus } from "@prisma/client";
 
 export class ProjectMemberRepository {
   async findProjectById(projectId: string) {
     return prisma.project.findUnique({
       where: {
         id: projectId,
+      },
+      select: {
+        id: true,
+        managerId: true,
+        status: true,
       },
     });
   }
@@ -15,7 +19,6 @@ export class ProjectMemberRepository {
       where: {
         id: userId,
       },
-
       include: {
         role: true,
       },
@@ -116,6 +119,25 @@ export class ProjectMemberRepository {
         projectId_userId: {
           projectId,
           userId,
+        },
+      },
+    });
+  }
+
+  async countActiveTasks(
+    projectId: string,
+    userId: string
+  ) {
+    return prisma.task.count({
+      where: {
+        projectId,
+        assignedToId: userId,
+        status: {
+          in: [
+            "TODO",
+            "IN_PROGRESS",
+            "IN_REVIEW",
+          ],
         },
       },
     });

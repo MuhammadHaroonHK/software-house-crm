@@ -61,36 +61,36 @@ export class ProjectRepository {
   }
 
   async countMembers(projectId: string) {
-  return prisma.projectMember.count({
-    where: {
-      projectId,
-    },
-  });
-}
+    return prisma.projectMember.count({
+      where: {
+        projectId,
+      },
+    });
+  }
 
-async countTasks(projectId: string) {
-  return prisma.task.count({
-    where: {
-      projectId,
-    },
-  });
-}
+  async countTasks(projectId: string) {
+    return prisma.task.count({
+      where: {
+        projectId,
+      },
+    });
+  }
 
-async countMeetings(projectId: string) {
-  return prisma.meeting.count({
-    where: {
-      projectId,
-    },
-  });
-}
+  async countMeetings(projectId: string) {
+    return prisma.meeting.count({
+      where: {
+        projectId,
+      },
+    });
+  }
 
-async countQuotations(projectId: string) {
-  return prisma.quotation.count({
-    where: {
-      projectId,
-    },
-  });
-}
+  async countQuotations(projectId: string) {
+    return prisma.quotation.count({
+      where: {
+        projectId,
+      },
+    });
+  }
 
   async findAll(
     skip: number,
@@ -211,6 +211,80 @@ async countQuotations(projectId: string) {
     });
   }
 
+  async updateStatus(
+    id: string,
+    status: ProjectStatus
+  ) {
+    return prisma.project.update({
+      where: {
+        id,
+      },
+
+      data: {
+        status,
+      },
+
+      include: {
+        client: true,
+
+        manager: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async updateManager(
+    id: string,
+    managerId: string
+  ) {
+    return prisma.project.update({
+      where: {
+        id,
+      },
+
+      data: {
+        manager: {
+          connect: {
+            id: managerId,
+          },
+        },
+      },
+
+      include: {
+        client: true,
+
+        manager: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async delete(id: string) {
     return prisma.project.delete({
       where: {
@@ -254,9 +328,6 @@ async countQuotations(projectId: string) {
       return false;
     }
 
-    return (
-      user.role.name === UserRole.PROJECT_MANAGER ||
-      user.role.name === UserRole.SUPER_ADMIN
-    );
+    return user.role.name === UserRole.PROJECT_MANAGER;
   }
 }

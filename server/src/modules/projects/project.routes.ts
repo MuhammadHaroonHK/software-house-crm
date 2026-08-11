@@ -9,6 +9,8 @@ import {
   createProjectSchema,
   getProjectsSchema,
   updateProjectSchema,
+  changeProjectManagerSchema,
+  changeProjectStatusSchema,
 } from "./project.validation";
 
 const router = Router();
@@ -21,7 +23,9 @@ router.post(
     UserRole.PROJECT_MANAGER
   ),
   validate(createProjectSchema),
-  projectController.create.bind(projectController)
+  projectController.create.bind(
+    projectController
+  )
 );
 
 router.get(
@@ -32,7 +36,9 @@ router.get(
     UserRole.PROJECT_MANAGER
   ),
   validate(getProjectsSchema),
-  projectController.findAll.bind(projectController)
+  projectController.findAll.bind(
+    projectController
+  )
 );
 
 router.get(
@@ -42,9 +48,14 @@ router.get(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
-  projectController.findById.bind(projectController)
+  projectController.findById.bind(
+    projectController
+  )
 );
 
+/*
+ * General project details
+ */
 router.patch(
   "/:id",
   authenticate,
@@ -53,7 +64,39 @@ router.patch(
     UserRole.PROJECT_MANAGER
   ),
   validate(updateProjectSchema),
-  projectController.update.bind(projectController)
+  projectController.update.bind(
+    projectController
+  )
+);
+
+/*
+ * Change project manager
+ * Only SUPER_ADMIN can perform this operation.
+ */
+router.patch(
+  "/:id/manager",
+  authenticate,
+  authorize(UserRole.SUPER_ADMIN),
+  validate(changeProjectManagerSchema),
+  projectController.changeManager.bind(
+    projectController
+  )
+);
+
+/*
+ * Change project status
+ */
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  validate(changeProjectStatusSchema),
+  projectController.changeStatus.bind(
+    projectController
+  )
 );
 
 router.delete(
@@ -63,7 +106,9 @@ router.delete(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
-  projectController.delete.bind(projectController)
+  projectController.delete.bind(
+    projectController
+  )
 );
 
 router.use(
