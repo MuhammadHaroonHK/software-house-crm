@@ -59,19 +59,11 @@ export class QuotationService {
       }
     }
 
-    const subtotal = data.subtotal;
-    const discount = data.discount ?? 0;
-    const tax = data.tax ?? 0;
+    const subtotal = 0;
+const discount = data.discount ?? 0;
+const tax = data.tax ?? 0;
 
-    if (discount > subtotal) {
-      throw new AppError(
-        400,
-        "Discount cannot be greater than subtotal."
-      );
-    }
-
-    const totalAmount =
-      subtotal - discount + tax;
+const totalAmount = 0;
 
     if (totalAmount < 0) {
       throw new AppError(
@@ -273,34 +265,25 @@ export class QuotationService {
       );
     }
 
-    const subtotal =
-      data.subtotal ??
-      Number(quotation.subtotal);
+    const subtotal = Number(quotation.subtotal);
 
-    const discount =
-      data.discount ??
-      Number(quotation.discount);
+const discount =
+  data.discount ??
+  Number(quotation.discount);
 
-    const tax =
-      data.tax ??
-      Number(quotation.tax);
+const tax =
+  data.tax ??
+  Number(quotation.tax);
 
-    if (discount > subtotal) {
-      throw new AppError(
-        400,
-        "Discount cannot be greater than subtotal."
-      );
-    }
+if (discount > subtotal) {
+  throw new AppError(
+    400,
+    "Discount cannot be greater than subtotal."
+  );
+}
 
-    const totalAmount =
-      subtotal - discount + tax;
-
-    if (totalAmount < 0) {
-      throw new AppError(
-        400,
-        "Quotation total amount cannot be negative."
-      );
-    }
+const totalAmount =
+  subtotal - discount + tax;
 
     // Validate effective dates
     const issueDate =
@@ -343,8 +326,6 @@ export class QuotationService {
             ? new Date(data.expiryDate)
             : null,
         }),
-
-        subtotal,
 
         discount,
 

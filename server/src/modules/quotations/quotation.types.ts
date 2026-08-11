@@ -1,7 +1,6 @@
-import { QuotationStatus } from "@prisma/client";
-
 export interface CreateQuotationDTO {
   clientId: string;
+
   projectId?: string;
 
   quotationNumber: string;
@@ -9,7 +8,6 @@ export interface CreateQuotationDTO {
   issueDate: string;
   expiryDate?: string;
 
-  subtotal: number;
   discount?: number;
   tax?: number;
 
@@ -25,7 +23,6 @@ export interface UpdateQuotationDTO {
   issueDate?: string;
   expiryDate?: string | null;
 
-  subtotal?: number;
   discount?: number;
   tax?: number;
 

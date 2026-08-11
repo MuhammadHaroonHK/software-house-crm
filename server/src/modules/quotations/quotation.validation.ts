@@ -19,8 +19,6 @@ export const createQuotationSchema = z.object({
 
       expiryDate: z.coerce.date().optional(),
 
-      subtotal: z.coerce.number().nonnegative(),
-
       discount: z.coerce.number().nonnegative().optional(),
 
       tax: z.coerce.number().nonnegative().optional(),
@@ -36,14 +34,6 @@ export const createQuotationSchema = z.object({
         path: ["expiryDate"],
       }
     )
-    .refine(
-      (data) =>
-        (data.discount ?? 0) <= data.subtotal,
-      {
-        message: "Discount cannot be greater than subtotal.",
-        path: ["discount"],
-      }
-    ),
 });
 
 export const updateQuotationSchema = z.object({
@@ -67,8 +57,6 @@ export const updateQuotationSchema = z.object({
       expiryDate: z
         .union([z.coerce.date(), z.null()])
         .optional(),
-
-      subtotal: z.coerce.number().nonnegative().optional(),
 
       discount: z.coerce.number().nonnegative().optional(),
 
