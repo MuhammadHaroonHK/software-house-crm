@@ -1,10 +1,10 @@
+import { QuotationStatus } from "@prisma/client";
 import { AppError } from "../../utils/AppError";
 import {
   CreateQuotationItemDTO,
   UpdateQuotationItemDTO,
 } from "./quotationItem.types";
 import { QuotationItemRepository } from "./quotationItem.repository";
-import { QuotationStatus } from "@prisma/client";
 
 const quotationItemRepository =
   new QuotationItemRepository();
@@ -15,60 +15,45 @@ export class QuotationItemService {
     data: CreateQuotationItemDTO
   ) {
     const quotation =
-  await quotationItemRepository.findQuotationById(
-    quotationId
-  );
+      await quotationItemRepository.findQuotationById(
+        quotationId
+      );
 
-if (!quotation) {
-  throw new AppError(
-    404,
-    "Quotation not found."
-  );
-}
+    if (!quotation) {
+      throw new AppError(
+        404,
+        "Quotation not found."
+      );
+    }
 
-const lockedStatuses: QuotationStatus[] = [
-  QuotationStatus.SENT,
-  QuotationStatus.ACCEPTED,
-  QuotationStatus.REJECTED,
-  QuotationStatus.EXPIRED,
-];
-
-if (lockedStatuses.includes(quotation.status)) {
-  throw new AppError(
-    400,
-    "This quotation can no longer be modified."
-  );
-}
+    // Only draft quotations can have items added.
+    if (
+      quotation.status !==
+      QuotationStatus.DRAFT
+    ) {
+      throw new AppError(
+        400,
+        "Only draft quotations can be modified."
+      );
+    }
 
     const totalPrice =
       data.quantity * data.unitPrice;
 
-    const item =
-      await quotationItemRepository.create({
+    return quotationItemRepository.createAndRecalculate(
+      quotationId,
+      {
         serviceName: data.serviceName,
 
-        ...(data.description && {
+        ...(data.description !== undefined && {
           description: data.description,
         }),
 
         quantity: data.quantity,
-
         unitPrice: data.unitPrice,
-
         totalPrice,
-
-        quotation: {
-          connect: {
-            id: quotationId,
-          },
-        },
-      });
-
-    await quotationItemRepository.updateQuotationTotals(
-      quotationId
+      }
     );
-
-    return item;
   }
 
   async findAll(quotationId: string) {
@@ -105,15 +90,26 @@ if (lockedStatuses.includes(quotation.status)) {
       );
     }
 
-    const locked =
-      await quotationItemRepository.isQuotationLocked(
+    const quotation =
+      await quotationItemRepository.findQuotationById(
         item.quotationId
       );
 
-    if (locked) {
+    if (!quotation) {
+      throw new AppError(
+        404,
+        "Quotation not found."
+      );
+    }
+
+    // Only draft quotations can have items updated.
+    if (
+      quotation.status !==
+      QuotationStatus.DRAFT
+    ) {
       throw new AppError(
         400,
-        "This quotation can no longer be modified."
+        "Only draft quotations can be modified."
       );
     }
 
@@ -126,10 +122,12 @@ if (lockedStatuses.includes(quotation.status)) {
 
     const totalPrice =
       quantity * unitPrice;
-          await quotationItemRepository.update(
+
+    return quotationItemRepository.updateAndRecalculate(
       itemId,
+      item.quotationId,
       {
-        ...(data.serviceName && {
+        ...(data.serviceName !== undefined && {
           serviceName: data.serviceName,
         }),
 
@@ -138,19 +136,9 @@ if (lockedStatuses.includes(quotation.status)) {
         }),
 
         quantity,
-
         unitPrice,
-
         totalPrice,
       }
-    );
-
-    await quotationItemRepository.updateQuotationTotals(
-      item.quotationId
-    );
-
-    return quotationItemRepository.findById(
-      itemId
     );
   }
 
@@ -167,24 +155,35 @@ if (lockedStatuses.includes(quotation.status)) {
       );
     }
 
-    const locked =
-      await quotationItemRepository.isQuotationLocked(
+    const quotation =
+      await quotationItemRepository.findQuotationById(
         item.quotationId
       );
 
-    if (locked) {
+    if (!quotation) {
       throw new AppError(
-        400,
-        "This quotation can no longer be modified."
+        404,
+        "Quotation not found."
       );
     }
 
-    await quotationItemRepository.delete(
-      itemId
-    );
+    // Only draft quotations can have items deleted.
+    if (
+      quotation.status !==
+      QuotationStatus.DRAFT
+    ) {
+      throw new AppError(
+        400,
+        "Only draft quotations can be modified."
+      );
+    }
 
-    await quotationItemRepository.updateQuotationTotals(
+    await quotationItemRepository.deleteAndRecalculate(
+      itemId,
       item.quotationId
     );
   }
 }
+
+export const quotationItemService =
+  new QuotationItemService();

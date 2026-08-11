@@ -8,7 +8,10 @@ export const createQuotationItemSchema = z.object({
       .min(2)
       .max(200),
 
-    description: z.string().optional(),
+    description: z
+      .string()
+      .trim()
+      .optional(),
 
     quantity: z
       .coerce
@@ -19,7 +22,7 @@ export const createQuotationItemSchema = z.object({
     unitPrice: z
       .coerce
       .number()
-      .positive(),
+      .nonnegative(),
   }),
 });
 
@@ -32,7 +35,10 @@ export const updateQuotationItemSchema = z.object({
       .max(200)
       .optional(),
 
-    description: z.string().optional(),
+    description: z
+      .string()
+      .trim()
+      .optional(),
 
     quantity: z
       .coerce
@@ -44,7 +50,7 @@ export const updateQuotationItemSchema = z.object({
     unitPrice: z
       .coerce
       .number()
-      .positive()
+      .nonnegative()
       .optional(),
   }),
 });
