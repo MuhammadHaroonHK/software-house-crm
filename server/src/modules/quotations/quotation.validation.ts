@@ -9,7 +9,11 @@ export const createQuotationSchema = z.object({
 
       projectId: z.uuid().optional(),
 
-      quotationNumber: z.string().trim().min(3).max(100),
+      quotationNumber: z
+        .string()
+        .trim()
+        .min(3)
+        .max(100),
 
       issueDate: z.coerce.date(),
 
@@ -21,16 +25,23 @@ export const createQuotationSchema = z.object({
 
       tax: z.coerce.number().nonnegative().optional(),
 
-      notes: z.string().optional(),
+      notes: z.string().trim().optional(),
     })
     .refine(
       (data) =>
         !data.expiryDate ||
         data.expiryDate >= data.issueDate,
       {
-        message:
-          "Expiry date must be after issue date.",
+        message: "Expiry date must be after issue date.",
         path: ["expiryDate"],
+      }
+    )
+    .refine(
+      (data) =>
+        (data.discount ?? 0) <= data.subtotal,
+      {
+        message: "Discount cannot be greater than subtotal.",
+        path: ["discount"],
       }
     ),
 });
@@ -63,7 +74,7 @@ export const updateQuotationSchema = z.object({
 
       tax: z.coerce.number().nonnegative().optional(),
 
-      notes: z.string().optional(),
+      notes: z.string().trim().optional(),
     })
     .refine(
       (data) =>
@@ -72,8 +83,7 @@ export const updateQuotationSchema = z.object({
         data.expiryDate === null ||
         data.expiryDate >= data.issueDate,
       {
-        message:
-          "Expiry date must be after issue date.",
+        message: "Expiry date must be after issue date.",
         path: ["expiryDate"],
       }
     ),
@@ -85,7 +95,9 @@ export const getQuotationsSchema = z.object({
 
     projectId: z.uuid().optional(),
 
-    status: z.enum(QuotationStatus).optional(),
+    status: z
+      .enum(QuotationStatus)
+      .optional(),
 
     sortBy: z
       .enum([
