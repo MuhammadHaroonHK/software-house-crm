@@ -1,10 +1,12 @@
+import { InvoiceStatus } from "@prisma/client";
 import { AppError } from "../../utils/AppError";
+
 import {
   CreateInvoiceItemDTO,
   UpdateInvoiceItemDTO,
 } from "./invoiceItem.types";
+
 import { InvoiceItemRepository } from "./invoiceItem.repository";
-import { InvoiceStatus } from "@prisma/client";
 
 const invoiceItemRepository =
   new InvoiceItemRepository();
@@ -39,39 +41,32 @@ export class InvoiceItemService {
     const totalPrice =
       data.quantity * data.unitPrice;
 
-    const item =
-      await invoiceItemRepository.create({
-        serviceName: data.serviceName,
+    return invoiceItemRepository.createAndRecalculate(
+      invoiceId,
+      {
+        serviceName:
+          data.serviceName,
 
-        description: data.description,
+        ...(data.description !==
+          undefined && {
+          description:
+            data.description,
+        }),
 
-        quantity: data.quantity,
+        quantity:
+          data.quantity,
 
-        unitPrice: data.unitPrice,
+        unitPrice:
+          data.unitPrice,
 
         totalPrice,
-
-        invoice: {
-          connect: {
-            id: invoiceId,
-          },
-        },
-      });
-
-    const subtotal =
-      await invoiceItemRepository.calculateSubtotal(
-        invoiceId
-      );
-
-    await invoiceItemRepository.updateInvoiceTotals(
-      invoiceId,
-      subtotal
+      }
     );
-
-    return item;
   }
 
-  async findAll(invoiceId: string) {
+  async findAll(
+    invoiceId: string
+  ) {
     const invoice =
       await invoiceItemRepository.findInvoiceById(
         invoiceId
@@ -90,11 +85,13 @@ export class InvoiceItemService {
   }
 
   async update(
-    id: string,
+    itemId: string,
     data: UpdateInvoiceItemDTO
   ) {
     const item =
-      await invoiceItemRepository.findById(id);
+      await invoiceItemRepository.findById(
+        itemId
+      );
 
     if (!item) {
       throw new AppError(
@@ -126,7 +123,8 @@ export class InvoiceItemService {
     }
 
     const quantity =
-      data.quantity ?? item.quantity;
+      data.quantity ??
+      item.quantity;
 
     const unitPrice =
       data.unitPrice !== undefined
@@ -136,51 +134,38 @@ export class InvoiceItemService {
     const totalPrice =
       quantity * unitPrice;
 
-    const updatedItem =
-      await invoiceItemRepository.update(
-        id,
-        {
-          ...(data.serviceName && {
-            serviceName:
-              data.serviceName,
-          }),
-
-          ...(data.description !==
-            undefined && {
-            description:
-              data.description,
-          }),
-
-          ...(data.quantity !==
-            undefined && {
-            quantity: data.quantity,
-          }),
-
-          ...(data.unitPrice !==
-            undefined && {
-            unitPrice:
-              data.unitPrice,
-          }),
-
-          totalPrice,
-        }
-      );
-          const subtotal =
-      await invoiceItemRepository.calculateSubtotal(
-        item.invoiceId
-      );
-
-    await invoiceItemRepository.updateInvoiceTotals(
+    return invoiceItemRepository.updateAndRecalculate(
+      itemId,
       item.invoiceId,
-      subtotal
-    );
+      {
+        ...(data.serviceName !==
+          undefined && {
+          serviceName:
+            data.serviceName,
+        }),
 
-    return updatedItem;
+        ...(data.description !==
+          undefined && {
+          description:
+            data.description,
+        }),
+
+        quantity,
+
+        unitPrice,
+
+        totalPrice,
+      }
+    );
   }
 
-  async delete(id: string) {
+  async delete(
+    itemId: string
+  ) {
     const item =
-      await invoiceItemRepository.findById(id);
+      await invoiceItemRepository.findById(
+        itemId
+      );
 
     if (!item) {
       throw new AppError(
@@ -211,16 +196,12 @@ export class InvoiceItemService {
       );
     }
 
-    await invoiceItemRepository.delete(id);
-
-    const subtotal =
-      await invoiceItemRepository.calculateSubtotal(
-        item.invoiceId
-      );
-
-    await invoiceItemRepository.updateInvoiceTotals(
-      item.invoiceId,
-      subtotal
+    await invoiceItemRepository.deleteAndRecalculate(
+      itemId,
+      item.invoiceId
     );
   }
 }
+
+export const invoiceItemService =
+  new InvoiceItemService();
