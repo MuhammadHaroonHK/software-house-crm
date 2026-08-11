@@ -2,10 +2,13 @@ import prisma from "../../lib/prisma";
 import {
   Prisma,
   MeetingStatus,
+  UserRole,
 } from "@prisma/client";
 
 export class MeetingRepository {
-  async create(data: Prisma.MeetingCreateInput) {
+  async create(
+    data: Prisma.MeetingCreateInput
+  ) {
     return prisma.meeting.create({
       data,
 
@@ -14,6 +17,7 @@ export class MeetingRepository {
           select: {
             id: true,
             name: true,
+            status: true,
           },
         },
 
@@ -38,15 +42,15 @@ export class MeetingRepository {
 
   async findById(id: string) {
     return prisma.meeting.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
 
       include: {
         project: {
           select: {
             id: true,
             name: true,
+            managerId: true,
+            status: true,
           },
         },
 
@@ -77,7 +81,9 @@ export class MeetingRepository {
     projectId?: string,
     organizerId?: string,
     sortBy: string = "meetingDate",
-    sortOrder: "asc" | "desc" = "desc"
+    sortOrder: "asc" | "desc" = "desc",
+    actorId?: string,
+    actorRole?: UserRole
   ) {
     const where: Prisma.MeetingWhereInput = {
       ...(search && {
@@ -114,6 +120,13 @@ export class MeetingRepository {
       ...(organizerId && {
         organizerId,
       }),
+
+      ...(actorRole !== UserRole.SUPER_ADMIN &&
+        actorId && {
+          project: {
+            managerId: actorId,
+          },
+        }),
     };
 
     const [meetings, total] =
@@ -122,7 +135,6 @@ export class MeetingRepository {
           where,
 
           skip,
-
           take: limit,
 
           include: {
@@ -130,6 +142,7 @@ export class MeetingRepository {
               select: {
                 id: true,
                 name: true,
+                status: true,
               },
             },
 
@@ -171,9 +184,7 @@ export class MeetingRepository {
     data: Prisma.MeetingUpdateInput
   ) {
     return prisma.meeting.update({
-      where: {
-        id,
-      },
+      where: { id },
 
       data,
 
@@ -182,6 +193,7 @@ export class MeetingRepository {
           select: {
             id: true,
             name: true,
+            status: true,
           },
         },
 
@@ -206,25 +218,25 @@ export class MeetingRepository {
 
   async delete(id: string) {
     return prisma.meeting.delete({
-      where: {
-        id,
-      },
+      where: { id },
     });
   }
 
   async findProjectById(id: string) {
     return prisma.project.findUnique({
-      where: {
-        id,
+      where: { id },
+
+      select: {
+        id: true,
+        managerId: true,
+        status: true,
       },
     });
   }
 
   async findOrganizerById(id: string) {
     return prisma.user.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
 
       include: {
         role: true,
@@ -247,5 +259,38 @@ export class MeetingRepository {
       });
 
     return !!member;
+  }
+
+  async getAccessibleProjectIds(
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    if (actorRole === UserRole.SUPER_ADMIN) {
+      const projects =
+        await prisma.project.findMany({
+          select: {
+            id: true,
+          },
+        });
+
+      return projects.map(
+        (project) => project.id
+      );
+    }
+
+    const projects =
+      await prisma.project.findMany({
+        where: {
+          managerId: actorId,
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    return projects.map(
+      (project) => project.id
+    );
   }
 }

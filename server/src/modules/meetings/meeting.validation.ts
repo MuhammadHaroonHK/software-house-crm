@@ -22,8 +22,6 @@ export const createMeetingSchema = z.object({
 
     notes: z.string().optional(),
 
-    aiSummary: z.string().optional(),
-
     status: z
       .enum(MeetingStatus)
       .optional(),

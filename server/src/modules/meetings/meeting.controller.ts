@@ -7,7 +7,8 @@ import { successResponse } from "../../utils/apiResponse";
 import { MeetingService } from "./meeting.service";
 import { MeetingStatus } from "@prisma/client";
 
-const meetingService = new MeetingService();
+const meetingService =
+  new MeetingService();
 
 export class MeetingController {
   async create(
@@ -16,8 +17,18 @@ export class MeetingController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const meeting =
-        await meetingService.create(req.body);
+        await meetingService.create(
+          req.body,
+          req.user.userId,
+          req.user.role
+        );
 
       return successResponse(
         res,
@@ -36,35 +47,46 @@ export class MeetingController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const result =
-        await meetingService.findAll({
-          page: req.query.page
-            ? Number(req.query.page)
-            : undefined,
+        await meetingService.findAll(
+          {
+            page: req.query.page
+              ? Number(req.query.page)
+              : undefined,
 
-          limit: req.query.limit
-            ? Number(req.query.limit)
-            : undefined,
+            limit: req.query.limit
+              ? Number(req.query.limit)
+              : undefined,
 
-          search: req.query.search as string,
+            search:
+              req.query.search as string,
 
-          status:
-            req.query.status as MeetingStatus,
+            status:
+              req.query.status as MeetingStatus,
 
-          projectId:
-            req.query.projectId as string,
+            projectId:
+              req.query.projectId as string,
 
-          organizerId:
-            req.query.organizerId as string,
+            organizerId:
+              req.query.organizerId as string,
 
-          sortBy:
-            req.query.sortBy as string,
+            sortBy:
+              req.query.sortBy as string,
 
-          sortOrder:
-            req.query.sortOrder as
-              | "asc"
-              | "desc",
-        });
+            sortOrder:
+              req.query.sortOrder as
+                | "asc"
+                | "desc",
+          },
+          req.user.userId,
+          req.user.role
+        );
 
       return successResponse(
         res,
@@ -84,9 +106,17 @@ export class MeetingController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const meeting =
         await meetingService.findById(
-          String(req.params.id)
+          String(req.params.id),
+          req.user.userId,
+          req.user.role
         );
 
       return successResponse(
@@ -105,10 +135,18 @@ export class MeetingController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const meeting =
         await meetingService.update(
           String(req.params.id),
-          req.body
+          req.body,
+          req.user.userId,
+          req.user.role
         );
 
       return successResponse(
@@ -127,8 +165,16 @@ export class MeetingController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       await meetingService.delete(
-        String(req.params.id)
+        String(req.params.id),
+        req.user.userId,
+        req.user.role
       );
 
       return successResponse(
