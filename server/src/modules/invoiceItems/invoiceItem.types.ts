@@ -1,5 +1,3 @@
-import { Decimal } from "@prisma/client/runtime/library";
-
 export interface CreateInvoiceItemDTO {
   serviceName: string;
   description?: string;

@@ -1,6 +1,5 @@
 import {
   PaymentMethod,
-  PaymentStatus,
 } from "@prisma/client";
 
 export interface CreatePaymentDTO {
