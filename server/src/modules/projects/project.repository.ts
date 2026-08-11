@@ -6,31 +6,48 @@ import {
 } from "@prisma/client";
 
 export class ProjectRepository {
-  async create(data: Prisma.ProjectCreateInput) {
-    return prisma.project.create({
-      data,
+  async create(
+  data: Prisma.ProjectCreateInput,
+  managerId: string
+) {
+  return prisma.project.create({
+    data: {
+      ...data,
 
-      include: {
-        client: true,
-
-        manager: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-
-            role: {
-              select: {
-                id: true,
-                name: true,
+      members: {
+        create: [
+          {
+            user: {
+              connect: {
+                id: managerId,
               },
+            },
+          },
+        ],
+      },
+    },
+
+    include: {
+      client: true,
+
+      manager: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+
+          role: {
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
       },
-    });
-  }
+    },
+  });
+}
 
   async findById(id: string) {
     return prisma.project.findUnique({
@@ -247,43 +264,70 @@ export class ProjectRepository {
   }
 
   async updateManager(
-    id: string,
-    managerId: string
-  ) {
-    return prisma.project.update({
-      where: {
-        id,
-      },
+  id: string,
+  managerId: string
+) {
+  return prisma.$transaction(
+    async (tx) => {
+      const project =
+        await tx.project.update({
+          where: {
+            id,
+          },
 
-      data: {
-        manager: {
-          connect: {
-            id: managerId,
+          data: {
+            manager: {
+              connect: {
+                id: managerId,
+              },
+            },
+          },
+        });
+
+      await tx.projectMember.upsert({
+        where: {
+          projectId_userId: {
+            projectId: id,
+            userId: managerId,
           },
         },
-      },
 
-      include: {
-        client: true,
+        update: {},
 
-        manager: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+        create: {
+          projectId: id,
+          userId: managerId,
+        },
+      });
 
-            role: {
-              select: {
-                id: true,
-                name: true,
+      return tx.project.findUnique({
+        where: {
+          id: project.id,
+        },
+
+        include: {
+          client: true,
+
+          manager: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
         },
-      },
-    });
-  }
+      });
+    }
+  );
+}
 
   async delete(id: string) {
     return prisma.project.delete({

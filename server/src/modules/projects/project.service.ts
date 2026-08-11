@@ -54,36 +54,39 @@ export class ProjectService {
     }
 
     // New projects ALWAYS start in PLANNING
-    return projectRepository.create({
-      name: data.name,
-      description: data.description,
+    return projectRepository.create(
+  {
+    name: data.name,
+    description: data.description,
 
-      ...(data.startDate && {
-        startDate: new Date(data.startDate),
-      }),
+    ...(data.startDate && {
+      startDate: new Date(data.startDate),
+    }),
 
-      ...(data.endDate && {
-        endDate: new Date(data.endDate),
-      }),
+    ...(data.endDate && {
+      endDate: new Date(data.endDate),
+    }),
 
-      ...(data.budget !== undefined && {
-        budget: data.budget,
-      }),
+    ...(data.budget !== undefined && {
+      budget: data.budget,
+    }),
 
-      status: ProjectStatus.PLANNING,
+    status: ProjectStatus.PLANNING,
 
-      client: {
-        connect: {
-          id: data.clientId,
-        },
+    client: {
+      connect: {
+        id: data.clientId,
       },
+    },
 
-      manager: {
-        connect: {
-          id: data.managerId,
-        },
+    manager: {
+      connect: {
+        id: data.managerId,
       },
-    });
+    },
+  },
+  data.managerId
+);
   }
 
   async findAll(query: {
