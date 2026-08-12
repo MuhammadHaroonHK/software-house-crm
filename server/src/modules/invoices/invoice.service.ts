@@ -223,6 +223,30 @@ export class InvoiceService {
 
     await invoiceRepository.delete(id);
   }
+
+  async send(id: string) {
+  const invoice =
+    await invoiceRepository.findById(id);
+
+  if (!invoice) {
+    throw new AppError(
+      404,
+      "Invoice not found."
+    );
+  }
+
+  if (invoice.status !== InvoiceStatus.DRAFT) {
+    throw new AppError(
+      400,
+      "Only draft invoices can be sent."
+    );
+  }
+
+  const sentInvoice =
+    await invoiceRepository.send(id);
+
+  return sentInvoice;
+}
 }
 
 export const invoiceService =

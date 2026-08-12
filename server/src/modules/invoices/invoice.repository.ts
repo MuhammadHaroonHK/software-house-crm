@@ -314,4 +314,31 @@ export class InvoiceRepository {
       },
     });
   }
+
+  async send(id: string) {
+  return prisma.invoice.update({
+    where: {
+      id,
+    },
+
+    data: {
+      status: InvoiceStatus.SENT,
+    },
+
+    include: {
+      quotation: {
+        include: {
+          client: true,
+          project: true,
+        },
+      },
+
+      items: {
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
+  });
+}
 }

@@ -138,6 +138,27 @@ export class InvoiceController {
       next(error);
     }
   }
+
+  async send(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const invoice =
+      await invoiceService.send(
+        String(req.params.id)
+      );
+
+    return successResponse(
+      res,
+      "Invoice sent successfully.",
+      invoice
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const invoiceController =

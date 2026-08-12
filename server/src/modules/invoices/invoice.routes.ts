@@ -54,6 +54,18 @@ router.get(
 );
 
 router.patch(
+  "/:id/send",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  invoiceController.send.bind(
+    invoiceController
+  )
+);
+
+router.patch(
   "/:id",
   authenticate,
   authorize(
