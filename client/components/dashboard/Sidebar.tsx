@@ -187,10 +187,20 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
 
-  const visibleItems =
-    navigationItems.filter((item) =>
-      item.roles.includes(role)
-    );
+  const visibleItems = navigationItems.filter((item) =>
+    item.roles.includes(role)
+  );
+
+  /*
+   * Mobile sidebar should ALWAYS be fully expanded.
+   *
+   * Desktop/tablet:
+   *   collapsed = icons only
+   *
+   * Mobile:
+   *   mobileOpen = icons + text
+   */
+  const showText = !collapsed || mobileOpen;
 
   return (
     <>
@@ -210,7 +220,13 @@ export default function Sidebar({
           border-r border-slate-200 bg-white
           transition-all duration-300 ease-in-out
 
-          ${collapsed ? "w-20" : "w-64"}
+          ${
+            mobileOpen
+              ? "w-64"
+              : collapsed
+                ? "w-20"
+                : "w-64"
+          }
 
           ${
             mobileOpen
@@ -221,11 +237,15 @@ export default function Sidebar({
       >
         {/* Logo */}
         <div
-          className={`flex h-16 shrink-0 items-center border-b border-slate-200 ${
-            collapsed
-              ? "justify-center px-3"
-              : "px-6"
-          }`}
+          className={`
+            flex h-16 shrink-0 items-center
+            border-b border-slate-200
+            ${
+              showText
+                ? "px-6"
+                : "justify-center px-3"
+            }
+          `}
         >
           <Link
             href="/dashboard"
@@ -233,18 +253,18 @@ export default function Sidebar({
             className="flex items-center"
             title="Software House CRM"
           >
-            {collapsed ? (
+            {showText ? (
               <span className="text-xl font-bold text-slate-900">
-                CRM
+                Software House CRM
               </span>
             ) : (
               <span className="text-xl font-bold text-slate-900">
-                Software House CRM
+                CRM
               </span>
             )}
           </Link>
 
-          {/* Mobile close */}
+          {/* Mobile close button */}
           <button
             type="button"
             onClick={onCloseMobile}
@@ -257,7 +277,7 @@ export default function Sidebar({
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-5">
-          {!collapsed && (
+          {showText && (
             <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
               Main Menu
             </p>
@@ -280,7 +300,7 @@ export default function Sidebar({
                   href={item.href}
                   onClick={onCloseMobile}
                   title={
-                    collapsed
+                    !showText
                       ? item.label
                       : undefined
                   }
@@ -290,9 +310,9 @@ export default function Sidebar({
                     transition
 
                     ${
-                      collapsed
-                        ? "justify-center px-3"
-                        : "gap-3 px-3"
+                      showText
+                        ? "gap-3 px-3"
+                        : "justify-center px-3"
                     }
 
                     ${
@@ -304,7 +324,7 @@ export default function Sidebar({
                 >
                   <Icon className="h-4 w-4 shrink-0" />
 
-                  {!collapsed && (
+                  {showText && (
                     <span>{item.label}</span>
                   )}
                 </Link>
@@ -313,9 +333,9 @@ export default function Sidebar({
           </div>
         </nav>
 
-        {/* Role */}
+        {/* Current Role */}
         <div className="shrink-0 border-t border-slate-200 p-4">
-          {!collapsed ? (
+          {showText ? (
             <>
               <p className="text-xs text-slate-400">
                 Current role
