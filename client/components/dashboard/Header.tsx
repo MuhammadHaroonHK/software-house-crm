@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import type { MeResponse } from "@/features/auth/types/auth.types";
-import { useLogout } from "@/features/auth/hooks/useLogout";
+import { useLogout } from "@/features/auth/hooks/useAuth";
 
 interface HeaderProps {
   user: MeResponse;

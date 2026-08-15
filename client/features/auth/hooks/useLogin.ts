@@ -7,7 +7,8 @@ import {
 
 import { authService } from "../services/auth.service";
 import { authStorage } from "../services/auth-storage";
-import { ME_QUERY_KEY } from "./useMe";
+
+import { AUTH_QUERY_KEY } from "./useAuth";
 
 import type { LoginPayload } from "../types/auth.types";
 
@@ -19,25 +20,35 @@ export function useLogin() {
       authService.login(payload),
 
     onSuccess: async (response) => {
-      // Store the NEW user's token first.
+      /*
+       * Store the NEW user's token first.
+       */
       authStorage.setToken(
         response.data.accessToken
       );
 
-      // Remove any previous user's cached profile.
+      /*
+       * Remove any cached profile belonging
+       * to the previous user.
+       */
       queryClient.removeQueries({
-        queryKey: ME_QUERY_KEY,
+        queryKey: AUTH_QUERY_KEY,
       });
 
-      // Fetch the profile using the NEW token.
+      /*
+       * Fetch the current user's profile using
+       * the NEW access token.
+       */
       await queryClient.fetchQuery({
-        queryKey: ME_QUERY_KEY,
+        queryKey: AUTH_QUERY_KEY,
 
         queryFn: async () => {
           const response = await authService.me();
 
           return response.data;
         },
+
+        staleTime: 0,
       });
     },
   });

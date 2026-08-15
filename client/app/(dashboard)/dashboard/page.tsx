@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { useMe } from "@/features/auth/hooks/useMe";
+import { useCurrentUser } from "@/features/auth/hooks/useAuth";
 import { authStorage } from "@/features/auth/services/auth-storage";
 
 export default function DashboardPage() {
@@ -18,7 +18,7 @@ export default function DashboardPage() {
     data: user,
     isLoading,
     isError,
-  } = useMe();
+  } = useCurrentUser();
 
   useEffect(() => {
     setMounted(true);
