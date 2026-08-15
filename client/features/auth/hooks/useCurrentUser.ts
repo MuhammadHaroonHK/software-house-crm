@@ -4,15 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { authService } from "../services/auth.service";
 import { authStorage } from "../services/auth-storage";
 
-export const ME_QUERY_KEY = ["auth", "me"];
+export const CURRENT_USER_QUERY_KEY = ["auth", "me"];
 
-export function useMe() {
+export function useCurrentUser() {
   return useQuery({
-    queryKey: ME_QUERY_KEY,
+    queryKey: CURRENT_USER_QUERY_KEY,
 
     queryFn: async () => {
       const response = await authService.me();
-
       return response.data;
     },
 

@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -11,6 +11,9 @@ import { authStorage } from "@/features/auth/services/auth-storage";
 export default function DashboardPage() {
   const router = useRouter();
 
+  const [mounted, setMounted] =
+    useState(false);
+
   const {
     data: user,
     isLoading,
@@ -18,22 +21,48 @@ export default function DashboardPage() {
   } = useMe();
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) {
+      return;
+    }
+
     if (!authStorage.getToken()) {
       router.replace("/login");
     }
-  }, [router]);
+  }, [mounted, router]);
 
   useEffect(() => {
-    if (isError) {
-      authStorage.removeToken();
-      router.replace("/login");
+    if (!mounted || !isError) {
+      return;
     }
-  }, [isError, router]);
+
+    authStorage.removeToken();
+
+    router.replace("/login");
+  }, [mounted, isError, router]);
+
+  /*
+   * Do not render authentication-dependent UI
+   * until the browser has mounted.
+   */
+  if (!mounted) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex items-center gap-2 text-sm text-slate-600">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Loading dashboard...
+        </div>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="flex items-center gap-2 text-slate-600">
+      <main className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex items-center gap-2 text-sm text-slate-600">
           <Loader2 className="h-5 w-5 animate-spin" />
           Loading dashboard...
         </div>
@@ -111,7 +140,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm text-slate-500">
             You are signed in as{" "}
             <span className="font-medium text-slate-700">
-              {user.role.replace("_", " ")}
+              {user.role.replaceAll("_", " ")}
             </span>
             .
           </p>
