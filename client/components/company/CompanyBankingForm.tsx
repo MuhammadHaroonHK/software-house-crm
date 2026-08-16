@@ -7,12 +7,16 @@ import type {
 
 interface CompanyBankingFormProps {
   company: Company;
-  onChange: (data: Partial<UpdateCompanyPayload>) => void;
+  errors?: Record<string, string>;
+  onChange: (
+    data: Partial<UpdateCompanyPayload>
+  ) => void;
   disabled?: boolean;
 }
 
 export default function CompanyBankingForm({
   company,
+  errors = {},
   onChange,
   disabled = false,
 }: CompanyBankingFormProps) {
@@ -32,6 +36,7 @@ export default function CompanyBankingForm({
         <Field
           label="Bank Name"
           value={company.bankName ?? ""}
+          error={errors.bankName}
           disabled={disabled}
           onChange={(value) =>
             onChange({ bankName: value })
@@ -41,6 +46,7 @@ export default function CompanyBankingForm({
         <Field
           label="Account Title"
           value={company.accountTitle ?? ""}
+          error={errors.accountTitle}
           disabled={disabled}
           onChange={(value) =>
             onChange({ accountTitle: value })
@@ -50,6 +56,7 @@ export default function CompanyBankingForm({
         <Field
           label="Account Number"
           value={company.accountNumber ?? ""}
+          error={errors.accountNumber}
           disabled={disabled}
           onChange={(value) =>
             onChange({ accountNumber: value })
@@ -59,6 +66,7 @@ export default function CompanyBankingForm({
         <Field
           label="IBAN"
           value={company.iban ?? ""}
+          error={errors.iban}
           disabled={disabled}
           onChange={(value) =>
             onChange({ iban: value })
@@ -68,18 +76,24 @@ export default function CompanyBankingForm({
         <Field
           label="EasyPaisa Number"
           value={company.easyPaisaNumber ?? ""}
+          error={errors.easyPaisaNumber}
           disabled={disabled}
           onChange={(value) =>
-            onChange({ easyPaisaNumber: value })
+            onChange({
+              easyPaisaNumber: value,
+            })
           }
         />
 
         <Field
           label="JazzCash Number"
           value={company.jazzCashNumber ?? ""}
+          error={errors.jazzCashNumber}
           disabled={disabled}
           onChange={(value) =>
-            onChange({ jazzCashNumber: value })
+            onChange({
+              jazzCashNumber: value,
+            })
           }
         />
       </div>
@@ -92,6 +106,7 @@ interface FieldProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  error?: string;
 }
 
 function Field({
@@ -99,6 +114,7 @@ function Field({
   value,
   onChange,
   disabled = false,
+  error,
 }: FieldProps) {
   return (
     <div>
@@ -113,8 +129,18 @@ function Field({
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 disabled:cursor-not-allowed disabled:bg-slate-50"
+        className={`h-10 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none focus:ring-1 disabled:cursor-not-allowed disabled:bg-slate-50 ${
+          error
+            ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+            : "border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+        }`}
       />
+
+      {error && (
+        <p className="mt-1 text-xs text-red-500">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

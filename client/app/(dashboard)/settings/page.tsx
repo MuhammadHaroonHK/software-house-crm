@@ -6,6 +6,13 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 import { useCurrentUser } from "@/features/auth/hooks/useAuth";
 
+import { toast } from "sonner";
+
+import {
+  validateCompany,
+  type CompanyValidationErrors,
+} from "@/features/company/validation/company.validation";
+
 import {
   useCompany,
   useUpdateCompany,
@@ -38,8 +45,11 @@ export default function CompanySettingsPage() {
   const [form, setForm] =
     useState<Company | null>(null);
 
-  const [saveError, setSaveError] =
-    useState<string | null>(null);
+  const [validationErrors, setValidationErrors] =
+  useState<CompanyValidationErrors>({});
+
+const [saveError, setSaveError] =
+  useState<string | null>(null);
 
   const [successMessage, setSuccessMessage] =
     useState<string | null>(null);
@@ -58,22 +68,31 @@ export default function CompanySettingsPage() {
    * Update only the changed fields.
    */
   const handleChange = (
-    changes: Partial<UpdateCompanyPayload>
-  ) => {
-    setForm((current) => {
-      if (!current) {
-        return current;
-      }
+  changes: Partial<UpdateCompanyPayload>
+) => {
+  setForm((current) => {
+    if (!current) {
+      return current;
+    }
 
-      return {
-        ...current,
-        ...changes,
-      };
+    return {
+      ...current,
+      ...changes,
+    };
+  });
+
+  setSaveError(null);
+
+  setValidationErrors((current) => {
+    const next = { ...current };
+
+    Object.keys(changes).forEach((field) => {
+      delete next[field];
     });
 
-    setSaveError(null);
-    setSuccessMessage(null);
-  };
+    return next;
+  });
+};
 
   /*
    * Extract a useful error message from
@@ -113,81 +132,94 @@ export default function CompanySettingsPage() {
    * Save company settings.
    */
   const handleSave = async () => {
-    if (!form) {
-      return;
-    }
+  if (!form) {
+    return;
+  }
 
-    setSaveError(null);
-    setSuccessMessage(null);
+  setSaveError(null);
 
-    const payload: UpdateCompanyPayload = {
-      companyName:
-        form.companyName.trim(),
+  const errors =
+    validateCompany(form);
 
-      companyEmail:
-        form.companyEmail.trim(),
+  if (Object.keys(errors).length > 0) {
+    setValidationErrors(errors);
 
-      companyPhone:
-        form.companyPhone?.trim() || undefined,
+    toast.error(
+      "Please fix the highlighted fields."
+    );
 
-      companyAddress:
-        form.companyAddress?.trim() || undefined,
+    return;
+  }
 
-      website:
-        form.website?.trim() || undefined,
+  setValidationErrors({});
 
-      logo:
-        form.logo?.trim() || undefined,
+  const payload: UpdateCompanyPayload = {
+    companyName:
+      form.companyName.trim(),
 
-      bankName:
-        form.bankName?.trim() || undefined,
+    companyEmail:
+      form.companyEmail.trim(),
 
-      accountTitle:
-        form.accountTitle?.trim() || undefined,
+    companyPhone:
+      form.companyPhone?.trim() || undefined,
 
-      accountNumber:
-        form.accountNumber?.trim() || undefined,
+    companyAddress:
+      form.companyAddress?.trim() || undefined,
 
-      iban:
-        form.iban?.trim() || undefined,
+    website:
+      form.website?.trim() || undefined,
 
-      easyPaisaNumber:
-        form.easyPaisaNumber?.trim() || undefined,
+    logo:
+      form.logo?.trim() || undefined,
 
-      jazzCashNumber:
-        form.jazzCashNumber?.trim() || undefined,
+    bankName:
+      form.bankName?.trim() || undefined,
 
-      currency:
-        form.currency.trim(),
+    accountTitle:
+      form.accountTitle?.trim() || undefined,
 
-      timezone:
-        form.timezone.trim(),
-    };
+    accountNumber:
+      form.accountNumber?.trim() || undefined,
 
-    try {
-      const response =
-        await updateMutation.mutateAsync(
-          payload
-        );
+    iban:
+      form.iban?.trim() || undefined,
 
-      /*
-       * Use the backend response as the
-       * latest source of truth.
-       */
-      if (response.data) {
-        setForm(response.data);
-      }
+    easyPaisaNumber:
+      form.easyPaisaNumber?.trim() || undefined,
 
-      setSuccessMessage(
-        response.message ||
-          "Company settings updated successfully."
-      );
-    } catch (error) {
-      setSaveError(
-        getErrorMessage(error)
-      );
-    }
+    jazzCashNumber:
+      form.jazzCashNumber?.trim() || undefined,
+
+    currency:
+      form.currency.trim(),
+
+    timezone:
+      form.timezone.trim(),
   };
+
+  try {
+    const response =
+      await updateMutation.mutateAsync(
+        payload
+      );
+
+    if (response.data) {
+      setForm(response.data);
+    }
+
+    toast.success(
+      response.message ||
+        "Company settings updated successfully."
+    );
+  } catch (error) {
+    const message =
+      getErrorMessage(error);
+
+    setSaveError(message);
+
+    toast.error(message);
+  }
+};
 
   /*
    * Current user loading.
@@ -288,6 +320,7 @@ export default function CompanySettingsPage() {
         {/* General Information */}
         <CompanyGeneralForm
           company={form}
+          errors={validationErrors}
           onChange={handleChange}
           disabled={isSaving}
         />
@@ -295,6 +328,7 @@ export default function CompanySettingsPage() {
         {/* Banking Information */}
         <CompanyBankingForm
           company={form}
+          errors={validationErrors}
           onChange={handleChange}
           disabled={isSaving}
         />
@@ -302,6 +336,7 @@ export default function CompanySettingsPage() {
         {/* Preferences */}
         <CompanyPreferencesForm
           company={form}
+          errors={validationErrors}
           onChange={handleChange}
           disabled={isSaving}
         />
