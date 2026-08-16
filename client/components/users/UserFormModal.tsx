@@ -75,6 +75,7 @@ export default function UserFormModal({
         <div className="max-h-[80vh] overflow-y-auto p-6">
           <UserForm
   user={user}
+  error={error}
   onCancel={onClose}
   onCreate={onCreate}
   onUpdate={onUpdate}

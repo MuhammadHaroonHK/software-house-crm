@@ -14,6 +14,7 @@ import type {
 
 interface UserFormProps {
   user?: User | null;
+  error?: string | null;
   onCancel: () => void;
   onCreate: (data: CreateUserPayload) => void;
   onUpdate: (data: UpdateUserPayload) => void;
@@ -39,6 +40,7 @@ const roles: CreateUserPayload["role"][] = [
 
 export default function UserForm({
   user,
+  error,
   onCancel,
   onCreate,
   onUpdate,
@@ -184,11 +186,11 @@ export default function UserForm({
       className="space-y-5"
     >
       {/* Backend/general error */}
-      {errors.general && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {errors.general}
-        </div>
-      )}
+{(error || errors.general) && (
+  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+    {error || errors.general}
+  </div>
+)}
 
       {/* Name */}
       <div className="grid gap-4 sm:grid-cols-2">
