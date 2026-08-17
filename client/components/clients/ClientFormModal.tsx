@@ -282,10 +282,10 @@ export default function ClientFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4">
-      <div className="my-8 w-full max-w-2xl rounded-xl bg-white shadow-xl">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
+    <div className="my-4 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:my-8">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+        <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
               {isEdit
@@ -314,7 +314,7 @@ export default function ClientFormModal({
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="p-6"
+          className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {/* Company Name */}
