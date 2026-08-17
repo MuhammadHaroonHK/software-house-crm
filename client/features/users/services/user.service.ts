@@ -2,6 +2,7 @@ import api from "@/lib/api";
 
 import type {
   ApiResponse,
+  Client,
   CreateUserPayload,
   Department,
   UpdateUserPayload,
@@ -113,4 +114,21 @@ export const userService = {
 
     return response.data;
   },
+
+  async getClients(): Promise<ApiResponse<Client[]>> {
+  const response =
+    await api.get<ApiResponse<Client[]>>(
+      "/clients",
+      {
+        params: {
+          page: 1,
+          limit: 100,
+          sortBy: "companyName",
+          sortOrder: "asc",
+        },
+      }
+    );
+
+  return response.data;
+},
 };

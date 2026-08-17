@@ -23,6 +23,10 @@ export const DEPARTMENTS_QUERY_KEY = [
   "departments",
 ] as const;
 
+export const CLIENTS_QUERY_KEY = [
+  "clients",
+] as const;
+
 /**
  * Get paginated users.
  */
@@ -93,6 +97,28 @@ export function useDepartments() {
     queryFn: async () => {
       const response =
         await userService.getDepartments();
+
+      return response.data;
+    },
+
+    staleTime: 5 * 60 * 1000,
+
+    refetchOnWindowFocus: false,
+
+    retry: false,
+  });
+}
+
+/**
+ * Get clients for user assignment.
+ */
+export function useClients() {
+  return useQuery({
+    queryKey: CLIENTS_QUERY_KEY,
+
+    queryFn: async () => {
+      const response =
+        await userService.getClients();
 
       return response.data;
     },

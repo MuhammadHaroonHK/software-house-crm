@@ -13,6 +13,11 @@ export interface UserRoleInfo {
   name: UserRole;
 }
 
+export interface Client {
+  id: string;
+  companyName: string;
+}
+
 export interface User {
   id: string;
 
@@ -27,6 +32,7 @@ export interface User {
 
   role: UserRoleInfo;
   department: Department | null;
+  client: Client | null;
 
   createdAt: string;
   updatedAt: string;
@@ -40,6 +46,7 @@ export interface CreateUserPayload {
   phone?: string;
   role: UserRole;
   departmentId?: string;
+  clientId?: string;
 }
 
 export interface UpdateUserPayload {
@@ -49,6 +56,7 @@ export interface UpdateUserPayload {
   phone?: string;
   role?: UserRole;
   departmentId?: string | null;
+  clientId?: string | null;
 }
 
 export interface UpdateUserStatusPayload {

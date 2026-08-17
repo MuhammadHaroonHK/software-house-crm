@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import {
   useDepartments,
+  useClients,
 } from "@/features/users/hooks/useUsers";
 
 import type {
@@ -29,6 +30,7 @@ type FormState = {
   phone: string;
   role: CreateUserPayload["role"];
   departmentId: string;
+  clientId: string;
 };
 
 const roles: CreateUserPayload["role"][] = [
@@ -48,8 +50,15 @@ export default function UserForm({
 }: UserFormProps) {
   const isEdit = Boolean(user);
 
-  const { data: departments = [], isLoading: departmentsLoading } =
-    useDepartments();
+  const {
+    data: departments = [],
+    isLoading: departmentsLoading,
+  } = useDepartments();
+
+  const {
+    data: clients = [],
+    isLoading: clientsLoading,
+  } = useClients();
 
   const [errors, setErrors] = useState<
     Record<string, string>
@@ -63,7 +72,12 @@ export default function UserForm({
     phone: "",
     role: "EMPLOYEE",
     departmentId: "",
+    clientId: "",
   });
+
+  /* ------------------------------------------------------------------------ */
+  /* Initialize / reset form                                                  */
+  /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
     if (!user) {
@@ -75,6 +89,7 @@ export default function UserForm({
         phone: "",
         role: "EMPLOYEE",
         departmentId: "",
+        clientId: "",
       });
 
       setErrors({});
@@ -89,10 +104,15 @@ export default function UserForm({
       phone: user.phone ?? "",
       role: user.role.name,
       departmentId: user.department?.id ?? "",
+      clientId: user.client?.id ?? "",
     });
 
     setErrors({});
   }, [user]);
+
+  /* ------------------------------------------------------------------------ */
+  /* Field update                                                             */
+  /* ------------------------------------------------------------------------ */
 
   function updateField(
     field: keyof FormState,
@@ -105,11 +125,44 @@ export default function UserForm({
 
     setErrors((current) => {
       const next = { ...current };
+
       delete next[field];
       delete next.general;
+
       return next;
     });
   }
+
+  /* ------------------------------------------------------------------------ */
+  /* Role change                                                              */
+  /* ------------------------------------------------------------------------ */
+
+  function handleRoleChange(
+    value: CreateUserPayload["role"]
+  ) {
+    setForm((current) => ({
+      ...current,
+      role: value,
+      clientId:
+        value === "CLIENT"
+          ? current.clientId
+          : "",
+    }));
+
+    setErrors((current) => {
+      const next = { ...current };
+
+      delete next.role;
+      delete next.clientId;
+      delete next.general;
+
+      return next;
+    });
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Validation                                                               */
+  /* ------------------------------------------------------------------------ */
 
   function validate(): boolean {
     const nextErrors: Record<string, string> = {};
@@ -137,10 +190,19 @@ export default function UserForm({
       nextErrors.role = "Role is required.";
     }
 
+    if (form.role === "CLIENT" && !form.clientId) {
+      nextErrors.clientId =
+        "Please select a client.";
+    }
+
     setErrors(nextErrors);
 
     return Object.keys(nextErrors).length === 0;
   }
+
+  /* ------------------------------------------------------------------------ */
+  /* Submit                                                                   */
+  /* ------------------------------------------------------------------------ */
 
   function handleSubmit(
     event: React.FormEvent<HTMLFormElement>
@@ -160,6 +222,10 @@ export default function UserForm({
         role: form.role,
         departmentId:
           form.departmentId || null,
+        clientId:
+          form.role === "CLIENT"
+            ? form.clientId
+            : null,
       };
 
       onUpdate(payload);
@@ -175,6 +241,10 @@ export default function UserForm({
       role: form.role,
       departmentId:
         form.departmentId || undefined,
+      clientId:
+        form.role === "CLIENT"
+          ? form.clientId
+          : undefined,
     };
 
     onCreate(payload);
@@ -186,11 +256,11 @@ export default function UserForm({
       className="space-y-5"
     >
       {/* Backend/general error */}
-{(error || errors.general) && (
-  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-    {error || errors.general}
-  </div>
-)}
+      {(error || errors.general) && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {error || errors.general}
+        </div>
+      )}
 
       {/* Name */}
       <div className="grid gap-4 sm:grid-cols-2">
@@ -261,76 +331,118 @@ export default function UserForm({
       {/* Role + Department */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Role */}
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            Role <span className="text-red-500">*</span>
-          </label>
-
-          <select
-            value={form.role}
-            onChange={(event) =>
-              updateField(
-                "role",
-                event.target.value
-              )
-            }
-            disabled={isSubmitting}
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-          >
-            {roles.map((role) => (
-              <option
-                key={role}
-                value={role}
-              >
-                {role.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-
-          {errors.role && (
-            <p className="mt-1 text-xs text-red-500">
-              {errors.role}
-            </p>
-          )}
-        </div>
+        <SelectField
+          label="Role"
+          required
+          value={form.role}
+          error={errors.role}
+          disabled={isSubmitting}
+          onChange={(value) =>
+            handleRoleChange(
+              value as CreateUserPayload["role"]
+            )
+          }
+        >
+          {roles.map((role) => (
+            <option
+              key={role}
+              value={role}
+            >
+              {role.replaceAll("_", " ")}
+            </option>
+          ))}
+        </SelectField>
 
         {/* Department */}
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            Department
-          </label>
+        <SelectField
+          label="Department"
+          value={form.departmentId}
+          disabled={
+            isSubmitting ||
+            departmentsLoading
+          }
+          onChange={(value) =>
+            updateField(
+              "departmentId",
+              value
+            )
+          }
+        >
+          <option value="">
+            {departmentsLoading
+              ? "Loading departments..."
+              : "No department"}
+          </option>
 
-          <select
-            value={form.departmentId}
-            onChange={(event) =>
-              updateField(
-                "departmentId",
-                event.target.value
-              )
-            }
+          {departments.map((department) => (
+            <option
+              key={department.id}
+              value={department.id}
+            >
+              {department.name}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+
+      {/* Client - only for CLIENT role */}
+      {form.role === "CLIENT" && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+          <div className="mb-3">
+            <h3 className="text-sm font-semibold text-slate-800">
+              Client Assignment
+            </h3>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Select the client account this user
+              should be associated with.
+            </p>
+          </div>
+
+          <SelectField
+            label="Client"
+            required
+            value={form.clientId}
+            error={errors.clientId}
             disabled={
               isSubmitting ||
-              departmentsLoading
+              clientsLoading
             }
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            onChange={(value) =>
+              updateField(
+                "clientId",
+                value
+              )
+            }
           >
             <option value="">
-              {departmentsLoading
-                ? "Loading departments..."
-                : "No department"}
+              {clientsLoading
+                ? "Loading clients..."
+                : clients.length === 0
+                  ? "No clients available"
+                  : "Select a client"}
             </option>
 
-            {departments.map((department) => (
+            {clients.map((client) => (
               <option
-                key={department.id}
-                value={department.id}
+                key={client.id}
+                value={client.id}
               >
-                {department.name}
+                {client.companyName}
               </option>
             ))}
-          </select>
+          </SelectField>
+
+          {!clientsLoading &&
+            clients.length === 0 && (
+              <p className="mt-2 text-xs text-amber-600">
+                No clients are available. Create
+                a client before assigning one to
+                this user.
+              </p>
+            )}
         </div>
-      </div>
+      )}
 
       {/* Actions */}
       <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
@@ -338,7 +450,7 @@ export default function UserForm({
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Cancel
         </button>
@@ -346,7 +458,7 @@ export default function UserForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting
             ? "Saving..."
@@ -358,6 +470,10 @@ export default function UserForm({
     </form>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Reusable text field                                                        */
+/* -------------------------------------------------------------------------- */
 
 interface FieldProps {
   label: string;
@@ -399,12 +515,70 @@ function Field({
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className={`h-10 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-1 ${
+        className={`h-10 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition focus:ring-1 ${
           error
             ? "border-red-400 focus:border-red-500 focus:ring-red-500"
             : "border-slate-300 focus:border-slate-500 focus:ring-slate-500"
-        }`}
+        } disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500`}
       />
+
+      {error && (
+        <p className="mt-1 text-xs text-red-500">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Reusable select field                                                      */
+/* -------------------------------------------------------------------------- */
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  children: React.ReactNode;
+  required?: boolean;
+  disabled?: boolean;
+  error?: string;
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  children,
+  required = false,
+  disabled = false,
+  error,
+}: SelectFieldProps) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        {label}{" "}
+        {required && (
+          <span className="text-red-500">
+            *
+          </span>
+        )}
+      </label>
+
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        className={`h-10 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none transition focus:ring-1 ${
+          error
+            ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+            : "border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+        } disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500`}
+      >
+        {children}
+      </select>
 
       {error && (
         <p className="mt-1 text-xs text-red-500">
