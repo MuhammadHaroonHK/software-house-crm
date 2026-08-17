@@ -8,9 +8,27 @@ export class ContactPersonRepository {
     designation?: string;
     email?: string;
     phone?: string;
+    isPrimary?: boolean;
   }) {
-    return prisma.contactPerson.create({
-      data,
+    return prisma.$transaction(async (tx) => {
+      if (data.isPrimary) {
+        await tx.contactPerson.updateMany({
+          where: {
+            clientId: data.clientId,
+            isPrimary: true,
+          },
+          data: {
+            isPrimary: false,
+          },
+        });
+      }
+
+      return tx.contactPerson.create({
+        data,
+        include: {
+          client: true,
+        },
+      });
     });
   }
 
@@ -18,6 +36,9 @@ export class ContactPersonRepository {
     return prisma.contactPerson.findUnique({
       where: {
         id,
+      },
+      include: {
+        client: true,
       },
     });
   }
@@ -40,6 +61,15 @@ export class ContactPersonRepository {
         NOT: {
           id,
         },
+      },
+    });
+  }
+
+  async findPrimaryByClientId(clientId: string) {
+    return prisma.contactPerson.findFirst({
+      where: {
+        clientId,
+        isPrimary: true,
       },
     });
   }
@@ -87,21 +117,26 @@ export class ContactPersonRepository {
       }),
     };
 
-    const [contactPersons, total] = await Promise.all([
-      prisma.contactPerson.findMany({
-        where,
-        skip,
-        take: limit,
+    const [contactPersons, total] =
+      await Promise.all([
+        prisma.contactPerson.findMany({
+          where,
+          skip,
+          take: limit,
 
-        orderBy: {
-          [sortBy]: sortOrder,
-        },
-      }),
+          include: {
+            client: true,
+          },
 
-      prisma.contactPerson.count({
-        where,
-      }),
-    ]);
+          orderBy: {
+            [sortBy]: sortOrder,
+          },
+        }),
+
+        prisma.contactPerson.count({
+          where,
+        }),
+      ]);
 
     return {
       contactPersons,
@@ -118,14 +153,50 @@ export class ContactPersonRepository {
       designation?: string;
       email?: string;
       phone?: string;
+      isPrimary?: boolean;
     }
   ) {
-    return prisma.contactPerson.update({
-      where: {
-        id,
-      },
+    return prisma.$transaction(async (tx) => {
+      const current =
+        await tx.contactPerson.findUnique({
+          where: {
+            id,
+          },
+        });
 
-      data,
+      if (!current) {
+        return null;
+      }
+
+      const targetClientId =
+        data.clientId ?? current.clientId;
+
+      if (data.isPrimary === true) {
+        await tx.contactPerson.updateMany({
+          where: {
+            clientId: targetClientId,
+            isPrimary: true,
+            NOT: {
+              id,
+            },
+          },
+          data: {
+            isPrimary: false,
+          },
+        });
+      }
+
+      return tx.contactPerson.update({
+        where: {
+          id,
+        },
+
+        data,
+
+        include: {
+          client: true,
+        },
+      });
     });
   }
 
@@ -137,3 +208,6 @@ export class ContactPersonRepository {
     });
   }
 }
+
+export const contactPersonRepository =
+  new ContactPersonRepository();

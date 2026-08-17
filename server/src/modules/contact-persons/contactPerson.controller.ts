@@ -1,6 +1,16 @@
-import { Request, Response, NextFunction } from "express";
+import {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
+
 import { successResponse } from "../../utils/apiResponse";
+
 import { contactPersonService } from "./contactPerson.service";
+
+import {
+  toContactPersonResponse,
+} from "./contactPerson.mapper";
 
 export class ContactPersonController {
   async create(
@@ -9,15 +19,15 @@ export class ContactPersonController {
     next: NextFunction
   ) {
     try {
-      const contact = await contactPersonService.create(
-        req.body
-      );
+      const contact =
+        await contactPersonService.create(
+          req.body
+        );
 
       return successResponse(
         res,
         "Contact person created successfully.",
-        contact,
-        201
+        toContactPersonResponse(contact)
       );
     } catch (error) {
       next(error);
@@ -35,21 +45,32 @@ export class ContactPersonController {
           page: req.query.page
             ? Number(req.query.page)
             : undefined,
+
           limit: req.query.limit
             ? Number(req.query.limit)
             : undefined,
-          search: req.query.search as string,
-          clientId: req.query.clientId as string,
-          sortBy: req.query.sortBy as string,
-          sortOrder: req.query.sortOrder as
-            | "asc"
-            | "desc",
+
+          search:
+            req.query.search as string,
+
+          clientId:
+            req.query.clientId as string,
+
+          sortBy:
+            req.query.sortBy as string,
+
+          sortOrder:
+            req.query.sortOrder as
+              | "asc"
+              | "desc",
         });
 
       return successResponse(
         res,
         "Contact persons fetched successfully.",
-        result.data,
+        result.data.map(
+          toContactPersonResponse
+        ),
         200,
         result.meta
       );
@@ -64,14 +85,17 @@ export class ContactPersonController {
     next: NextFunction
   ) {
     try {
-        const id = String(req.params.id);
+      const id = String(req.params.id);
+
       const contact =
-        await contactPersonService.findById(id);
+        await contactPersonService.findById(
+          id
+        );
 
       return successResponse(
         res,
         "Contact person fetched successfully.",
-        contact
+        toContactPersonResponse(contact)
       );
     } catch (error) {
       next(error);
@@ -84,7 +108,8 @@ export class ContactPersonController {
     next: NextFunction
   ) {
     try {
-        const id = String(req.params.id);
+      const id = String(req.params.id);
+
       const contact =
         await contactPersonService.update(
           id,
@@ -94,7 +119,7 @@ export class ContactPersonController {
       return successResponse(
         res,
         "Contact person updated successfully.",
-        contact
+        toContactPersonResponse(contact)
       );
     } catch (error) {
       next(error);
@@ -107,7 +132,8 @@ export class ContactPersonController {
     next: NextFunction
   ) {
     try {
-        const id = String(req.params.id);
+      const id = String(req.params.id);
+
       await contactPersonService.delete(id);
 
       return successResponse(

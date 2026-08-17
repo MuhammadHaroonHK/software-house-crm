@@ -5,6 +5,7 @@ export interface CreateContactPersonDTO {
   designation?: string;
   email?: string;
   phone?: string;
+  isPrimary?: boolean;
 }
 
 export interface UpdateContactPersonDTO {
@@ -14,4 +15,5 @@ export interface UpdateContactPersonDTO {
   designation?: string;
   email?: string;
   phone?: string;
+  isPrimary?: boolean;
 }

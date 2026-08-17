@@ -33,6 +33,10 @@ export const createContactPersonSchema = z.object({
       .string()
       .trim()
       .optional(),
+
+    isPrimary: z
+      .boolean()
+      .optional(),
   }),
 });
 
@@ -69,6 +73,10 @@ export const updateContactPersonSchema = z.object({
     phone: z
       .string()
       .trim()
+      .optional(),
+
+    isPrimary: z
+      .boolean()
       .optional(),
   }),
 });

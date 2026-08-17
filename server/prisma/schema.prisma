@@ -189,6 +189,7 @@ model ContactPerson {
   designation String?
   email       String?
   phone       String?
+  isPrimary   Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -196,6 +197,7 @@ model ContactPerson {
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
+  @@index([clientId, isPrimary])
 }
 
 model Project {
