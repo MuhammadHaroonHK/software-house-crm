@@ -144,6 +144,27 @@ export class ContactPersonController {
       next(error);
     }
   }
+
+  async setPrimary(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id = String(req.params.id);
+
+    const contact =
+      await contactPersonService.setPrimary(id);
+
+    return successResponse(
+      res,
+      "Primary contact person updated successfully.",
+      contact
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const contactPersonController =

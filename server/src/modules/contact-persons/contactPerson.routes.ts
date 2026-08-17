@@ -36,6 +36,18 @@ router.get(
   contactPersonController.findAll.bind(contactPersonController)
 );
 
+router.patch(
+  "/:id/primary",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  contactPersonController.setPrimary.bind(
+    contactPersonController
+  )
+);
+
 router.get(
   "/:id",
   authenticate,

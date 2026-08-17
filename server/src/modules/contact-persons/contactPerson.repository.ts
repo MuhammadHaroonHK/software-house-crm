@@ -207,6 +207,29 @@ export class ContactPersonRepository {
       },
     });
   }
+
+  async setPrimary(id: string, clientId: string) {
+  return prisma.$transaction(async (tx) => {
+    await tx.contactPerson.updateMany({
+      where: {
+        clientId,
+        isPrimary: true,
+      },
+      data: {
+        isPrimary: false,
+      },
+    });
+
+    return tx.contactPerson.update({
+      where: {
+        id,
+      },
+      data: {
+        isPrimary: true,
+      },
+    });
+  });
+}
 }
 
 export const contactPersonRepository =

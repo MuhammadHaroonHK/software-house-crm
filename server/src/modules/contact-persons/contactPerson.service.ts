@@ -187,6 +187,16 @@ export class ContactPersonService {
 
     await contactPersonRepository.delete(id);
   }
+
+  async setPrimary(id: string) {
+    const contact = await contactPersonRepository.findById(id);
+
+    if (!contact) {
+      throw new AppError(404, "Contact person not found.");
+    }
+
+    return contactPersonRepository.setPrimary(id, contact.clientId);
+  }
 }
 
 export const contactPersonService = new ContactPersonService();
