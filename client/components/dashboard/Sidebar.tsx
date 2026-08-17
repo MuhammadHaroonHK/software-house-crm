@@ -68,6 +68,16 @@ const navigationItems: NavigationItem[] = [
     icon: Building2,
     roles: ["SUPER_ADMIN"],
   },
+  
+  {
+  label: "Clients",
+  href: "/clients",
+  icon: Building2,
+  roles: [
+    "SUPER_ADMIN",
+    "PROJECT_MANAGER",
+  ],
+},
 
   {
     label: "Projects",
