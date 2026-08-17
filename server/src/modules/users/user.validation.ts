@@ -38,6 +38,10 @@ export const createUserSchema = z.object({
   departmentId: z
     .uuid()
     .optional(),
+  
+  clientId: z
+  .uuid()
+  .optional(),
 })
 });
 
@@ -54,6 +58,8 @@ export const updateUserSchema = z.object({
     role: z.enum(UserRole).optional(),
 
     departmentId: z.uuid().nullable().optional(),
+
+    clientId: z.uuid().nullable().optional(),
   }),
 });
 

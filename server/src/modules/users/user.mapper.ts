@@ -14,6 +14,12 @@ type UserWithRelations = Prisma.UserGetPayload<{
         name: true;
       };
     };
+    client: {
+      select: {
+        id: true;
+        companyName: true;
+      };
+    };
   };
 }>;
 
@@ -30,6 +36,8 @@ export function toUserResponse(user: UserWithRelations) {
     role: user.role,
 
     department: user.department,
+
+    client: user.client,
 
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,

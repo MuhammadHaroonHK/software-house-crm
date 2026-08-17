@@ -131,6 +131,7 @@ model User {
   id           String  @id @default(uuid()) @db.Uuid
   roleId       String  @db.Uuid
   departmentId String? @db.Uuid
+  clientId     String? @db.Uuid
 
   firstName    String
   lastName     String
@@ -146,6 +147,7 @@ model User {
 
   role                Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict)
   department          Department?          @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  client              Client?              @relation(fields: [clientId], references: [id], onDelete: SetNull)
   managedProjects     Project[]            @relation("ManagedProjects")
   projectMembers      ProjectMember[]
   assignedTasks       Task[]               @relation("AssignedTasks")
@@ -158,6 +160,7 @@ model User {
 
   @@index([roleId])
   @@index([departmentId])
+  @@index([clientId])
 }
 
 model Client {
@@ -178,6 +181,7 @@ model Client {
   contactPersons ContactPerson[]
   projects       Project[]
   quotations     Quotation[]
+  users          User[]
 }
 
 model ContactPerson {

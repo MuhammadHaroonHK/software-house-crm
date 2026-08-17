@@ -40,6 +40,31 @@ export class UserService {
       }
     }
 
+    // Validate client assignment
+let client = null;
+
+if (data.role === UserRole.CLIENT) {
+  if (!data.clientId) {
+    throw new AppError(
+      400,
+      "Client is required when creating a CLIENT user."
+    );
+  }
+
+  client = await userRepository.findClientById(
+    data.clientId
+  );
+
+  if (!client) {
+    throw new AppError(404, "Client not found.");
+  }
+} else if (data.clientId) {
+  throw new AppError(
+    400,
+    "Only CLIENT users can be assigned to a client."
+  );
+}
+
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
@@ -64,6 +89,14 @@ export class UserService {
           },
         },
       }),
+
+      ...(client && {
+    client: {
+      connect: {
+        id: client.id,
+      },
+    },
+  }),
     });
 
     return user;
@@ -175,6 +208,52 @@ async updateUser(id: string, data: UpdateUserDTO) {
     }
   }
 
+  let clientData = {};
+
+if (data.clientId !== undefined || data.role !== undefined) {
+  const newRole = data.role ?? existingUser.role.name;
+
+  if (newRole === UserRole.CLIENT) {
+    if (data.clientId !== undefined) {
+      if (data.clientId === null) {
+        throw new AppError(
+          400,
+          "Client is required for a CLIENT user."
+        );
+      }
+
+      const client = await userRepository.findClientById(
+        data.clientId
+      );
+
+      if (!client) {
+        throw new AppError(404, "Client not found.");
+      }
+
+      clientData = {
+        client: {
+          connect: {
+            id: client.id,
+          },
+        },
+      };
+    }
+  } else {
+    if (data.clientId) {
+      throw new AppError(
+        400,
+        "Only CLIENT users can be assigned to a client."
+      );
+    }
+
+    clientData = {
+      client: {
+        disconnect: true,
+      },
+    };
+  }
+}
+
   return userRepository.update(id, {
     ...(data.firstName && {
       firstName: data.firstName,
@@ -195,6 +274,8 @@ async updateUser(id: string, data: UpdateUserDTO) {
     ...roleData,
 
     ...departmentData,
+
+    ...clientData,
   });
 }
 

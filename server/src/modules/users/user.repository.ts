@@ -12,19 +12,25 @@ export class UserRepository {
   return prisma.user.create({
     data,
     include: {
-      role: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      department: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
+  role: {
+    select: {
+      id: true,
+      name: true,
     },
+  },
+  department: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  client: {
+    select: {
+      id: true,
+      companyName: true,
+    },
+  },
+},
   });
 }
 
@@ -37,6 +43,14 @@ export class UserRepository {
 async findDepartmentById(id: string) {
   return prisma.department.findUnique({
     where: { id },
+  });
+}
+
+async findClientById(id: string) {
+  return prisma.client.findUnique({
+    where: {
+      id,
+    },
   });
 }
 
@@ -104,20 +118,27 @@ async findAll(
       take: limit,
 
       include: {
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+  role: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
 
-        department: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+  department: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+
+  client: {
+    select: {
+      id: true,
+      companyName: true,
+    },
+  },
+},
 
       orderBy: {
         [sortBy]: sortOrder,
@@ -155,6 +176,13 @@ async findById(id: string) {
           name: true,
         },
       },
+
+      client: {
+  select: {
+    id: true,
+    companyName: true,
+  },
+},
     },
   });
 }
@@ -184,6 +212,13 @@ async update(
           name: true,
         },
       },
+
+      client: {
+  select: {
+    id: true,
+    companyName: true,
+  },
+},
     },
   });
 }
@@ -215,6 +250,13 @@ async updateStatus(
           name: true,
         },
       },
+
+      client: {
+  select: {
+    id: true,
+    companyName: true,
+  },
+},
     },
   });
 }

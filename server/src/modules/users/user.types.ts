@@ -8,6 +8,7 @@ export interface CreateUserDTO {
   phone?: string;
   role: UserRole;
   departmentId?: string;
+  clientId?: string;
 }
 
 export interface UpdateUserDTO {
@@ -17,6 +18,7 @@ export interface UpdateUserDTO {
   phone?: string;
   role?: UserRole;
   departmentId?: string | null;
+  clientId?: string | null;
 }
 
 export interface UpdateProfileDTO {
