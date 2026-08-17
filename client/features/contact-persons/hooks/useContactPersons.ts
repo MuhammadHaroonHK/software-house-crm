@@ -100,3 +100,20 @@ export function useDeleteContactPerson() {
     },
   });
 }
+
+export function useSetPrimaryContactPerson() {
+  const queryClient =
+    useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      contactPersonService.setPrimary(id),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey:
+          CONTACT_PERSONS_QUERY_KEY,
+      });
+    },
+  });
+}

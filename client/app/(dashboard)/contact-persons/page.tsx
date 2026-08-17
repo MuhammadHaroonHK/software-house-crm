@@ -88,7 +88,7 @@ export default function ContactPersonsPage() {
     useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
-  /* Authentication                                                           */
+  /* Authentication                                                            */
   /* ------------------------------------------------------------------------ */
 
   const {
@@ -117,18 +117,19 @@ export default function ContactPersonsPage() {
   });
 
   /* ------------------------------------------------------------------------ */
-/* Clients                                                                  */
-/* ------------------------------------------------------------------------ */
+  /* Clients                                                                  */
+  /* ------------------------------------------------------------------------ */
 
-const {
-  data: clientsData,
-  isLoading: isClientsLoading,
-} = useClients({
-  page: 1,
-  limit: 100,
-  sortBy: "companyName",
-  sortOrder: "asc",
-});
+  const {
+    data: clientsData,
+    isLoading: isClientsLoading,
+    isError: isClientsError,
+  } = useClients({
+    page: 1,
+    limit: 100,
+    sortBy: "companyName",
+    sortOrder: "asc",
+  });
 
   /* ------------------------------------------------------------------------ */
   /* Mutations                                                                */
@@ -493,6 +494,9 @@ const {
 
   const meta = data.meta;
 
+  const clients =
+    clientsData?.data ?? [];
+
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
   /* ------------------------------------------------------------------------ */
@@ -500,6 +504,7 @@ const {
   return (
     <DashboardLayout user={user}>
       <div className="mx-auto max-w-6xl space-y-6">
+
         {/* Header */}
         <ContactPersonsHeader
           search={searchInput}
@@ -541,26 +546,30 @@ const {
         />
       </div>
 
-      {/* Create / Edit modal */}
-      <ContactPersonFormModal
-  open={isModalOpen}
-  contactPerson={
-    editingContactPerson
-  }
-  clients={
-    clientsData?.data ?? []
-  }
-  error={formError}
-  isSubmitting={
-    createContactPerson.isPending ||
-    updateContactPerson.isPending
-  }
-  onClose={closeModal}
-  onCreate={handleCreate}
-  onUpdate={handleUpdate}
-/>
+      {/* -------------------------------------------------------------------- */}
+      {/* Create / Edit modal                                                  */}
+      {/* -------------------------------------------------------------------- */}
 
-      {/* Delete dialog */}
+      <ContactPersonFormModal
+        open={isModalOpen}
+        contactPerson={
+          editingContactPerson
+        }
+        clients={clients}
+        error={formError}
+        isSubmitting={
+          createContactPerson.isPending ||
+          updateContactPerson.isPending
+        }
+        onClose={closeModal}
+        onCreate={handleCreate}
+        onUpdate={handleUpdate}
+      />
+
+      {/* -------------------------------------------------------------------- */}
+      {/* Delete dialog                                                        */}
+      {/* -------------------------------------------------------------------- */}
+
       <DeleteContactPersonDialog
         contactPerson={
           deleteContactPerson

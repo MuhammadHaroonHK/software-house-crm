@@ -6,6 +6,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  Star,
   X,
 } from "lucide-react";
 
@@ -42,6 +43,7 @@ interface FormState {
   designation: string;
   email: string;
   phone: string;
+  isPrimary: boolean;
 }
 
 interface FormErrors {
@@ -60,6 +62,7 @@ const emptyForm: FormState = {
   designation: "",
   email: "",
   phone: "",
+  isPrimary: false,
 };
 
 export default function ContactPersonFormModal({
@@ -108,6 +111,9 @@ export default function ContactPersonFormModal({
 
         phone:
           contactPerson.phone ?? "",
+
+        isPrimary:
+          contactPerson.isPrimary,
       });
     } else {
       setForm(emptyForm);
@@ -117,7 +123,7 @@ export default function ContactPersonFormModal({
   }, [open, contactPerson]);
 
   /* ------------------------------------------------------------------------ */
-  /* Don't render when closed                                                  */
+  /* Don't render when closed                                                 */
   /* ------------------------------------------------------------------------ */
 
   if (!open) {
@@ -125,12 +131,12 @@ export default function ContactPersonFormModal({
   }
 
   /* ------------------------------------------------------------------------ */
-  /* Update field                                                              */
+  /* Update field                                                             */
   /* ------------------------------------------------------------------------ */
 
   const updateField = (
     field: keyof FormState,
-    value: string
+    value: string | boolean
   ) => {
     setForm((previous) => ({
       ...previous,
@@ -144,7 +150,7 @@ export default function ContactPersonFormModal({
   };
 
   /* ------------------------------------------------------------------------ */
-  /* Validation                                                                */
+  /* Validation                                                               */
   /* ------------------------------------------------------------------------ */
 
   const validate = (): boolean => {
@@ -230,7 +236,7 @@ export default function ContactPersonFormModal({
   };
 
   /* ------------------------------------------------------------------------ */
-  /* Submit                                                                    */
+  /* Submit                                                                   */
   /* ------------------------------------------------------------------------ */
 
   const handleSubmit = (
@@ -258,12 +264,17 @@ export default function ContactPersonFormModal({
 
       email:
         form.email.trim()
-          ? form.email.trim().toLowerCase()
+          ? form.email
+              .trim()
+              .toLowerCase()
           : undefined,
 
       phone:
         form.phone.trim() ||
         undefined,
+
+      isPrimary:
+        form.isPrimary,
     };
 
     if (isEdit) {
@@ -275,12 +286,13 @@ export default function ContactPersonFormModal({
   };
 
   /* ------------------------------------------------------------------------ */
-  /* Render                                                                    */
+  /* Render                                                                   */
   /* ------------------------------------------------------------------------ */
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
       <div className="my-4 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:my-8">
+
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
@@ -314,6 +326,7 @@ export default function ContactPersonFormModal({
           className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
             {/* Client */}
             <div className="sm:col-span-2">
               <label
@@ -443,6 +456,7 @@ export default function ContactPersonFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Designation
+
                 <span className="ml-1 font-normal text-slate-400">
                   (Optional)
                 </span>
@@ -480,6 +494,7 @@ export default function ContactPersonFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Email
+
                 <span className="ml-1 font-normal text-slate-400">
                   (Optional)
                 </span>
@@ -514,6 +529,7 @@ export default function ContactPersonFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Phone
+
                 <span className="ml-1 font-normal text-slate-400">
                   (Optional)
                 </span>
@@ -539,6 +555,43 @@ export default function ContactPersonFormModal({
               <FieldError
                 message={errors.phone}
               />
+            </div>
+
+            {/* Primary Contact */}
+            <div className="sm:col-span-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={form.isPrimary}
+                    onChange={(event) =>
+                      updateField(
+                        "isPrimary",
+                        event.target.checked
+                      )
+                    }
+                    disabled={isSubmitting}
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-2 focus:ring-slate-300"
+                  />
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-slate-500" />
+
+                      <span className="text-sm font-medium text-slate-700">
+                        Primary Contact
+                      </span>
+                    </div>
+
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      Set this person as the primary
+                      contact for the selected client.
+                      If another person is currently
+                      primary, they will be replaced.
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 

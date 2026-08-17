@@ -70,4 +70,15 @@ export const contactPersonService = {
 
     return response.data;
   },
+
+  async setPrimary(
+  id: string
+): Promise<ContactPersonResponse> {
+  const response =
+    await api.patch<ContactPersonResponse>(
+      `/contact-persons/${id}/primary`
+    );
+
+  return response.data;
+},
 };
