@@ -158,40 +158,62 @@ export class TaskService {
   }
 
   async findAll(query: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    projectId?: string;
-    assignedToId?: string;
-    priority?: TaskPriority;
-    status?: TaskStatus;
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+  search?: string;
+  projectId?: string;
+  assignedToId?: string;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 
-    actorId: string;
-    actorRole: UserRole;
-  }) {
-    const pagination =
-      getPagination(query);
+  actorId: string;
+  actorRole: UserRole;
+}) {
+  const pagination =
+    getPagination(query);
 
-    let assignedToId =
-      query.assignedToId;
+  /*
+   * Employees can only see their own
+   * assigned tasks.
+   */
+  let assignedToId =
+    query.assignedToId;
 
-    /*
-     * Employees can only see their own
-     * assigned tasks.
-     */
-    if (
-      query.actorRole === UserRole.EMPLOYEE
-    ) {
-      assignedToId =
-        query.actorId;
-    }
+  if (
+    query.actorRole ===
+    UserRole.EMPLOYEE
+  ) {
+    assignedToId =
+      query.actorId;
+  }
 
-    const {
-      tasks,
-      total,
-    } = await taskRepository.findAll(
+  /*
+   * Project Managers can only see tasks
+   * belonging to projects they manage.
+   *
+   * This restriction is passed to the
+   * repository so filtering happens before
+   * pagination.
+   */
+  let managerId:
+    | string
+    | undefined;
+
+  if (
+    query.actorRole ===
+    UserRole.PROJECT_MANAGER
+  ) {
+    managerId =
+      query.actorId;
+  }
+
+  const {
+    tasks,
+    total,
+  } =
+    await taskRepository.findAll(
       pagination.skip,
       pagination.limit,
       pagination.search,
@@ -199,69 +221,27 @@ export class TaskService {
       assignedToId,
       query.priority,
       query.status,
+      managerId,
       pagination.sortBy,
       pagination.sortOrder
     );
 
-    /*
-     * Project managers may only see tasks
-     * belonging to projects they manage.
-     *
-     * SUPER_ADMIN can see everything.
-     */
-    let filteredTasks = tasks;
+  return {
+    data: tasks,
 
-    if (
-      query.actorRole ===
-      UserRole.PROJECT_MANAGER
-    ) {
-      filteredTasks =
-        tasks.filter(
-          (task) =>
-            task.project.managerId ===
-            query.actorId
-        );
-    }
+    meta: {
+      page: pagination.page,
+      limit: pagination.limit,
+      total,
 
-    /*
-     * For employees, the database query
-     * already restricts assignedToId to
-     * actorId.
-     */
-    if (
-      query.actorRole ===
-      UserRole.EMPLOYEE
-    ) {
-      filteredTasks =
-        tasks.filter(
-          (task) =>
-            task.assignedTo.id ===
-            query.actorId
-        );
-    }
-
-    return {
-      data: filteredTasks,
-
-      meta: {
-        page: pagination.page,
-        limit: pagination.limit,
-        total:
-          query.actorRole ===
-            UserRole.SUPER_ADMIN
-            ? total
-            : filteredTasks.length,
-        totalPages:
-          Math.ceil(
-            (query.actorRole ===
-            UserRole.SUPER_ADMIN
-              ? total
-              : filteredTasks.length) /
-              pagination.limit
-          ),
-      },
-    };
-  }
+      totalPages:
+        Math.ceil(
+          total /
+            pagination.limit
+        ),
+    },
+  };
+}
 
   async findById(
     id: string,

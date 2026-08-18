@@ -75,103 +75,114 @@ export class TaskRepository {
   }
 
   async findAll(
-    skip: number,
-    limit: number,
-    search: string,
-    projectId?: string,
-    assignedToId?: string,
-    priority?: TaskPriority,
-    status?: TaskStatus,
-    sortBy = "createdAt",
-    sortOrder: "asc" | "desc" = "desc"
-  ) {
-    const where: Prisma.TaskWhereInput = {
-      ...(search && {
-        OR: [
-          {
-            title: {
-              contains: search,
-              mode: "insensitive",
+  skip: number,
+  limit: number,
+  search: string,
+  projectId?: string,
+  assignedToId?: string,
+  priority?: TaskPriority,
+  status?: TaskStatus,
+  managerId?: string,
+  sortBy = "createdAt",
+  sortOrder: "asc" | "desc" = "desc"
+) {
+  const where: Prisma.TaskWhereInput = {
+    ...(search && {
+      OR: [
+        {
+          title: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          description: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ],
+    }),
+
+    ...(projectId && {
+      projectId,
+    }),
+
+    ...(assignedToId && {
+      assignedToId,
+    }),
+
+    ...(priority && {
+      priority,
+    }),
+
+    ...(status && {
+      status,
+    }),
+
+    /*
+     * PROJECT_MANAGER access is restricted at the
+     * database-query level instead of filtering after
+     * pagination.
+     */
+    ...(managerId && {
+      project: {
+        managerId,
+      },
+    }),
+  };
+
+  const [tasks, total] =
+    await Promise.all([
+      prisma.task.findMany({
+        where,
+
+        skip,
+
+        take: limit,
+
+        include: {
+          project: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+              managerId: true,
             },
           },
 
-          {
-            description: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        ],
-      }),
+          assignedTo: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
 
-      ...(projectId && {
-        projectId,
-      }),
-
-      ...(assignedToId && {
-        assignedToId,
-      }),
-
-      ...(priority && {
-        priority,
-      }),
-
-      ...(status && {
-        status,
-      }),
-    };
-
-    const [tasks, total] =
-      await Promise.all([
-        prisma.task.findMany({
-          where,
-
-          skip,
-
-          take: limit,
-
-          include: {
-            project: {
-              select: {
-                id: true,
-                name: true,
-                status: true,
-                managerId: true,
-              },
-            },
-
-            assignedTo: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-
-                role: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+              role: {
+                select: {
+                  id: true,
+                  name: true,
                 },
               },
             },
           },
+        },
 
-          orderBy: {
-            [sortBy]: sortOrder,
-          },
-        }),
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+      }),
 
-        prisma.task.count({
-          where,
-        }),
-      ]);
+      prisma.task.count({
+        where,
+      }),
+    ]);
 
-    return {
-      tasks,
-      total,
-    };
-  }
+  return {
+    tasks,
+    total,
+  };
+}
 
   async update(
     id: string,
