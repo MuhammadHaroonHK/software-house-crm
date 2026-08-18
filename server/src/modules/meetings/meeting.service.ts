@@ -1,20 +1,27 @@
 import { AppError } from "../../utils/AppError";
 import { getPagination } from "../../utils/pagination";
+
 import {
   MeetingStatus,
   ProjectStatus,
   UserRole,
 } from "@prisma/client";
+
 import {
   CreateMeetingDTO,
   UpdateMeetingDTO,
 } from "./meeting.types";
+
 import { MeetingRepository } from "./meeting.repository";
 
 const meetingRepository =
   new MeetingRepository();
 
 export class MeetingService {
+  /*
+   * Management access:
+   * SUPER_ADMIN or the project's manager.
+   */
   private validateProjectAccess(
     project: {
       managerId: string;
@@ -24,7 +31,8 @@ export class MeetingService {
     actorRole: UserRole
   ) {
     if (
-      actorRole !== UserRole.SUPER_ADMIN &&
+      actorRole !==
+        UserRole.SUPER_ADMIN &&
       project.managerId !== actorId
     ) {
       throw new AppError(
@@ -34,12 +42,68 @@ export class MeetingService {
     }
   }
 
+  /*
+   * Read access:
+   *
+   * SUPER_ADMIN:
+   *   Can view everything.
+   *
+   * PROJECT_MANAGER:
+   *   Can view meetings from projects they manage.
+   *
+   * EMPLOYEE:
+   *   Can view meetings from projects they are a member of.
+   */
+  private async validateMeetingViewAccess(
+    projectId: string,
+    projectManagerId: string,
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    if (
+      actorRole ===
+      UserRole.SUPER_ADMIN
+    ) {
+      return;
+    }
+
+    if (
+      actorRole ===
+        UserRole.PROJECT_MANAGER &&
+      projectManagerId === actorId
+    ) {
+      return;
+    }
+
+    if (
+      actorRole ===
+      UserRole.EMPLOYEE
+    ) {
+      const isMember =
+        await meetingRepository.isProjectMember(
+          projectId,
+          actorId
+        );
+
+      if (isMember) {
+        return;
+      }
+    }
+
+    throw new AppError(
+      403,
+      "You do not have access to this meeting."
+    );
+  }
+
   private validateProjectStatus(
     status: ProjectStatus
   ) {
     if (
-      status === ProjectStatus.COMPLETED ||
-      status === ProjectStatus.CANCELLED
+      status ===
+        ProjectStatus.COMPLETED ||
+      status ===
+        ProjectStatus.CANCELLED
     ) {
       throw new AppError(
         400,
@@ -51,7 +115,10 @@ export class MeetingService {
   private validateMeetingDate(
     meetingDate: Date
   ) {
-    if (meetingDate.getTime() < Date.now()) {
+    if (
+      meetingDate.getTime() <
+      Date.now()
+    ) {
       throw new AppError(
         400,
         "Meeting date must be in the future."
@@ -123,9 +190,10 @@ export class MeetingService {
       );
     }
 
-    const meetingDate = new Date(
-      data.meetingDate
-    );
+    const meetingDate =
+      new Date(
+        data.meetingDate
+      );
 
     this.validateMeetingDate(
       meetingDate
@@ -133,6 +201,7 @@ export class MeetingService {
 
     return meetingRepository.create({
       title: data.title,
+
       agenda: data.agenda,
 
       meetingDate,
@@ -185,8 +254,13 @@ export class MeetingService {
     const projectId =
       query.projectId;
 
+    /*
+     * If a specific project was requested,
+     * verify that the actor can access it.
+     */
     if (
-      actorRole !== UserRole.SUPER_ADMIN &&
+      actorRole !==
+        UserRole.SUPER_ADMIN &&
       projectId &&
       !accessibleProjectIds.includes(
         projectId
@@ -198,7 +272,10 @@ export class MeetingService {
       );
     }
 
-    const { meetings, total } =
+    const {
+      meetings,
+      total,
+    } =
       await meetingRepository.findAll(
         pagination.skip,
         pagination.limit,
@@ -219,9 +296,11 @@ export class MeetingService {
         page: pagination.page,
         limit: pagination.limit,
         total,
-        totalPages: Math.ceil(
-          total / pagination.limit
-        ),
+        totalPages:
+          Math.ceil(
+            total /
+              pagination.limit
+          ),
       },
     };
   }
@@ -232,7 +311,9 @@ export class MeetingService {
     actorRole: UserRole
   ) {
     const meeting =
-      await meetingRepository.findById(id);
+      await meetingRepository.findById(
+        id
+      );
 
     if (!meeting) {
       throw new AppError(
@@ -241,8 +322,9 @@ export class MeetingService {
       );
     }
 
-    this.validateProjectAccess(
-      meeting.project,
+    await this.validateMeetingViewAccess(
+      meeting.project.id,
+      meeting.project.managerId,
       actorId,
       actorRole
     );
@@ -257,7 +339,9 @@ export class MeetingService {
     actorRole: UserRole
   ) {
     const meeting =
-      await meetingRepository.findById(id);
+      await meetingRepository.findById(
+        id
+      );
 
     if (!meeting) {
       throw new AppError(
@@ -277,6 +361,7 @@ export class MeetingService {
     );
 
     let projectData = {};
+
     let projectId =
       meeting.projectId;
 
@@ -303,12 +388,14 @@ export class MeetingService {
         actorRole
       );
 
-      projectId = data.projectId;
+      projectId =
+        data.projectId;
 
       projectData = {
         project: {
           connect: {
-            id: data.projectId,
+            id:
+              data.projectId,
           },
         },
       };
@@ -357,7 +444,8 @@ export class MeetingService {
       organizerData = {
         organizer: {
           connect: {
-            id: data.organizerId,
+            id:
+              data.organizerId,
           },
         },
       };
@@ -365,7 +453,9 @@ export class MeetingService {
 
     if (data.meetingDate) {
       this.validateMeetingDate(
-        new Date(data.meetingDate)
+        new Date(
+          data.meetingDate
+        )
       );
     }
 
@@ -373,33 +463,44 @@ export class MeetingService {
       id,
       {
         ...(data.title && {
-          title: data.title,
+          title:
+            data.title,
         }),
 
-        ...(data.agenda !== undefined && {
-          agenda: data.agenda,
+        ...(data.agenda !==
+          undefined && {
+          agenda:
+            data.agenda,
         }),
 
         ...(data.meetingDate && {
-          meetingDate: new Date(
-            data.meetingDate
-          ),
+          meetingDate:
+            new Date(
+              data.meetingDate
+            ),
         }),
 
-        ...(data.location !== undefined && {
-          location: data.location,
+        ...(data.location !==
+          undefined && {
+          location:
+            data.location,
         }),
 
-        ...(data.notes !== undefined && {
-          notes: data.notes,
+        ...(data.notes !==
+          undefined && {
+          notes:
+            data.notes,
         }),
 
-        ...(data.aiSummary !== undefined && {
-          aiSummary: data.aiSummary,
+        ...(data.aiSummary !==
+          undefined && {
+          aiSummary:
+            data.aiSummary,
         }),
 
         ...(data.status && {
-          status: data.status,
+          status:
+            data.status,
         }),
 
         ...projectData,
@@ -414,7 +515,9 @@ export class MeetingService {
     actorRole: UserRole
   ) {
     const meeting =
-      await meetingRepository.findById(id);
+      await meetingRepository.findById(
+        id
+      );
 
     if (!meeting) {
       throw new AppError(
@@ -433,7 +536,9 @@ export class MeetingService {
       actorRole
     );
 
-    await meetingRepository.delete(id);
+    await meetingRepository.delete(
+      id
+    );
   }
 }
 

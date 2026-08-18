@@ -94,12 +94,14 @@ export class MeetingRepository {
               mode: "insensitive",
             },
           },
+
           {
             agenda: {
               contains: search,
               mode: "insensitive",
             },
           },
+
           {
             location: {
               contains: search,
@@ -121,10 +123,28 @@ export class MeetingRepository {
         organizerId,
       }),
 
-      ...(actorRole !== UserRole.SUPER_ADMIN &&
-        actorId && {
+      /*
+       * Access control is applied inside
+       * the database query so pagination
+       * remains accurate.
+       */
+      ...(actorId &&
+        actorRole ===
+          UserRole.PROJECT_MANAGER && {
           project: {
             managerId: actorId,
+          },
+        }),
+
+      ...(actorId &&
+        actorRole ===
+          UserRole.EMPLOYEE && {
+          project: {
+            members: {
+              some: {
+                userId: actorId,
+              },
+            },
           },
         }),
     };
@@ -265,7 +285,10 @@ export class MeetingRepository {
     actorId: string,
     actorRole: UserRole
   ) {
-    if (actorRole === UserRole.SUPER_ADMIN) {
+    if (
+      actorRole ===
+      UserRole.SUPER_ADMIN
+    ) {
       const projects =
         await prisma.project.findMany({
           select: {
@@ -278,19 +301,47 @@ export class MeetingRepository {
       );
     }
 
-    const projects =
-      await prisma.project.findMany({
-        where: {
-          managerId: actorId,
-        },
+    if (
+      actorRole ===
+      UserRole.PROJECT_MANAGER
+    ) {
+      const projects =
+        await prisma.project.findMany({
+          where: {
+            managerId: actorId,
+          },
 
-        select: {
-          id: true,
-        },
-      });
+          select: {
+            id: true,
+          },
+        });
 
-    return projects.map(
-      (project) => project.id
-    );
+      return projects.map(
+        (project) => project.id
+      );
+    }
+
+    if (
+      actorRole ===
+      UserRole.EMPLOYEE
+    ) {
+      const memberships =
+        await prisma.projectMember.findMany({
+          where: {
+            userId: actorId,
+          },
+
+          select: {
+            projectId: true,
+          },
+        });
+
+      return memberships.map(
+        (membership) =>
+          membership.projectId
+      );
+    }
+
+    return [];
   }
 }

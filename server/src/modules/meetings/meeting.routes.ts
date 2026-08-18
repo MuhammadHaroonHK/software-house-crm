@@ -12,6 +12,11 @@ import {
 
 const router = Router();
 
+/*
+ * CREATE MEETING
+ *
+ * Only SUPER_ADMIN and PROJECT_MANAGER.
+ */
 router.post(
   "/",
   authenticate,
@@ -20,30 +25,67 @@ router.post(
     UserRole.PROJECT_MANAGER
   ),
   validate(createMeetingSchema),
-  meetingController.create.bind(meetingController)
+  meetingController.create.bind(
+    meetingController
+  )
 );
 
+/*
+ * LIST MEETINGS
+ *
+ * SUPER_ADMIN:
+ *   All meetings
+ *
+ * PROJECT_MANAGER:
+ *   Meetings for projects they manage
+ *
+ * EMPLOYEE:
+ *   Meetings for projects they are a member of
+ */
 router.get(
   "/",
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.EMPLOYEE
   ),
   validate(getMeetingsSchema),
-  meetingController.findAll.bind(meetingController)
+  meetingController.findAll.bind(
+    meetingController
+  )
 );
 
+/*
+ * GET MEETING
+ *
+ * SUPER_ADMIN:
+ *   Any meeting
+ *
+ * PROJECT_MANAGER:
+ *   Meeting from their project
+ *
+ * EMPLOYEE:
+ *   Meeting from a project they are a member of
+ */
 router.get(
   "/:id",
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.EMPLOYEE
   ),
-  meetingController.findById.bind(meetingController)
+  meetingController.findById.bind(
+    meetingController
+  )
 );
 
+/*
+ * UPDATE MEETING
+ *
+ * Only SUPER_ADMIN and PROJECT_MANAGER.
+ */
 router.patch(
   "/:id",
   authenticate,
@@ -52,9 +94,16 @@ router.patch(
     UserRole.PROJECT_MANAGER
   ),
   validate(updateMeetingSchema),
-  meetingController.update.bind(meetingController)
+  meetingController.update.bind(
+    meetingController
+  )
 );
 
+/*
+ * DELETE MEETING
+ *
+ * Only SUPER_ADMIN and PROJECT_MANAGER.
+ */
 router.delete(
   "/:id",
   authenticate,
@@ -62,7 +111,9 @@ router.delete(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
-  meetingController.delete.bind(meetingController)
+  meetingController.delete.bind(
+    meetingController
+  )
 );
 
 export default router;
