@@ -484,16 +484,19 @@ export class ProjectService {
     }
 
     const [
-      members,
-      tasks,
-      meetings,
-      quotations,
-    ] = await Promise.all([
-      projectRepository.countMembers(id),
-      projectRepository.countTasks(id),
-      projectRepository.countMeetings(id),
-      projectRepository.countQuotations(id),
-    ]);
+  members,
+  tasks,
+  meetings,
+  quotations,
+] = await Promise.all([
+  projectRepository.countMembers(
+    id,
+    project.manager.id
+  ),
+  projectRepository.countTasks(id),
+  projectRepository.countMeetings(id),
+  projectRepository.countQuotations(id),
+]);
 
     if (
       members > 0 ||

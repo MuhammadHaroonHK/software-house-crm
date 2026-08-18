@@ -77,13 +77,19 @@ export class ProjectRepository {
     });
   }
 
-  async countMembers(projectId: string) {
-    return prisma.projectMember.count({
-      where: {
-        projectId,
+  async countMembers(
+  projectId: string,
+  managerId: string
+) {
+  return prisma.projectMember.count({
+    where: {
+      projectId,
+      userId: {
+        not: managerId,
       },
-    });
-  }
+    },
+  });
+}
 
   async countTasks(projectId: string) {
     return prisma.task.count({
