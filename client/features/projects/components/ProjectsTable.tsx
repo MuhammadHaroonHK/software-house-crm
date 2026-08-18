@@ -34,11 +34,19 @@ interface ProjectsTableProps {
     project: Project
   ) => boolean;
 
+  canManageMembers?: (
+    project: Project
+  ) => boolean;
+
   onView: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
 
   onChangeStatus: (
+    project: Project
+  ) => void;
+
+  onManageMembers: (
     project: Project
   ) => void;
 }
@@ -50,10 +58,12 @@ export default function ProjectsTable({
   canEdit = () => false,
   canDelete = () => false,
   canChangeStatus = () => false,
+  canManageMembers = () => false,
   onView,
   onEdit,
   onDelete,
   onChangeStatus,
+  onManageMembers,
 }: ProjectsTableProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -243,9 +253,16 @@ export default function ProjectsTable({
                     <td className="px-6 py-4">
                       <ProjectActions
                         project={project}
-                        canEdit={canEdit(project)}
-                        canDelete={canDelete(project)}
+                        canEdit={canEdit(
+                          project
+                        )}
+                        canDelete={canDelete(
+                          project
+                        )}
                         canChangeStatus={canChangeStatus(
+                          project
+                        )}
+                        canManageMembers={canManageMembers(
                           project
                         )}
                         onView={onView}
@@ -253,6 +270,9 @@ export default function ProjectsTable({
                         onDelete={onDelete}
                         onChangeStatus={
                           onChangeStatus
+                        }
+                        onManageMembers={
+                          onManageMembers
                         }
                       />
                     </td>
@@ -269,7 +289,6 @@ export default function ProjectsTable({
                 key={project.id}
                 className="p-4"
               >
-                {/* Project heading + actions */}
                 <div className="flex items-start justify-between gap-4">
                   <button
                     type="button"
@@ -296,9 +315,16 @@ export default function ProjectsTable({
 
                   <ProjectActions
                     project={project}
-                    canEdit={canEdit(project)}
-                    canDelete={canDelete(project)}
+                    canEdit={canEdit(
+                      project
+                    )}
+                    canDelete={canDelete(
+                      project
+                    )}
                     canChangeStatus={canChangeStatus(
+                      project
+                    )}
+                    canManageMembers={canManageMembers(
                       project
                     )}
                     onView={onView}
@@ -306,6 +332,9 @@ export default function ProjectsTable({
                     onDelete={onDelete}
                     onChangeStatus={
                       onChangeStatus
+                    }
+                    onManageMembers={
+                      onManageMembers
                     }
                   />
                 </div>
@@ -319,39 +348,27 @@ export default function ProjectsTable({
 
                 {/* Details */}
                 <div className="mt-4 space-y-2">
-                  {/* Client */}
                   {project.client && (
                     <div className="flex items-center gap-2 text-sm text-slate-500">
                       <FolderKanban className="h-4 w-4 shrink-0 text-slate-400" />
 
                       <span className="truncate">
-                        {
-                          project.client
-                            .companyName
-                        }
+                        {project.client.companyName}
                       </span>
                     </div>
                   )}
 
-                  {/* Manager */}
                   {project.manager && (
                     <div className="flex items-center gap-2 text-sm text-slate-500">
                       <Users className="h-4 w-4 shrink-0 text-slate-400" />
 
                       <span className="truncate">
-                        {
-                          project.manager
-                            .firstName
-                        }{" "}
-                        {
-                          project.manager
-                            .lastName
-                        }
+                        {project.manager.firstName}{" "}
+                        {project.manager.lastName}
                       </span>
                     </div>
                   )}
 
-                  {/* Start date */}
                   <div className="flex items-center gap-2 text-sm text-slate-500">
                     <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
 
@@ -363,7 +380,6 @@ export default function ProjectsTable({
                     </span>
                   </div>
 
-                  {/* End date */}
                   {project.endDate && (
                     <div className="flex items-center gap-2 text-sm text-slate-500">
                       <Clock3 className="h-4 w-4 shrink-0 text-slate-400" />
@@ -396,11 +412,17 @@ interface ProjectActionsProps {
   canEdit: boolean;
   canDelete: boolean;
   canChangeStatus: boolean;
+  canManageMembers: boolean;
 
   onView: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
+
   onChangeStatus: (
+    project: Project
+  ) => void;
+
+  onManageMembers: (
     project: Project
   ) => void;
 }
@@ -410,10 +432,12 @@ function ProjectActions({
   canEdit,
   canDelete,
   canChangeStatus,
+  canManageMembers,
   onView,
   onEdit,
   onDelete,
   onChangeStatus,
+  onManageMembers,
 }: ProjectActionsProps) {
   const isTerminal =
     project.status ===
@@ -431,6 +455,10 @@ function ProjectActions({
     canChangeStatus &&
     !isTerminal;
 
+  const allowMemberManagement =
+    canManageMembers &&
+    !isTerminal;
+
   return (
     <div className="flex justify-end gap-1">
       {/* View */}
@@ -446,12 +474,31 @@ function ProjectActions({
         <Eye className="h-4 w-4" />
       </button>
 
+      {/* Team */}
+      {allowMemberManagement && (
+        <button
+          type="button"
+          onClick={() =>
+            onManageMembers(
+              project
+            )
+          }
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+          title="Manage project team"
+          aria-label="Manage project team"
+        >
+          <Users className="h-4 w-4" />
+        </button>
+      )}
+
       {/* Change Status */}
       {allowStatusChange && (
         <button
           type="button"
           onClick={() =>
-            onChangeStatus(project)
+            onChangeStatus(
+              project
+            )
           }
           className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           title="Change project status"

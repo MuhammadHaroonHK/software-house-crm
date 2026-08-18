@@ -19,6 +19,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ChangeProjectStatusDialog from "@/components/projects/ChangeProjectStatusDialog";
 import DeleteProjectDialog from "@/components/projects/DeleteProjectDialog";
 import ProjectFormModal from "@/components/projects/ProjectFormModal";
+import ProjectMembersModal from "@/components/projects/ProjectMembersModal";
 
 import { useClients } from "@/features/clients/hooks/useClients";
 import { useUsers } from "@/features/users/hooks/useUsers";
@@ -37,6 +38,12 @@ import {
   useProjects,
   useUpdateProject,
 } from "@/features/projects/hooks/useProjects";
+
+import {
+  useAddProjectMember,
+  useProjectMembers,
+  useRemoveProjectMember,
+} from "@/features/projects/hooks/useProjectMembers";
 
 import type {
   CreateProjectPayload,
@@ -75,6 +82,14 @@ export default function ProjectsPage() {
     role: "PROJECT_MANAGER",
   });
 
+  const {
+    data: employeesData,
+    isLoading: isEmployeesLoading,
+  } = useUsers({
+    limit: 100,
+    role: "EMPLOYEE",
+  });
+
   /* ------------------------------------------------------------------------ */
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
@@ -106,7 +121,13 @@ export default function ProjectsPage() {
   const [statusProject, setStatusProject] =
     useState<Project | null>(null);
 
+  const [membersProject, setMembersProject] =
+    useState<Project | null>(null);
+
   const [formError, setFormError] =
+    useState<string | null>(null);
+
+  const [membersError, setMembersError] =
     useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
@@ -137,6 +158,24 @@ export default function ProjectsPage() {
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+
+  /* ------------------------------------------------------------------------ */
+  /* Project members                                                          */
+  /* ------------------------------------------------------------------------ */
+
+  const {
+    data: membersData,
+    isLoading: isMembersLoading,
+    isError: isMembersError,
+  } = useProjectMembers(
+    membersProject?.id
+  );
+
+  const addProjectMember =
+    useAddProjectMember();
+
+  const removeProjectMember =
+    useRemoveProjectMember();
 
   /* ------------------------------------------------------------------------ */
   /* Mutations                                                                */
@@ -248,6 +287,25 @@ export default function ProjectsPage() {
     setIsModalOpen(false);
     setEditingProject(null);
     setFormError(null);
+  };
+
+  const openMembersModal = (
+    project: Project
+  ) => {
+    setMembersError(null);
+    setMembersProject(project);
+  };
+
+  const closeMembersModal = () => {
+    if (
+      addProjectMember.isPending ||
+      removeProjectMember.isPending
+    ) {
+      return;
+    }
+
+    setMembersProject(null);
+    setMembersError(null);
   };
 
   /* ------------------------------------------------------------------------ */
@@ -375,6 +433,84 @@ export default function ProjectsPage() {
   };
 
   /* ------------------------------------------------------------------------ */
+  /* Add Project Member                                                       */
+  /* ------------------------------------------------------------------------ */
+
+  const handleAddMember = async (
+    userId: string
+  ) => {
+    if (!membersProject) {
+      return;
+    }
+
+    setMembersError(null);
+
+    try {
+      const response =
+        await addProjectMember.mutateAsync({
+          projectId:
+            membersProject.id,
+          data: {
+            userId,
+          },
+        });
+
+      toast.success(
+        response.message ||
+          "Project member added successfully."
+      );
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to add project member. Please try again.";
+
+      setMembersError(message);
+
+      toast.error(message);
+
+      throw error;
+    }
+  };
+
+  /* ------------------------------------------------------------------------ */
+  /* Remove Project Member                                                    */
+  /* ------------------------------------------------------------------------ */
+
+  const handleRemoveMember = async (
+    userId: string
+  ) => {
+    if (!membersProject) {
+      return;
+    }
+
+    setMembersError(null);
+
+    try {
+      const response =
+        await removeProjectMember.mutateAsync({
+          projectId:
+            membersProject.id,
+          userId,
+        });
+
+      toast.success(
+        response.message ||
+          "Project member removed successfully."
+      );
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to remove project member. Please try again.";
+
+      setMembersError(message);
+
+      toast.error(message);
+
+      throw error;
+    }
+  };
+
+  /* ------------------------------------------------------------------------ */
   /* Delete Project                                                           */
   /* ------------------------------------------------------------------------ */
 
@@ -396,10 +532,6 @@ export default function ProjectsPage() {
 
       setDeleteProject(null);
 
-      /*
-       * If the deleted project was the last
-       * item on the current page, move back one page.
-       */
       if (
         data?.data.length === 1 &&
         page > 1
@@ -554,6 +686,27 @@ export default function ProjectsPage() {
   const managers =
     usersData?.users ?? [];
 
+  const employees =
+    employeesData?.users ?? [];
+
+  const members =
+    membersData?.data ?? [];
+
+  const canManageSelectedMembers =
+    Boolean(
+      membersProject &&
+      (
+        user.role ===
+          "SUPER_ADMIN" ||
+        (
+          user.role ===
+            "PROJECT_MANAGER" &&
+          membersProject.managerId ===
+            user.id
+        )
+      )
+    );
+
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
   /* ------------------------------------------------------------------------ */
@@ -561,7 +714,6 @@ export default function ProjectsPage() {
   return (
     <DashboardLayout user={user}>
       <div className="mx-auto max-w-7xl space-y-6">
-        {/* Header + Search */}
         <ProjectsHeader
           search={searchInput}
           onSearchChange={
@@ -572,17 +724,11 @@ export default function ProjectsPage() {
           }
         />
 
-        {/* Projects table */}
         <ProjectsTable
           projects={projects}
           search={search}
           isFetching={isFetching}
 
-          /*
-           * SUPER_ADMIN can edit any project.
-           * PROJECT_MANAGER can only edit projects
-           * they currently manage.
-           */
           canEdit={(project) =>
             user.role ===
               "SUPER_ADMIN" ||
@@ -594,21 +740,25 @@ export default function ProjectsPage() {
             )
           }
 
-          /*
-           * Keep delete permission aligned
-           * with the existing frontend decision.
-           */
           canDelete={() =>
             user.role ===
             "SUPER_ADMIN"
           }
 
-          /*
-           * Backend allows SUPER_ADMIN to change
-           * any project status and the assigned
-           * PROJECT_MANAGER to change their own.
-           */
           canChangeStatus={(
+            project
+          ) =>
+            user.role ===
+              "SUPER_ADMIN" ||
+            (
+              user.role ===
+                "PROJECT_MANAGER" &&
+              project.manager?.id ===
+                user.id
+            )
+          }
+
+          canManageMembers={(
             project
           ) =>
             user.role ===
@@ -627,9 +777,11 @@ export default function ProjectsPage() {
           onChangeStatus={
             setStatusProject
           }
+          onManageMembers={
+            openMembersModal
+          }
         />
 
-        {/* Pagination */}
         <ProjectsPagination
           page={meta.page}
           totalPages={
@@ -678,6 +830,48 @@ export default function ProjectsPage() {
           setStatusProject(null)
         }
         onConfirm={handleChangeStatus}
+      />
+
+      {/* Project members */}
+      <ProjectMembersModal
+        project={membersProject}
+        members={members}
+        employees={employees}
+        isLoading={
+          isMembersLoading
+        }
+        isLoadingEmployees={
+          isEmployeesLoading
+        }
+        isAdding={
+          addProjectMember.isPending
+        }
+        removingUserId={
+          removeProjectMember.isPending
+            ? removeProjectMember.variables
+                ?.userId ?? null
+            : null
+        }
+        canManageMembers={
+          canManageSelectedMembers
+        }
+        error={
+          membersError ??
+          (
+            isMembersError
+              ? "Unable to load project members."
+              : null
+          )
+        }
+        onClose={
+          closeMembersModal
+        }
+        onAddMember={
+          handleAddMember
+        }
+        onRemoveMember={
+          handleRemoveMember
+        }
       />
 
       {/* View project */}
