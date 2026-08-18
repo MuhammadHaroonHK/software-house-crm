@@ -22,23 +22,38 @@ interface ProjectsTableProps {
   isFetching?: boolean;
   search?: string;
 
-  canEdit?: boolean;
-  canDelete?: boolean;
+  canEdit?: (
+    project: Project
+  ) => boolean;
+
+  canDelete?: (
+    project: Project
+  ) => boolean;
+
+  canChangeStatus?: (
+    project: Project
+  ) => boolean;
 
   onView: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
+
+  onChangeStatus: (
+    project: Project
+  ) => void;
 }
 
 export default function ProjectsTable({
   projects,
   isFetching = false,
   search = "",
-  canEdit = false,
-  canDelete = false,
+  canEdit = () => false,
+  canDelete = () => false,
+  canChangeStatus = () => false,
   onView,
   onEdit,
   onDelete,
+  onChangeStatus,
 }: ProjectsTableProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -228,11 +243,17 @@ export default function ProjectsTable({
                     <td className="px-6 py-4">
                       <ProjectActions
                         project={project}
-                        canEdit={canEdit}
-                        canDelete={canDelete}
+                        canEdit={canEdit(project)}
+                        canDelete={canDelete(project)}
+                        canChangeStatus={canChangeStatus(
+                          project
+                        )}
                         onView={onView}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        onChangeStatus={
+                          onChangeStatus
+                        }
                       />
                     </td>
                   </tr>
@@ -275,11 +296,17 @@ export default function ProjectsTable({
 
                   <ProjectActions
                     project={project}
-                    canEdit={canEdit}
-                    canDelete={canDelete}
+                    canEdit={canEdit(project)}
+                    canDelete={canDelete(project)}
+                    canChangeStatus={canChangeStatus(
+                      project
+                    )}
                     onView={onView}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onChangeStatus={
+                      onChangeStatus
+                    }
                   />
                 </div>
 
@@ -298,7 +325,10 @@ export default function ProjectsTable({
                       <FolderKanban className="h-4 w-4 shrink-0 text-slate-400" />
 
                       <span className="truncate">
-                        {project.client.companyName}
+                        {
+                          project.client
+                            .companyName
+                        }
                       </span>
                     </div>
                   )}
@@ -309,8 +339,14 @@ export default function ProjectsTable({
                       <Users className="h-4 w-4 shrink-0 text-slate-400" />
 
                       <span className="truncate">
-                        {project.manager.firstName}{" "}
-                        {project.manager.lastName}
+                        {
+                          project.manager
+                            .firstName
+                        }{" "}
+                        {
+                          project.manager
+                            .lastName
+                        }
                       </span>
                     </div>
                   )}
@@ -356,35 +392,44 @@ export default function ProjectsTable({
 
 interface ProjectActionsProps {
   project: Project;
+
   canEdit: boolean;
   canDelete: boolean;
+  canChangeStatus: boolean;
+
   onView: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
+  onChangeStatus: (
+    project: Project
+  ) => void;
 }
 
 function ProjectActions({
   project,
   canEdit,
   canDelete,
+  canChangeStatus,
   onView,
   onEdit,
   onDelete,
+  onChangeStatus,
 }: ProjectActionsProps) {
-  /*
-   * Completed projects are treated as workflow-locked.
-   *
-   * They can still be viewed, but editing and deleting are
-   * intentionally unavailable.
-   */
-  const isCompleted =
-    project.status === "COMPLETED";
+  const isTerminal =
+    project.status ===
+      "COMPLETED" ||
+    project.status ===
+      "CANCELLED";
 
   const allowEdit =
-    canEdit && !isCompleted;
+    canEdit && !isTerminal;
 
   const allowDelete =
-    canDelete && !isCompleted;
+    canDelete && !isTerminal;
+
+  const allowStatusChange =
+    canChangeStatus &&
+    !isTerminal;
 
   return (
     <div className="flex justify-end gap-1">
@@ -400,6 +445,21 @@ function ProjectActions({
       >
         <Eye className="h-4 w-4" />
       </button>
+
+      {/* Change Status */}
+      {allowStatusChange && (
+        <button
+          type="button"
+          onClick={() =>
+            onChangeStatus(project)
+          }
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+          title="Change project status"
+          aria-label="Change project status"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </button>
+      )}
 
       {/* Edit */}
       {allowEdit && (
@@ -499,6 +559,14 @@ function getProjectStatusConfig(
           "bg-emerald-50 text-emerald-700",
       };
 
+    case "CANCELLED":
+      return {
+        label: "Cancelled",
+        icon: Clock3,
+        className:
+          "bg-red-50 text-red-700",
+      };
+
     default:
       return {
         label: status,
@@ -522,7 +590,11 @@ function formatDate(
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "N/A";
   }
 

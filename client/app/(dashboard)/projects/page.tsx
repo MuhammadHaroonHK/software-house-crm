@@ -16,29 +16,31 @@ import { toast } from "sonner";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
+import ChangeProjectStatusDialog from "@/components/projects/ChangeProjectStatusDialog";
+import DeleteProjectDialog from "@/components/projects/DeleteProjectDialog";
+import ProjectFormModal from "@/components/projects/ProjectFormModal";
+
 import { useClients } from "@/features/clients/hooks/useClients";
 import { useUsers } from "@/features/users/hooks/useUsers";
 
-import ProjectFormModal from "@/components/projects/ProjectFormModal";
-import DeleteProjectDialog from "@/components/projects/DeleteProjectDialog";
-
 import ProjectsHeader from "@/features/projects/components/ProjectsHeader";
-import ProjectsTable from "@/features/projects/components/ProjectsTable";
 import ProjectsPagination from "@/features/projects/components/ProjectsPagination";
+import ProjectsTable from "@/features/projects/components/ProjectsTable";
 
 import { useCurrentUser } from "@/features/auth/hooks/useAuth";
 import { authStorage } from "@/features/auth/services/auth-storage";
 
 import {
-  useProjects,
+  useChangeProjectStatus,
   useCreateProject,
-  useUpdateProject,
   useDeleteProject,
+  useProjects,
+  useUpdateProject,
 } from "@/features/projects/hooks/useProjects";
 
 import type {
-  Project,
   CreateProjectPayload,
+  Project,
   UpdateProjectPayload,
 } from "@/features/projects/types/project.types";
 
@@ -56,20 +58,22 @@ const SEARCH_DEBOUNCE_MS = 400;
 export default function ProjectsPage() {
   const router = useRouter();
 
-  const {
-  data: clientsData,
-  isLoading: isClientsLoading,
-} = useClients({
-  limit: 100,
-});
+  /* ------------------------------------------------------------------------ */
+  /* Supporting data                                                          */
+  /* ------------------------------------------------------------------------ */
 
-const {
-  data: usersData,
-  isLoading: isUsersLoading,
-} = useUsers({
-  limit: 100,
-  role: "PROJECT_MANAGER",
-});
+  const {
+    data: clientsData,
+  } = useClients({
+    limit: 100,
+  });
+
+  const {
+    data: usersData,
+  } = useUsers({
+    limit: 100,
+    role: "PROJECT_MANAGER",
+  });
 
   /* ------------------------------------------------------------------------ */
   /* Local state                                                              */
@@ -97,6 +101,9 @@ const {
     useState<Project | null>(null);
 
   const [deleteProject, setDeleteProject] =
+    useState<Project | null>(null);
+
+  const [statusProject, setStatusProject] =
     useState<Project | null>(null);
 
   const [formError, setFormError] =
@@ -131,11 +138,18 @@ const {
     sortOrder: "desc",
   });
 
+  /* ------------------------------------------------------------------------ */
+  /* Mutations                                                                */
+  /* ------------------------------------------------------------------------ */
+
   const createProject =
     useCreateProject();
 
   const updateProject =
     useUpdateProject();
+
+  const changeProjectStatus =
+    useChangeProjectStatus();
 
   const deleteProjectMutation =
     useDeleteProject();
@@ -160,7 +174,10 @@ const {
     if (!authStorage.getToken()) {
       router.replace("/login");
     }
-  }, [mounted, router]);
+  }, [
+    mounted,
+    router,
+  ]);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication error                                                     */
@@ -317,6 +334,43 @@ const {
       toast.error(message);
 
       throw error;
+    }
+  };
+
+  /* ------------------------------------------------------------------------ */
+  /* Change Project Status                                                    */
+  /* ------------------------------------------------------------------------ */
+
+  const handleChangeStatus = async (
+    status: Project["status"]
+  ) => {
+    if (!statusProject) {
+      return;
+    }
+
+    try {
+      const response =
+        await changeProjectStatus.mutateAsync(
+          {
+            id: statusProject.id,
+            data: {
+              status,
+            },
+          }
+        );
+
+      toast.success(
+        response.message ||
+          "Project status updated successfully."
+      );
+
+      setStatusProject(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to update project status. Please try again.";
+
+      toast.error(message);
     }
   };
 
@@ -494,9 +548,11 @@ const {
   const projects = data.data;
   const meta = data.meta;
 
-  const clients = clientsData?.data ?? [];
+  const clients =
+    clientsData?.data ?? [];
 
-  const managers = usersData?.users ?? [];
+  const managers =
+    usersData?.users ?? [];
 
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
@@ -521,14 +577,56 @@ const {
           projects={projects}
           search={search}
           isFetching={isFetching}
-          canEdit={true}
-          canDelete={
+
+          /*
+           * SUPER_ADMIN can edit any project.
+           * PROJECT_MANAGER can only edit projects
+           * they currently manage.
+           */
+          canEdit={(project) =>
+            user.role ===
+              "SUPER_ADMIN" ||
+            (
+              user.role ===
+                "PROJECT_MANAGER" &&
+              project.manager?.id ===
+                user.id
+            )
+          }
+
+          /*
+           * Keep delete permission aligned
+           * with the existing frontend decision.
+           */
+          canDelete={() =>
             user.role ===
             "SUPER_ADMIN"
           }
+
+          /*
+           * Backend allows SUPER_ADMIN to change
+           * any project status and the assigned
+           * PROJECT_MANAGER to change their own.
+           */
+          canChangeStatus={(
+            project
+          ) =>
+            user.role ===
+              "SUPER_ADMIN" ||
+            (
+              user.role ===
+                "PROJECT_MANAGER" &&
+              project.manager?.id ===
+                user.id
+            )
+          }
+
           onView={handleView}
           onEdit={openEditModal}
           onDelete={setDeleteProject}
+          onChangeStatus={
+            setStatusProject
+          }
         />
 
         {/* Pagination */}
@@ -544,19 +642,19 @@ const {
 
       {/* Create / Edit modal */}
       <ProjectFormModal
-  open={isModalOpen}
-  project={editingProject}
-  clients={clients}
-  managers={managers}
-  error={formError}
-  isSubmitting={
-    createProject.isPending ||
-    updateProject.isPending
-  }
-  onClose={closeModal}
-  onCreate={handleCreate}
-  onUpdate={handleUpdate}
-/>
+        open={isModalOpen}
+        project={editingProject}
+        clients={clients}
+        managers={managers}
+        error={formError}
+        isSubmitting={
+          createProject.isPending ||
+          updateProject.isPending
+        }
+        onClose={closeModal}
+        onCreate={handleCreate}
+        onUpdate={handleUpdate}
+      />
 
       {/* Delete dialog */}
       <DeleteProjectDialog
@@ -568,6 +666,18 @@ const {
           setDeleteProject(null)
         }
         onConfirm={handleDelete}
+      />
+
+      {/* Change status dialog */}
+      <ChangeProjectStatusDialog
+        project={statusProject}
+        isUpdating={
+          changeProjectStatus.isPending
+        }
+        onCancel={() =>
+          setStatusProject(null)
+        }
+        onConfirm={handleChangeStatus}
       />
 
       {/* View project */}
