@@ -1,13 +1,8 @@
 import prisma from "../../lib/prisma";
-import {
-  Prisma,
-  QuotationStatus,
-} from "@prisma/client";
+import { Prisma, QuotationStatus } from "@prisma/client";
 
 export class QuotationRepository {
-  async create(
-    data: Prisma.QuotationCreateInput
-  ) {
+  async create(data: Prisma.QuotationCreateInput) {
     return prisma.quotation.create({
       data,
 
@@ -41,9 +36,7 @@ export class QuotationRepository {
     });
   }
 
-  async findByQuotationNumber(
-    quotationNumber: string
-  ) {
+  async findByQuotationNumber(quotationNumber: string) {
     return prisma.quotation.findUnique({
       where: {
         quotationNumber,
@@ -62,7 +55,7 @@ export class QuotationRepository {
       where: { id },
     });
   }
-    async findAll(
+  async findAll(
     skip: number,
     limit: number,
     search: string,
@@ -70,7 +63,7 @@ export class QuotationRepository {
     clientId?: string,
     projectId?: string,
     sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc"
+    sortOrder: "asc" | "desc" = "desc",
   ) {
     const where: Prisma.QuotationWhereInput = {
       ...(search && {
@@ -148,20 +141,15 @@ export class QuotationRepository {
     };
   }
 
-  async findItemsByQuotationId(
-  quotationId: string
-) {
-  return prisma.quotationItem.findMany({
-    where: {
-      quotationId,
-    },
-  });
-}
+  async findItemsByQuotationId(quotationId: string) {
+    return prisma.quotationItem.findMany({
+      where: {
+        quotationId,
+      },
+    });
+  }
 
-  async update(
-    id: string,
-    data: Prisma.QuotationUpdateInput
-  ) {
+  async update(id: string, data: Prisma.QuotationUpdateInput) {
     return prisma.quotation.update({
       where: {
         id,
