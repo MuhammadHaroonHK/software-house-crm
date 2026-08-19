@@ -2,23 +2,24 @@ import prisma from "../../lib/prisma";
 
 export class MeetingParticipantRepository {
   async findMeetingById(id: string) {
-    return prisma.meeting.findUnique({
-      where: { id },
+  return prisma.meeting.findUnique({
+    where: { id },
 
-      select: {
-        id: true,
-        projectId: true,
+    select: {
+      id: true,
+      projectId: true,
+      status: true,
 
-        project: {
-          select: {
-            id: true,
-            managerId: true,
-            status: true,
-          },
+      project: {
+        select: {
+          id: true,
+          managerId: true,
+          status: true,
         },
       },
-    });
-  }
+    },
+  });
+}
 
   async findUserById(id: string) {
     return prisma.user.findUnique({

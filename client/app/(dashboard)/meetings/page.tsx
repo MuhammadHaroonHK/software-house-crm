@@ -931,71 +931,60 @@ export default function MeetingsPage() {
    *
    * The backend remains the final authority.
    */
-  const canEditMeeting =
+  const canEditMeeting = (
+  meeting: Meeting
+) =>
+  canManageMeetings &&
+  meeting.status !== "COMPLETED" &&
+  meeting.status !== "CANCELLED" &&
+  (
+    user.role === "SUPER_ADMIN" ||
     (
-      meeting: Meeting
-    ) =>
-      canManageMeetings &&
-      (
-        user.role ===
-          "SUPER_ADMIN" ||
-        (
-          meeting.project.status !==
-            "COMPLETED" &&
-          meeting.project.status !==
-            "CANCELLED"
-        )
-      );
+      meeting.project.status !== "COMPLETED" &&
+      meeting.project.status !== "CANCELLED"
+    )
+  );
 
-  const canDeleteMeeting =
+const canDeleteMeeting = (
+  meeting: Meeting
+) =>
+  canManageMeetings &&
+  meeting.status !== "COMPLETED" &&
+  meeting.status !== "CANCELLED" &&
+  (
+    user.role === "SUPER_ADMIN" ||
     (
-      meeting: Meeting
-    ) =>
-      canManageMeetings &&
-      (
-        user.role ===
-          "SUPER_ADMIN" ||
-        (
-          meeting.project.status !==
-            "COMPLETED" &&
-          meeting.project.status !==
-            "CANCELLED"
-        )
-      );
+      meeting.project.status !== "COMPLETED" &&
+      meeting.project.status !== "CANCELLED"
+    )
+  );
 
-  const canManageParticipants =
+const canManageParticipants = (
+  meeting: Meeting
+) =>
+  canManageMeetings &&
+  meeting.status !== "COMPLETED" &&
+  meeting.status !== "CANCELLED" &&
+  (
+    user.role === "SUPER_ADMIN" ||
     (
-      meeting: Meeting
-    ) =>
-      canManageMeetings &&
-      (
-        user.role ===
-          "SUPER_ADMIN" ||
-        (
-          meeting.project.status !==
-            "COMPLETED" &&
-          meeting.project.status !==
-            "CANCELLED"
-        )
-      );
+      meeting.project.status !== "COMPLETED" &&
+      meeting.project.status !== "CANCELLED"
+    )
+  );
 
-  const canChangeMeetingStatus =
+const canChangeMeetingStatus = (
+  meeting: Meeting
+) =>
+  canManageMeetings &&
+  meeting.status === "SCHEDULED" &&
+  (
+    user.role === "SUPER_ADMIN" ||
     (
-      meeting: Meeting
-    ) =>
-      canManageMeetings &&
-      meeting.status ===
-        "SCHEDULED" &&
-      (
-        user.role ===
-          "SUPER_ADMIN" ||
-        (
-          meeting.project.status !==
-            "COMPLETED" &&
-          meeting.project.status !==
-            "CANCELLED"
-        )
-      );
+      meeting.project.status !== "COMPLETED" &&
+      meeting.project.status !== "CANCELLED"
+    )
+  );
 
   const canManageSelectedParticipants =
     Boolean(

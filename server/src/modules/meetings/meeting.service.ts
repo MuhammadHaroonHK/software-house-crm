@@ -333,181 +333,181 @@ export class MeetingService {
   }
 
   async update(
-    id: string,
-    data: UpdateMeetingDTO,
-    actorId: string,
-    actorRole: UserRole
+  id: string,
+  data: UpdateMeetingDTO,
+  actorId: string,
+  actorRole: UserRole
+) {
+  const meeting =
+    await meetingRepository.findById(id);
+
+  if (!meeting) {
+    throw new AppError(
+      404,
+      "Meeting not found."
+    );
+  }
+
+  /*
+   * Completed and cancelled meetings are immutable.
+   */
+  if (
+    meeting.status === MeetingStatus.COMPLETED ||
+    meeting.status === MeetingStatus.CANCELLED
   ) {
-    const meeting =
-      await meetingRepository.findById(
-        id
+    throw new AppError(
+      400,
+      `Meeting cannot be modified because it is ${meeting.status.toLowerCase()}.`
+    );
+  }
+
+  /*
+   * The project itself must also still be active.
+   */
+  this.validateProjectStatus(
+    meeting.project.status
+  );
+
+  this.validateProjectAccess(
+    meeting.project,
+    actorId,
+    actorRole
+  );
+
+  let projectData = {};
+  let projectId =
+    meeting.projectId;
+
+  if (data.projectId) {
+    const project =
+      await meetingRepository.findProjectById(
+        data.projectId
       );
 
-    if (!meeting) {
+    if (!project) {
       throw new AppError(
         404,
-        "Meeting not found."
+        "Project not found."
       );
     }
 
     this.validateProjectStatus(
-      meeting.project.status
+      project.status
     );
 
     this.validateProjectAccess(
-      meeting.project,
+      project,
       actorId,
       actorRole
     );
 
-    let projectData = {};
+    projectId =
+      data.projectId;
 
-    let projectId =
-      meeting.projectId;
-
-    if (data.projectId) {
-      const project =
-        await meetingRepository.findProjectById(
-          data.projectId
-        );
-
-      if (!project) {
-        throw new AppError(
-          404,
-          "Project not found."
-        );
-      }
-
-      this.validateProjectStatus(
-        project.status
-      );
-
-      this.validateProjectAccess(
-        project,
-        actorId,
-        actorRole
-      );
-
-      projectId =
-        data.projectId;
-
-      projectData = {
-        project: {
-          connect: {
-            id:
-              data.projectId,
-          },
+    projectData = {
+      project: {
+        connect: {
+          id: data.projectId,
         },
-      };
-    }
+      },
+    };
+  }
 
-    let organizerData = {};
+  let organizerData = {};
 
-    if (data.organizerId) {
-      const organizer =
-        await meetingRepository.findOrganizerById(
-          data.organizerId
-        );
+  if (data.organizerId) {
+    const organizer =
+      await meetingRepository.findOrganizerById(
+        data.organizerId
+      );
 
-      if (!organizer) {
-        throw new AppError(
-          404,
-          "Organizer not found."
-        );
-      }
-
-      if (
-        organizer.role.name !==
-          UserRole.PROJECT_MANAGER &&
-        organizer.role.name !==
-          UserRole.SUPER_ADMIN
-      ) {
-        throw new AppError(
-          400,
-          "Organizer must be a Super Admin or Project Manager."
-        );
-      }
-
-      const isMember =
-        await meetingRepository.isProjectMember(
-          projectId,
-          data.organizerId
-        );
-
-      if (!isMember) {
-        throw new AppError(
-          400,
-          "Organizer is not a member of this project."
-        );
-      }
-
-      organizerData = {
-        organizer: {
-          connect: {
-            id:
-              data.organizerId,
-          },
-        },
-      };
-    }
-
-    if (data.meetingDate) {
-      this.validateMeetingDate(
-        new Date(
-          data.meetingDate
-        )
+    if (!organizer) {
+      throw new AppError(
+        404,
+        "Organizer not found."
       );
     }
 
-    return meetingRepository.update(
-      id,
-      {
-        ...(data.title && {
-          title:
-            data.title,
-        }),
+    if (
+      organizer.role.name !==
+        UserRole.PROJECT_MANAGER &&
+      organizer.role.name !==
+        UserRole.SUPER_ADMIN
+    ) {
+      throw new AppError(
+        400,
+        "Organizer must be a Super Admin or Project Manager."
+      );
+    }
 
-        ...(data.agenda !==
-          undefined && {
-          agenda:
-            data.agenda,
-        }),
+    const isMember =
+      await meetingRepository.isProjectMember(
+        projectId,
+        data.organizerId
+      );
 
-        ...(data.meetingDate && {
-          meetingDate:
-            new Date(
-              data.meetingDate
-            ),
-        }),
+    if (!isMember) {
+      throw new AppError(
+        400,
+        "Organizer is not a member of this project."
+      );
+    }
 
-        ...(data.location !==
-          undefined && {
-          location:
-            data.location,
-        }),
+    organizerData = {
+      organizer: {
+        connect: {
+          id: data.organizerId,
+        },
+      },
+    };
+  }
 
-        ...(data.notes !==
-          undefined && {
-          notes:
-            data.notes,
-        }),
-
-        ...(data.aiSummary !==
-          undefined && {
-          aiSummary:
-            data.aiSummary,
-        }),
-
-        ...(data.status && {
-          status:
-            data.status,
-        }),
-
-        ...projectData,
-        ...organizerData,
-      }
+  if (data.meetingDate) {
+    this.validateMeetingDate(
+      new Date(
+        data.meetingDate
+      )
     );
   }
+
+  return meetingRepository.update(
+    id,
+    {
+      ...(data.title && {
+        title: data.title,
+      }),
+
+      ...(data.agenda !== undefined && {
+        agenda: data.agenda,
+      }),
+
+      ...(data.meetingDate && {
+        meetingDate: new Date(
+          data.meetingDate
+        ),
+      }),
+
+      ...(data.location !== undefined && {
+        location: data.location,
+      }),
+
+      ...(data.notes !== undefined && {
+        notes: data.notes,
+      }),
+
+      ...(data.aiSummary !== undefined && {
+        aiSummary: data.aiSummary,
+      }),
+
+      ...(data.status && {
+        status: data.status,
+      }),
+
+      ...projectData,
+      ...organizerData,
+    }
+  );
+}
 
   async delete(
     id: string,

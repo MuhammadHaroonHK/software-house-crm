@@ -1,5 +1,6 @@
 import { AppError } from "../../utils/AppError";
 import {
+  MeetingStatus,
   ProjectStatus,
   UserRole,
 } from "@prisma/client";
@@ -41,75 +42,85 @@ export class MeetingParticipantService {
   }
 
   async addParticipant(
-    data: AddMeetingParticipantDTO,
-    actorId: string,
-    actorRole: UserRole
-  ) {
-    const meeting =
-      await meetingParticipantRepository.findMeetingById(
-        data.meetingId
-      );
-
-    if (!meeting) {
-      throw new AppError(
-        404,
-        "Meeting not found."
-      );
-    }
-
-    this.validateProjectStatus(
-      meeting.project.status
+  data: AddMeetingParticipantDTO,
+  actorId: string,
+  actorRole: UserRole
+) {
+  const meeting =
+    await meetingParticipantRepository.findMeetingById(
+      data.meetingId
     );
 
-    this.validateProjectAccess(
-      meeting.project,
-      actorId,
-      actorRole
+  if (!meeting) {
+    throw new AppError(
+      404,
+      "Meeting not found."
+    );
+  }
+
+  this.validateProjectStatus(
+    meeting.project.status
+  );
+
+  if (
+  meeting.status === MeetingStatus.COMPLETED ||
+  meeting.status === MeetingStatus.CANCELLED
+) {
+  throw new AppError(
+    400,
+    `Participants cannot be modified because the meeting is ${meeting.status.toLowerCase()}.`
+  );
+}
+
+  this.validateProjectAccess(
+    meeting.project,
+    actorId,
+    actorRole
+  );
+
+  const user =
+    await meetingParticipantRepository.findUserById(
+      data.userId
     );
 
-    const user =
-      await meetingParticipantRepository.findUserById(
-        data.userId
-      );
+  if (!user) {
+    throw new AppError(
+      404,
+      "User not found."
+    );
+  }
 
-    if (!user) {
-      throw new AppError(
-        404,
-        "User not found."
-      );
-    }
+  const member =
+    await meetingParticipantRepository.isProjectMember(
+      meeting.projectId,
+      data.userId
+    );
 
-    const member =
-      await meetingParticipantRepository.isProjectMember(
-        meeting.projectId,
-        data.userId
-      );
+  if (!member) {
+    throw new AppError(
+      400,
+      "User is not a member of this project."
+    );
+  }
 
-    if (!member) {
-      throw new AppError(
-        400,
-        "User is not a member of this project."
-      );
-    }
-
-    const exists =
-      await meetingParticipantRepository.participantExists(
-        data.meetingId,
-        data.userId
-      );
-
-    if (exists) {
-      throw new AppError(
-        409,
-        "Participant already exists."
-      );
-    }
-
-    return meetingParticipantRepository.addParticipant(
+  const exists =
+    await meetingParticipantRepository.participantExists(
       data.meetingId,
       data.userId
     );
+
+  if (exists) {
+    throw new AppError(
+      409,
+      "Participant already exists."
+    );
   }
+
+  return meetingParticipantRepository.addParticipant(
+    data.meetingId,
+    data.userId
+  );
+}
 
   async findParticipants(
     meetingId: string,
@@ -148,51 +159,61 @@ export class MeetingParticipantService {
   }
 
   async removeParticipant(
-    meetingId: string,
-    userId: string,
-    actorId: string,
-    actorRole: UserRole
+  meetingId: string,
+  userId: string,
+  actorId: string,
+  actorRole: UserRole
+) {
+  const meeting =
+    await meetingParticipantRepository.findMeetingById(
+      meetingId
+    );
+
+  if (!meeting) {
+    throw new AppError(
+      404,
+      "Meeting not found."
+    );
+  }
+
+  this.validateProjectStatus(
+    meeting.project.status
+  );
+
+  if (
+    meeting.status === MeetingStatus.COMPLETED ||
+    meeting.status === MeetingStatus.CANCELLED
   ) {
-    const meeting =
-      await meetingParticipantRepository.findMeetingById(
-        meetingId
-      );
-
-    if (!meeting) {
-      throw new AppError(
-        404,
-        "Meeting not found."
-      );
-    }
-
-    this.validateProjectStatus(
-      meeting.project.status
+    throw new AppError(
+      400,
+      `Participants cannot be modified because the meeting is ${meeting.status.toLowerCase()}.`
     );
+  }
 
-    this.validateProjectAccess(
-      meeting.project,
-      actorId,
-      actorRole
-    );
+  this.validateProjectAccess(
+    meeting.project,
+    actorId,
+    actorRole
+  );
 
-    const exists =
-      await meetingParticipantRepository.participantExists(
-        meetingId,
-        userId
-      );
-
-    if (!exists) {
-      throw new AppError(
-        404,
-        "Participant not found."
-      );
-    }
-
-    await meetingParticipantRepository.removeParticipant(
+  const exists =
+    await meetingParticipantRepository.participantExists(
       meetingId,
       userId
     );
+
+  if (!exists) {
+    throw new AppError(
+      404,
+      "Participant not found."
+    );
   }
+
+  await meetingParticipantRepository.removeParticipant(
+    meetingId,
+    userId
+  );
+}
 }
 
 export const meetingParticipantService =
