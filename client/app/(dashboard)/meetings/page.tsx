@@ -8,6 +8,8 @@ import {
 import {
   AlertCircle,
   Loader2,
+  UserRound,
+  Users,
 } from "lucide-react";
 
 import {
@@ -69,8 +71,7 @@ const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 400;
 
 export default function MeetingsPage() {
-  const router =
-    useRouter();
+  const router = useRouter();
 
   /* ------------------------------------------------------------------------ */
   /* Supporting data                                                          */
@@ -114,9 +115,7 @@ export default function MeetingsPage() {
     useState("");
 
   const [status, setStatus] =
-    useState<
-      MeetingStatus | ""
-    >("");
+    useState<MeetingStatus | "">("");
 
   const [isModalOpen, setIsModalOpen] =
     useState(false);
@@ -134,19 +133,13 @@ export default function MeetingsPage() {
     useState<Meeting | null>(null);
 
   const [participantsMeeting, setParticipantsMeeting] =
-    useState<Meeting | null>(
-      null
-    );
+    useState<Meeting | null>(null);
 
   const [formError, setFormError] =
-    useState<string | null>(
-      null
-    );
+    useState<string | null>(null);
 
   const [participantsError, setParticipantsError] =
-    useState<string | null>(
-      null
-    );
+    useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Auth                                                                     */
@@ -156,8 +149,7 @@ export default function MeetingsPage() {
     data: user,
     isLoading: isUserLoading,
     isError: isUserError,
-  } =
-    useCurrentUser();
+  } = useCurrentUser();
 
   /* ------------------------------------------------------------------------ */
   /* Meetings                                                                 */
@@ -169,42 +161,46 @@ export default function MeetingsPage() {
     isFetching,
     isError: isMeetingsError,
     refetch,
-  } =
-    useMeetings({
-      page,
-      limit: PAGE_SIZE,
-      search:
-        search ||
-        undefined,
-      projectId:
-        projectId ||
-        undefined,
-      organizerId:
-        organizerId ||
-        undefined,
-      status:
-        status ||
-        undefined,
-      sortBy:
-        "meetingDate",
-      sortOrder:
-        "asc",
-    });
+  } = useMeetings({
+    page,
+    limit: PAGE_SIZE,
+    search: search || undefined,
+    projectId: projectId || undefined,
+    organizerId: organizerId || undefined,
+    status: status || undefined,
+    sortBy: "meetingDate",
+    sortOrder: "asc",
+  });
 
   /* ------------------------------------------------------------------------ */
-  /* Participants                                                             */
+  /* Participants - Management modal                                          */
   /* ------------------------------------------------------------------------ */
 
   const {
     data: participantsData,
-    isLoading:
-      isParticipantsLoading,
-    isError:
-      isParticipantsError,
-  } =
-    useMeetingParticipants(
-      participantsMeeting?.id
-    );
+    isLoading: isParticipantsLoading,
+    isError: isParticipantsError,
+  } = useMeetingParticipants(
+    participantsMeeting?.id
+  );
+
+  /* ------------------------------------------------------------------------ */
+  /* Participants - View modal                                                */
+  /* ------------------------------------------------------------------------ */
+
+  /*
+   * This query is intentionally separate from the management modal.
+   *
+   * It allows users to VIEW participant history even when the meeting is
+   * completed or cancelled, while add/remove actions remain restricted.
+   */
+  const {
+    data: viewingParticipantsData,
+    isLoading: isViewingParticipantsLoading,
+    isError: isViewingParticipantsError,
+  } = useMeetingParticipants(
+    viewingMeeting?.id
+  );
 
   const addParticipant =
     useAddMeetingParticipant();
@@ -241,518 +237,347 @@ export default function MeetingsPage() {
       return;
     }
 
-    if (
-      !authStorage.getToken()
-    ) {
-      router.replace(
-        "/login"
-      );
+    if (!authStorage.getToken()) {
+      router.replace("/login");
     }
-  }, [
-    mounted,
-    router,
-  ]);
+  }, [mounted, router]);
 
   useEffect(() => {
-    if (
-      !mounted ||
-      !isUserError
-    ) {
+    if (!mounted || !isUserError) {
       return;
     }
 
     authStorage.removeToken();
-
-    router.replace(
-      "/login"
-    );
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+    router.replace("/login");
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    const timeout =
-      setTimeout(() => {
-        setSearch(
-          searchInput.trim()
-        );
+    const timeout = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
 
-        setPage(1);
-      }, SEARCH_DEBOUNCE_MS);
-
-    return () =>
-      clearTimeout(
-        timeout
-      );
-  }, [
-    searchInput,
-  ]);
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [searchInput]);
 
   /* ------------------------------------------------------------------------ */
   /* Filters                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const resetFilters =
-    () => {
-      setProjectId("");
-      setOrganizerId("");
-      setStatus("");
-      setSearchInput("");
-      setSearch("");
-      setPage(1);
-    };
+  const resetFilters = () => {
+    setProjectId("");
+    setOrganizerId("");
+    setStatus("");
+    setSearchInput("");
+    setSearch("");
+    setPage(1);
+  };
 
-  const handleProjectChange =
-    (
-      value: string
-    ) => {
-      setProjectId(
-        value
-      );
+  const handleProjectChange = (
+    value: string
+  ) => {
+    setProjectId(value);
+    setPage(1);
+  };
 
-      setPage(1);
-    };
+  const handleOrganizerChange = (
+    value: string
+  ) => {
+    setOrganizerId(value);
+    setPage(1);
+  };
 
-  const handleOrganizerChange =
-    (
-      value: string
-    ) => {
-      setOrganizerId(
-        value
-      );
-
-      setPage(1);
-    };
-
-  const handleStatusFilterChange =
-    (
-      value:
-        | MeetingStatus
-        | ""
-    ) => {
-      setStatus(
-        value
-      );
-
-      setPage(1);
-    };
+  const handleStatusFilterChange = (
+    value: MeetingStatus | ""
+  ) => {
+    setStatus(value);
+    setPage(1);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Meeting modal helpers                                                    */
   /* ------------------------------------------------------------------------ */
 
-  const openCreateModal =
-    () => {
-      setEditingMeeting(
-        null
-      );
+  const openCreateModal = () => {
+    setEditingMeeting(null);
+    setFormError(null);
+    setIsModalOpen(true);
+  };
 
-      setFormError(
-        null
-      );
+  const openEditModal = (
+    meeting: Meeting
+  ) => {
+    setEditingMeeting(meeting);
+    setFormError(null);
+    setIsModalOpen(true);
+  };
 
-      setIsModalOpen(
-        true
-      );
-    };
+  const closeModal = () => {
+    if (
+      createMeeting.isPending ||
+      updateMeeting.isPending
+    ) {
+      return;
+    }
 
-  const openEditModal =
-    (
-      meeting: Meeting
-    ) => {
-      setEditingMeeting(
-        meeting
-      );
-
-      setFormError(
-        null
-      );
-
-      setIsModalOpen(
-        true
-      );
-    };
-
-  const closeModal =
-    () => {
-      if (
-        createMeeting.isPending ||
-        updateMeeting.isPending
-      ) {
-        return;
-      }
-
-      setIsModalOpen(
-        false
-      );
-
-      setEditingMeeting(
-        null
-      );
-
-      setFormError(
-        null
-      );
-    };
+    setIsModalOpen(false);
+    setEditingMeeting(null);
+    setFormError(null);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* View                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const handleView =
-    (
-      meeting: Meeting
-    ) => {
-      setViewingMeeting(
-        meeting
-      );
-    };
+  const handleView = (
+    meeting: Meeting
+  ) => {
+    setViewingMeeting(meeting);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Create                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate =
-    async (
-      payload: CreateMeetingPayload
-    ) => {
-      setFormError(
-        null
+  const handleCreate = async (
+    payload: CreateMeetingPayload
+  ) => {
+    setFormError(null);
+
+    try {
+      const response =
+        await createMeeting.mutateAsync(
+          payload
+        );
+
+      toast.success(
+        response.message ||
+          "Meeting created successfully."
       );
 
-      try {
-        const response =
-          await createMeeting.mutateAsync(
-            payload
-          );
+      setIsModalOpen(false);
+      setEditingMeeting(null);
+      setPage(1);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to create meeting. Please try again.";
 
-        toast.success(
-          response.message ||
-            "Meeting created successfully."
-        );
+      setFormError(message);
+      toast.error(message);
 
-        setIsModalOpen(
-          false
-        );
-
-        setEditingMeeting(
-          null
-        );
-
-        setPage(1);
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data?.message ||
-          "Failed to create meeting. Please try again.";
-
-        setFormError(
-          message
-        );
-
-        toast.error(
-          message
-        );
-
-        throw error;
-      }
-    };
+      throw error;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Update                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate =
-    async (
-      payload: UpdateMeetingPayload
-    ) => {
-      if (!editingMeeting) {
-        return;
-      }
+  const handleUpdate = async (
+    payload: UpdateMeetingPayload
+  ) => {
+    if (!editingMeeting) {
+      return;
+    }
 
-      setFormError(
-        null
+    setFormError(null);
+
+    try {
+      const response =
+        await updateMeeting.mutateAsync({
+          id: editingMeeting.id,
+          data: payload,
+        });
+
+      toast.success(
+        response.message ||
+          "Meeting updated successfully."
       );
 
-      try {
-        const response =
-          await updateMeeting.mutateAsync(
-            {
-              id: editingMeeting.id,
-              data: payload,
-            }
-          );
+      setIsModalOpen(false);
+      setEditingMeeting(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to update meeting. Please try again.";
 
-        toast.success(
-          response.message ||
-            "Meeting updated successfully."
-        );
+      setFormError(message);
+      toast.error(message);
 
-        setIsModalOpen(
-          false
-        );
-
-        setEditingMeeting(
-          null
-        );
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data?.message ||
-          "Failed to update meeting. Please try again.";
-
-        setFormError(
-          message
-        );
-
-        toast.error(
-          message
-        );
-
-        throw error;
-      }
-    };
+      throw error;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Change status                                                            */
   /* ------------------------------------------------------------------------ */
 
-  const handleChangeStatus =
-    async (
-      newStatus: MeetingStatus
-    ) => {
-      if (!statusMeeting) {
-        return;
-      }
+  const handleChangeStatus = async (
+    newStatus: MeetingStatus
+  ) => {
+    if (!statusMeeting) {
+      return;
+    }
 
-      try {
-        const response =
-          await changeMeetingStatus.mutateAsync(
-            {
-              id:
-                statusMeeting.id,
-              data: {
-                status:
-                  newStatus,
-              },
-            }
-          );
+    try {
+      const response =
+        await changeMeetingStatus.mutateAsync({
+          id: statusMeeting.id,
+          data: {
+            status: newStatus,
+          },
+        });
 
-        toast.success(
-          response.message ||
-            "Meeting status updated successfully."
-        );
+      toast.success(
+        response.message ||
+          "Meeting status updated successfully."
+      );
 
-        setStatusMeeting(
-          null
-        );
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data?.message ||
-          "Failed to update meeting status. Please try again.";
+      setStatusMeeting(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to update meeting status. Please try again.";
 
-        toast.error(
-          message
-        );
-      }
-    };
+      toast.error(message);
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Delete                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleDelete =
-    async () => {
-      if (!deleteMeeting) {
-        return;
-      }
+  const handleDelete = async () => {
+    if (!deleteMeeting) {
+      return;
+    }
 
-      try {
-        const response =
-          await deleteMeetingMutation.mutateAsync(
-            deleteMeeting.id
-          );
-
-        toast.success(
-          response.message ||
-            "Meeting deleted successfully."
+    try {
+      const response =
+        await deleteMeetingMutation.mutateAsync(
+          deleteMeeting.id
         );
 
-        setDeleteMeeting(
-          null
-        );
+      toast.success(
+        response.message ||
+          "Meeting deleted successfully."
+      );
 
-        if (
-          data?.data.length ===
-            1 &&
-          page > 1
-        ) {
-          setPage(
-            (
-              previous
-            ) =>
-              previous - 1
-          );
-        }
-      } catch (
-        error: any
+      setDeleteMeeting(null);
+
+      if (
+        data?.data.length === 1 &&
+        page > 1
       ) {
-        const message =
-          error?.response
-            ?.data?.message ||
-          "Failed to delete meeting. Please try again.";
-
-        toast.error(
-          message
-        );
-
-        setDeleteMeeting(
-          null
+        setPage(
+          (previous) =>
+            previous - 1
         );
       }
-    };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to delete meeting. Please try again.";
+
+      toast.error(message);
+      setDeleteMeeting(null);
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
-  /* Participants                                                             */
+  /* Participants - Management                                               */
   /* ------------------------------------------------------------------------ */
 
-  const openParticipantsModal =
-    (
-      meeting: Meeting
-    ) => {
-      setParticipantsError(
-        null
+  const openParticipantsModal = (
+    meeting: Meeting
+  ) => {
+    setParticipantsError(null);
+    setParticipantsMeeting(meeting);
+  };
+
+  const closeParticipantsModal = () => {
+    if (
+      addParticipant.isPending ||
+      removeParticipant.isPending
+    ) {
+      return;
+    }
+
+    setParticipantsMeeting(null);
+    setParticipantsError(null);
+  };
+
+  const handleAddParticipant = async (
+    userId: string
+  ) => {
+    if (!participantsMeeting) {
+      return;
+    }
+
+    setParticipantsError(null);
+
+    try {
+      const response =
+        await addParticipant.mutateAsync({
+          meetingId:
+            participantsMeeting.id,
+          data: {
+            userId,
+          },
+        });
+
+      toast.success(
+        response.message ||
+          "Participant added successfully."
       );
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to add participant. Please try again.";
 
-      setParticipantsMeeting(
-        meeting
-      );
-    };
+      setParticipantsError(message);
+      toast.error(message);
 
-  const closeParticipantsModal =
-    () => {
-      if (
-        addParticipant.isPending ||
-        removeParticipant.isPending
-      ) {
-        return;
-      }
-
-      setParticipantsMeeting(
-        null
-      );
-
-      setParticipantsError(
-        null
-      );
-    };
-
-  const handleAddParticipant =
-    async (
-      userId: string
-    ) => {
-      if (
-        !participantsMeeting
-      ) {
-        return;
-      }
-
-      setParticipantsError(
-        null
-      );
-
-      try {
-        const response =
-          await addParticipant.mutateAsync(
-            {
-              meetingId:
-                participantsMeeting.id,
-              data: {
-                userId,
-              },
-            }
-          );
-
-        toast.success(
-          response.message ||
-            "Participant added successfully."
-        );
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data?.message ||
-          "Failed to add participant. Please try again.";
-
-        setParticipantsError(
-          message
-        );
-
-        toast.error(
-          message
-        );
-
-        throw error;
-      }
-    };
+      throw error;
+    }
+  };
 
   const handleRemoveParticipant =
     async (
       userId: string
     ) => {
-      if (
-        !participantsMeeting
-      ) {
+      if (!participantsMeeting) {
         return;
       }
 
-      setParticipantsError(
-        null
-      );
+      setParticipantsError(null);
 
       try {
         const response =
-          await removeParticipant.mutateAsync(
-            {
-              meetingId:
-                participantsMeeting.id,
-              userId,
-            }
-          );
+          await removeParticipant.mutateAsync({
+            meetingId:
+              participantsMeeting.id,
+            userId,
+          });
 
         toast.success(
           response.message ||
             "Participant removed successfully."
         );
-      } catch (
-        error: any
-      ) {
+      } catch (error: any) {
         const message =
-          error?.response
-            ?.data?.message ||
+          error?.response?.data?.message ||
           "Failed to remove participant. Please try again.";
 
-        setParticipantsError(
-          message
-        );
-
-        toast.error(
-          message
-        );
+        setParticipantsError(message);
+        toast.error(message);
 
         throw error;
       }
@@ -796,16 +621,11 @@ export default function MeetingsPage() {
   /* ------------------------------------------------------------------------ */
 
   const canAccessMeetings =
-    user.role ===
-      "SUPER_ADMIN" ||
-    user.role ===
-      "PROJECT_MANAGER" ||
-    user.role ===
-      "EMPLOYEE";
+    user.role === "SUPER_ADMIN" ||
+    user.role === "PROJECT_MANAGER" ||
+    user.role === "EMPLOYEE";
 
-  if (
-    !canAccessMeetings
-  ) {
+  if (!canAccessMeetings) {
     return (
       <DashboardLayout
         user={user}
@@ -910,81 +730,83 @@ export default function MeetingsPage() {
     participantsData?.data ??
     [];
 
+  const viewingParticipants =
+    viewingParticipantsData?.data ??
+    [];
+
   /* ------------------------------------------------------------------------ */
   /* Permissions                                                              */
   /* ------------------------------------------------------------------------ */
 
   const canManageMeetings =
-    user.role ===
-      "SUPER_ADMIN" ||
-    user.role ===
-      "PROJECT_MANAGER";
+    user.role === "SUPER_ADMIN" ||
+    user.role === "PROJECT_MANAGER";
 
   const canCreateMeeting =
     canManageMeetings;
 
-  /*
-   * Current backend authority:
-   *
-   * SUPER_ADMIN → any meeting
-   * PROJECT_MANAGER → own project's meetings
-   *
-   * The backend remains the final authority.
-   */
   const canEditMeeting = (
-  meeting: Meeting
-) =>
-  canManageMeetings &&
-  meeting.status !== "COMPLETED" &&
-  meeting.status !== "CANCELLED" &&
-  (
-    user.role === "SUPER_ADMIN" ||
+    meeting: Meeting
+  ) =>
+    canManageMeetings &&
+    meeting.status !== "COMPLETED" &&
+    meeting.status !== "CANCELLED" &&
     (
-      meeting.project.status !== "COMPLETED" &&
-      meeting.project.status !== "CANCELLED"
-    )
-  );
+      user.role === "SUPER_ADMIN" ||
+      (
+        meeting.project.status !==
+          "COMPLETED" &&
+        meeting.project.status !==
+          "CANCELLED"
+      )
+    );
 
-const canDeleteMeeting = (
-  meeting: Meeting
-) =>
-  canManageMeetings &&
-  meeting.status !== "COMPLETED" &&
-  meeting.status !== "CANCELLED" &&
-  (
-    user.role === "SUPER_ADMIN" ||
+  const canDeleteMeeting = (
+    meeting: Meeting
+  ) =>
+    canManageMeetings &&
+    meeting.status !== "COMPLETED" &&
+    meeting.status !== "CANCELLED" &&
     (
-      meeting.project.status !== "COMPLETED" &&
-      meeting.project.status !== "CANCELLED"
-    )
-  );
+      user.role === "SUPER_ADMIN" ||
+      (
+        meeting.project.status !==
+          "COMPLETED" &&
+        meeting.project.status !==
+          "CANCELLED"
+      )
+    );
 
-const canManageParticipants = (
-  meeting: Meeting
-) =>
-  canManageMeetings &&
-  meeting.status !== "COMPLETED" &&
-  meeting.status !== "CANCELLED" &&
-  (
-    user.role === "SUPER_ADMIN" ||
+  const canManageParticipants = (
+    meeting: Meeting
+  ) =>
+    canManageMeetings &&
+    meeting.status !== "COMPLETED" &&
+    meeting.status !== "CANCELLED" &&
     (
-      meeting.project.status !== "COMPLETED" &&
-      meeting.project.status !== "CANCELLED"
-    )
-  );
+      user.role === "SUPER_ADMIN" ||
+      (
+        meeting.project.status !==
+          "COMPLETED" &&
+        meeting.project.status !==
+          "CANCELLED"
+      )
+    );
 
-const canChangeMeetingStatus = (
-  meeting: Meeting
-) =>
-  canManageMeetings &&
-  meeting.status === "SCHEDULED" &&
-  (
-    user.role === "SUPER_ADMIN" ||
+  const canChangeMeetingStatus = (
+    meeting: Meeting
+  ) =>
+    canManageMeetings &&
+    meeting.status === "SCHEDULED" &&
     (
-      meeting.project.status !== "COMPLETED" &&
-      meeting.project.status !== "CANCELLED"
-    )
-  );
+      user.role === "SUPER_ADMIN" ||
+      (
+        meeting.project.status !==
+          "COMPLETED" &&
+        meeting.project.status !==
+          "CANCELLED"
+      )
+    );
 
   const canManageSelectedParticipants =
     Boolean(
@@ -1172,7 +994,7 @@ const canChangeMeetingStatus = (
         }
       />
 
-      {/* Participants */}
+      {/* Participant Management */}
       <MeetingParticipantsModal
         meeting={
           participantsMeeting
@@ -1224,6 +1046,15 @@ const canChangeMeetingStatus = (
           meeting={
             viewingMeeting
           }
+          participants={
+            viewingParticipants
+          }
+          isParticipantsLoading={
+            isViewingParticipantsLoading
+          }
+          isParticipantsError={
+            isViewingParticipantsError
+          }
           onClose={() =>
             setViewingMeeting(
               null
@@ -1241,22 +1072,44 @@ const canChangeMeetingStatus = (
 
 function MeetingViewPlaceholder({
   meeting,
+  participants,
+  isParticipantsLoading,
+  isParticipantsError,
   onClose,
 }: {
   meeting: Meeting;
+
+  participants: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+
+    role: {
+      id: string;
+      name: string;
+    };
+
+    joinedAt: string;
+  }[];
+
+  isParticipantsLoading: boolean;
+  isParticipantsError: boolean;
+
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/40 p-4">
-      <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
-        <div className="flex items-start justify-between gap-4">
+    <div className="fixed inset-0 z-[110] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
+      <div className="my-4 flex w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:my-8">
+        {/* Header */}
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
               {meeting.title}
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              Meeting details
+              Meeting details and participants
             </p>
           </div>
 
@@ -1265,50 +1118,53 @@ function MeetingViewPlaceholder({
             onClick={
               onClose
             }
-            className="rounded-lg px-3 py-2 text-sm text-slate-500 transition hover:bg-slate-100"
+            className="rounded-lg px-3 py-2 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
           >
             Close
           </button>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <DetailCard
-            label="Project"
-            value={
-              meeting.project.name
-            }
-          />
+        {/* Content */}
+        <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6">
+          {/* Meeting information */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <DetailCard
+              label="Project"
+              value={
+                meeting.project.name
+              }
+            />
 
-          <DetailCard
-            label="Organizer"
-            value={`${meeting.organizer.firstName} ${meeting.organizer.lastName}`}
-          />
+            <DetailCard
+              label="Organizer"
+              value={`${meeting.organizer.firstName} ${meeting.organizer.lastName}`}
+            />
 
-          <DetailCard
-            label="Date & Time"
-            value={formatDateTime(
-              meeting.meetingDate
-            )}
-          />
+            <DetailCard
+              label="Date & Time"
+              value={formatDateTime(
+                meeting.meetingDate
+              )}
+            />
 
-          <DetailCard
-            label="Status"
-            value={formatMeetingStatus(
-              meeting.status
-            )}
-          />
+            <DetailCard
+              label="Status"
+              value={formatMeetingStatus(
+                meeting.status
+              )}
+            />
 
-          <DetailCard
-            label="Location"
-            value={
-              meeting.location ||
-              "No location"
-            }
-          />
-        </div>
+            <DetailCard
+              label="Location"
+              value={
+                meeting.location ||
+                "No location"
+              }
+            />
+          </div>
 
-        <div className="mt-4 space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          {/* Agenda */}
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
               Agenda
             </p>
@@ -1319,7 +1175,8 @@ function MeetingViewPlaceholder({
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          {/* Notes */}
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
               Notes
             </p>
@@ -1329,6 +1186,116 @@ function MeetingViewPlaceholder({
                 "No notes provided."}
             </p>
           </div>
+
+          {/* Participants */}
+          <section className="mt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Participants
+                </h3>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  {participants.length}{" "}
+                  {participants.length === 1
+                    ? "participant"
+                    : "participants"}
+                </p>
+              </div>
+
+              {isParticipantsLoading && (
+                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+              )}
+            </div>
+
+            {isParticipantsLoading ? (
+              <div className="mt-4 flex min-h-[160px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Loading participants...
+                </div>
+              </div>
+            ) : isParticipantsError ? (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+                Unable to load participants.
+              </div>
+            ) : participants.length === 0 ? (
+              <div className="mt-4 flex min-h-[160px] flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-6 text-center">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white">
+                  <Users className="h-5 w-5 text-slate-400" />
+                </div>
+
+                <h4 className="mt-3 text-sm font-semibold text-slate-900">
+                  No participants
+                </h4>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  No participants were recorded for this meeting.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
+                <div className="divide-y divide-slate-100">
+                  {participants.map(
+                    (
+                      participant
+                    ) => (
+                      <div
+                        key={
+                          participant.id
+                        }
+                        className="flex items-center gap-3 px-4 py-4"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                          <UserRound className="h-5 w-5 text-slate-500" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-slate-900">
+                            {
+                              participant.firstName
+                            }{" "}
+                            {
+                              participant.lastName
+                            }
+                          </p>
+
+                          <p className="mt-0.5 truncate text-xs text-slate-500">
+                            {
+                              participant.email
+                            }
+                          </p>
+                        </div>
+
+                        <div className="hidden shrink-0 sm:block">
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                            {formatUserRole(
+                              participant
+                                .role
+                                .name
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* Footer */}
+        <div className="flex shrink-0 justify-end border-t border-slate-200 px-6 py-4">
+          <button
+            type="button"
+            onClick={
+              onClose
+            }
+            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -1402,4 +1369,20 @@ function formatMeetingStatus(
     case "CANCELLED":
       return "Cancelled";
   }
+}
+
+function formatUserRole(
+  role: string
+): string {
+  return role
+    .toLowerCase()
+    .replace(
+      /_/g,
+      " "
+    )
+    .replace(
+      /\b\w/g,
+      (character) =>
+        character.toUpperCase()
+    );
 }
