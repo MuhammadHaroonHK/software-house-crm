@@ -4,6 +4,7 @@ import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
 import { validate } from "../../middleware/validate";
 import { UserRole } from "@prisma/client";
+
 import {
   meetingParticipantController,
 } from "./meetingParticipant.controller";
@@ -23,20 +24,39 @@ router.post(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
-  validate(addMeetingParticipantSchema),
+  validate(
+    addMeetingParticipantSchema
+  ),
   meetingParticipantController.addParticipant.bind(
     meetingParticipantController
   )
 );
 
+/*
+ * View participants
+ *
+ * SUPER_ADMIN:
+ *   Any meeting
+ *
+ * PROJECT_MANAGER:
+ *   Meetings from their projects
+ *
+ * EMPLOYEE:
+ *   Meetings from projects they are members of
+ *
+ * Employees remain read-only.
+ */
 router.get(
   "/:meetingId/participants",
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.EMPLOYEE
   ),
-  validate(getMeetingParticipantsSchema),
+  validate(
+    getMeetingParticipantsSchema
+  ),
   meetingParticipantController.findParticipants.bind(
     meetingParticipantController
   )
@@ -49,7 +69,9 @@ router.delete(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
-  validate(removeMeetingParticipantSchema),
+  validate(
+    removeMeetingParticipantSchema
+  ),
   meetingParticipantController.removeParticipant.bind(
     meetingParticipantController
   )
