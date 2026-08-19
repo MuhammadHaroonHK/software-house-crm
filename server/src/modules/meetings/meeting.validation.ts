@@ -83,3 +83,13 @@ export const getMeetingsSchema = z.object({
       .default("meetingDate"),
   }),
 });
+
+export const changeMeetingStatusSchema = z.object({
+  params: z.object({
+    id: z.uuid(),
+  }),
+
+  body: z.object({
+    status: z.enum(MeetingStatus),
+  }),
+});

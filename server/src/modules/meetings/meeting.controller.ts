@@ -185,6 +185,36 @@ export class MeetingController {
       next(error);
     }
   }
+
+  async changeStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw new Error(
+        "Authenticated user not found."
+      );
+    }
+
+    const meeting =
+      await meetingService.changeStatus(
+        String(req.params.id),
+        req.body.status,
+        req.user.userId,
+        req.user.role
+      );
+
+    return successResponse(
+      res,
+      "Meeting status updated successfully.",
+      meeting
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const meetingController =

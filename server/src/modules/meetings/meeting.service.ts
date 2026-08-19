@@ -540,6 +540,104 @@ export class MeetingService {
       id
     );
   }
+
+  async changeStatus(
+  id: string,
+  newStatus: MeetingStatus,
+  actorId: string,
+  actorRole: UserRole
+) {
+  const meeting =
+    await meetingRepository.findById(id);
+
+  if (!meeting) {
+    throw new AppError(
+      404,
+      "Meeting not found."
+    );
+  }
+
+  this.validateProjectStatus(
+    meeting.project.status
+  );
+
+  this.validateProjectAccess(
+    meeting.project,
+    actorId,
+    actorRole
+  );
+
+  const currentStatus =
+    meeting.status;
+
+  if (
+    currentStatus ===
+    newStatus
+  ) {
+    throw new AppError(
+      400,
+      `Meeting is already ${newStatus.toLowerCase()}.`
+    );
+  }
+
+  /*
+   * Terminal states cannot be changed.
+   */
+  if (
+    currentStatus ===
+      MeetingStatus.COMPLETED ||
+    currentStatus ===
+      MeetingStatus.CANCELLED
+  ) {
+    throw new AppError(
+      400,
+      `Meeting cannot transition from ${currentStatus.toLowerCase()}.`
+    );
+  }
+
+  /*
+   * Meeting workflow:
+   *
+   * SCHEDULED
+   *    ├──> COMPLETED
+   *    └──> CANCELLED
+   */
+  const allowedTransitions:
+    Record<
+      MeetingStatus,
+      MeetingStatus[]
+    > = {
+    [MeetingStatus.SCHEDULED]: [
+      MeetingStatus.COMPLETED,
+      MeetingStatus.CANCELLED,
+    ],
+
+    [MeetingStatus.COMPLETED]: [],
+
+    [MeetingStatus.CANCELLED]: [],
+  };
+
+  const allowed =
+    allowedTransitions[
+      currentStatus
+    ];
+
+  if (
+    !allowed.includes(
+      newStatus
+    )
+  ) {
+    throw new AppError(
+      400,
+      `Invalid meeting status transition from ${currentStatus} to ${newStatus}.`
+    );
+  }
+
+  return meetingRepository.updateStatus(
+    id,
+    newStatus
+  );
+}
 }
 
 export const meetingService =

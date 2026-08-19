@@ -8,6 +8,7 @@ import {
   createMeetingSchema,
   updateMeetingSchema,
   getMeetingsSchema,
+  changeMeetingStatusSchema,
 } from "./meeting.validation";
 
 const router = Router();
@@ -77,6 +78,21 @@ router.get(
     UserRole.EMPLOYEE
   ),
   meetingController.findById.bind(
+    meetingController
+  )
+);
+
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.PROJECT_MANAGER
+  ),
+  validate(
+    changeMeetingStatusSchema
+  ),
+  meetingController.changeStatus.bind(
     meetingController
   )
 );

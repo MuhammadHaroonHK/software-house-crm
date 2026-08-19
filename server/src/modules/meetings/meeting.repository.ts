@@ -344,4 +344,45 @@ export class MeetingRepository {
 
     return [];
   }
+
+  async updateStatus(
+  id: string,
+  status: MeetingStatus
+) {
+  return prisma.meeting.update({
+    where: {
+      id,
+    },
+
+    data: {
+      status,
+    },
+
+    include: {
+      project: {
+        select: {
+          id: true,
+          name: true,
+          status: true,
+        },
+      },
+
+      organizer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+
+          role: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
 }
