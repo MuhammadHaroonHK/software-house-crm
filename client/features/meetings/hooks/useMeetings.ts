@@ -15,6 +15,7 @@ import type {
   CreateMeetingPayload,
   MeetingQueryParams,
   UpdateMeetingPayload,
+  MeetingStatus,
 } from "../types/meeting.types";
 
 export const MEETINGS_QUERY_KEY = [
@@ -94,6 +95,34 @@ export function useDeleteMeeting() {
   return useMutation({
     mutationFn: (id: string) =>
       meetingService.delete(id),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey:
+          MEETINGS_QUERY_KEY,
+      });
+    },
+  });
+}
+
+export function useChangeMeetingStatus() {
+  const queryClient =
+    useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        status: MeetingStatus;
+      };
+    }) =>
+      meetingService.changeStatus(
+        id,
+        data
+      ),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

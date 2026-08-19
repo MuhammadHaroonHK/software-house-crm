@@ -10,28 +10,42 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
+import {
+  useRouter,
+} from "next/navigation";
 
 import { toast } from "sonner";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
+import ChangeMeetingStatusDialog from "@/components/meetings/ChangeMeetingStatusDialog";
 import DeleteMeetingDialog from "@/components/meetings/DeleteMeetingDialog";
 import MeetingFormModal from "@/components/meetings/MeetingFormModal";
 import MeetingParticipantsModal from "@/components/meetings/MeetingParticipantsModal";
 
-import { useProjects } from "@/features/projects/hooks/useProjects";
-import { useUsers } from "@/features/users/hooks/useUsers";
+import {
+  useProjects,
+} from "@/features/projects/hooks/useProjects";
+
+import {
+  useUsers,
+} from "@/features/users/hooks/useUsers";
 
 import MeetingsFilters from "@/features/meetings/components/MeetingsFilters";
 import MeetingsHeader from "@/features/meetings/components/MeetingsHeader";
 import MeetingsPagination from "@/features/meetings/components/MeetingsPagination";
 import MeetingsTable from "@/features/meetings/components/MeetingsTable";
 
-import { useCurrentUser } from "@/features/auth/hooks/useAuth";
-import { authStorage } from "@/features/auth/services/auth-storage";
+import {
+  useCurrentUser,
+} from "@/features/auth/hooks/useAuth";
 
 import {
+  authStorage,
+} from "@/features/auth/services/auth-storage";
+
+import {
+  useChangeMeetingStatus,
   useCreateMeeting,
   useDeleteMeeting,
   useMeetings,
@@ -55,7 +69,8 @@ const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 400;
 
 export default function MeetingsPage() {
-  const router = useRouter();
+  const router =
+    useRouter();
 
   /* ------------------------------------------------------------------------ */
   /* Supporting data                                                          */
@@ -99,7 +114,9 @@ export default function MeetingsPage() {
     useState("");
 
   const [status, setStatus] =
-    useState<MeetingStatus | "">("");
+    useState<
+      MeetingStatus | ""
+    >("");
 
   const [isModalOpen, setIsModalOpen] =
     useState(false);
@@ -113,14 +130,23 @@ export default function MeetingsPage() {
   const [deleteMeeting, setDeleteMeeting] =
     useState<Meeting | null>(null);
 
-  const [participantsMeeting, setParticipantsMeeting] =
+  const [statusMeeting, setStatusMeeting] =
     useState<Meeting | null>(null);
 
+  const [participantsMeeting, setParticipantsMeeting] =
+    useState<Meeting | null>(
+      null
+    );
+
   const [formError, setFormError] =
-    useState<string | null>(null);
+    useState<string | null>(
+      null
+    );
 
   const [participantsError, setParticipantsError] =
-    useState<string | null>(null);
+    useState<string | null>(
+      null
+    );
 
   /* ------------------------------------------------------------------------ */
   /* Auth                                                                     */
@@ -130,7 +156,8 @@ export default function MeetingsPage() {
     data: user,
     isLoading: isUserLoading,
     isError: isUserError,
-  } = useCurrentUser();
+  } =
+    useCurrentUser();
 
   /* ------------------------------------------------------------------------ */
   /* Meetings                                                                 */
@@ -142,20 +169,27 @@ export default function MeetingsPage() {
     isFetching,
     isError: isMeetingsError,
     refetch,
-  } = useMeetings({
-    page,
-    limit: PAGE_SIZE,
-    search:
-      search || undefined,
-    projectId:
-      projectId || undefined,
-    organizerId:
-      organizerId || undefined,
-    status:
-      status || undefined,
-    sortBy: "meetingDate",
-    sortOrder: "asc",
-  });
+  } =
+    useMeetings({
+      page,
+      limit: PAGE_SIZE,
+      search:
+        search ||
+        undefined,
+      projectId:
+        projectId ||
+        undefined,
+      organizerId:
+        organizerId ||
+        undefined,
+      status:
+        status ||
+        undefined,
+      sortBy:
+        "meetingDate",
+      sortOrder:
+        "asc",
+    });
 
   /* ------------------------------------------------------------------------ */
   /* Participants                                                             */
@@ -163,11 +197,14 @@ export default function MeetingsPage() {
 
   const {
     data: participantsData,
-    isLoading: isParticipantsLoading,
-    isError: isParticipantsError,
-  } = useMeetingParticipants(
-    participantsMeeting?.id
-  );
+    isLoading:
+      isParticipantsLoading,
+    isError:
+      isParticipantsError,
+  } =
+    useMeetingParticipants(
+      participantsMeeting?.id
+    );
 
   const addParticipant =
     useAddMeetingParticipant();
@@ -176,7 +213,7 @@ export default function MeetingsPage() {
     useRemoveMeetingParticipant();
 
   /* ------------------------------------------------------------------------ */
-  /* Mutations                                                                */
+  /* Meeting mutations                                                        */
   /* ------------------------------------------------------------------------ */
 
   const createMeeting =
@@ -187,6 +224,9 @@ export default function MeetingsPage() {
 
   const deleteMeetingMutation =
     useDeleteMeeting();
+
+  const changeMeetingStatus =
+    useChangeMeetingStatus();
 
   /* ------------------------------------------------------------------------ */
   /* Mount                                                                    */
@@ -201,318 +241,522 @@ export default function MeetingsPage() {
       return;
     }
 
-    if (!authStorage.getToken()) {
-      router.replace("/login");
+    if (
+      !authStorage.getToken()
+    ) {
+      router.replace(
+        "/login"
+      );
     }
-  }, [mounted, router]);
+  }, [
+    mounted,
+    router,
+  ]);
 
   useEffect(() => {
-    if (!mounted || !isUserError) {
+    if (
+      !mounted ||
+      !isUserError
+    ) {
       return;
     }
 
     authStorage.removeToken();
-    router.replace("/login");
-  }, [mounted, isUserError, router]);
+
+    router.replace(
+      "/login"
+    );
+  }, [
+    mounted,
+    isUserError,
+    router,
+  ]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setSearch(searchInput.trim());
-      setPage(1);
-    }, SEARCH_DEBOUNCE_MS);
+    const timeout =
+      setTimeout(() => {
+        setSearch(
+          searchInput.trim()
+        );
 
-    return () => clearTimeout(timeout);
-  }, [searchInput]);
+        setPage(1);
+      }, SEARCH_DEBOUNCE_MS);
+
+    return () =>
+      clearTimeout(
+        timeout
+      );
+  }, [
+    searchInput,
+  ]);
 
   /* ------------------------------------------------------------------------ */
   /* Filters                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const resetFilters = () => {
-    setProjectId("");
-    setOrganizerId("");
-    setStatus("");
-    setSearchInput("");
-    setSearch("");
-    setPage(1);
-  };
+  const resetFilters =
+    () => {
+      setProjectId("");
+      setOrganizerId("");
+      setStatus("");
+      setSearchInput("");
+      setSearch("");
+      setPage(1);
+    };
 
-  const handleProjectChange = (
-    value: string
-  ) => {
-    setProjectId(value);
-    setPage(1);
-  };
+  const handleProjectChange =
+    (
+      value: string
+    ) => {
+      setProjectId(
+        value
+      );
 
-  const handleOrganizerChange = (
-    value: string
-  ) => {
-    setOrganizerId(value);
-    setPage(1);
-  };
+      setPage(1);
+    };
 
-  const handleStatusChange = (
-    value: MeetingStatus | ""
-  ) => {
-    setStatus(value);
-    setPage(1);
-  };
+  const handleOrganizerChange =
+    (
+      value: string
+    ) => {
+      setOrganizerId(
+        value
+      );
+
+      setPage(1);
+    };
+
+  const handleStatusFilterChange =
+    (
+      value:
+        | MeetingStatus
+        | ""
+    ) => {
+      setStatus(
+        value
+      );
+
+      setPage(1);
+    };
 
   /* ------------------------------------------------------------------------ */
   /* Meeting modal helpers                                                    */
   /* ------------------------------------------------------------------------ */
 
-  const openCreateModal = () => {
-    setEditingMeeting(null);
-    setFormError(null);
-    setIsModalOpen(true);
-  };
+  const openCreateModal =
+    () => {
+      setEditingMeeting(
+        null
+      );
 
-  const openEditModal = (
-    meeting: Meeting
-  ) => {
-    setEditingMeeting(meeting);
-    setFormError(null);
-    setIsModalOpen(true);
-  };
+      setFormError(
+        null
+      );
 
-  const closeModal = () => {
-    if (
-      createMeeting.isPending ||
-      updateMeeting.isPending
-    ) {
-      return;
-    }
+      setIsModalOpen(
+        true
+      );
+    };
 
-    setIsModalOpen(false);
-    setEditingMeeting(null);
-    setFormError(null);
-  };
+  const openEditModal =
+    (
+      meeting: Meeting
+    ) => {
+      setEditingMeeting(
+        meeting
+      );
 
-  /* ------------------------------------------------------------------------ */
-  /* Participants                                                              */
-  /* ------------------------------------------------------------------------ */
+      setFormError(
+        null
+      );
 
-  const openParticipantsModal = (
-    meeting: Meeting
-  ) => {
-    setParticipantsError(null);
-    setParticipantsMeeting(meeting);
-  };
+      setIsModalOpen(
+        true
+      );
+    };
 
-  const closeParticipantsModal = () => {
-    if (
-      addParticipant.isPending ||
-      removeParticipant.isPending
-    ) {
-      return;
-    }
+  const closeModal =
+    () => {
+      if (
+        createMeeting.isPending ||
+        updateMeeting.isPending
+      ) {
+        return;
+      }
 
-    setParticipantsMeeting(null);
-    setParticipantsError(null);
-  };
+      setIsModalOpen(
+        false
+      );
+
+      setEditingMeeting(
+        null
+      );
+
+      setFormError(
+        null
+      );
+    };
 
   /* ------------------------------------------------------------------------ */
   /* View                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const handleView = (
-    meeting: Meeting
-  ) => {
-    setViewingMeeting(meeting);
-  };
+  const handleView =
+    (
+      meeting: Meeting
+    ) => {
+      setViewingMeeting(
+        meeting
+      );
+    };
 
   /* ------------------------------------------------------------------------ */
   /* Create                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate = async (
-    payload: CreateMeetingPayload
-  ) => {
-    setFormError(null);
-
-    try {
-      const response =
-        await createMeeting.mutateAsync(
-          payload
-        );
-
-      toast.success(
-        response.message ||
-          "Meeting created successfully."
+  const handleCreate =
+    async (
+      payload: CreateMeetingPayload
+    ) => {
+      setFormError(
+        null
       );
 
-      setIsModalOpen(false);
-      setEditingMeeting(null);
-      setPage(1);
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        "Failed to create meeting. Please try again.";
+      try {
+        const response =
+          await createMeeting.mutateAsync(
+            payload
+          );
 
-      setFormError(message);
-      toast.error(message);
+        toast.success(
+          response.message ||
+            "Meeting created successfully."
+        );
 
-      throw error;
-    }
-  };
+        setIsModalOpen(
+          false
+        );
+
+        setEditingMeeting(
+          null
+        );
+
+        setPage(1);
+      } catch (
+        error: any
+      ) {
+        const message =
+          error?.response
+            ?.data?.message ||
+          "Failed to create meeting. Please try again.";
+
+        setFormError(
+          message
+        );
+
+        toast.error(
+          message
+        );
+
+        throw error;
+      }
+    };
 
   /* ------------------------------------------------------------------------ */
   /* Update                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate = async (
-    payload: UpdateMeetingPayload
-  ) => {
-    if (!editingMeeting) {
-      return;
-    }
+  const handleUpdate =
+    async (
+      payload: UpdateMeetingPayload
+    ) => {
+      if (!editingMeeting) {
+        return;
+      }
 
-    setFormError(null);
-
-    try {
-      const response =
-        await updateMeeting.mutateAsync({
-          id: editingMeeting.id,
-          data: payload,
-        });
-
-      toast.success(
-        response.message ||
-          "Meeting updated successfully."
+      setFormError(
+        null
       );
 
-      setIsModalOpen(false);
-      setEditingMeeting(null);
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        "Failed to update meeting. Please try again.";
+      try {
+        const response =
+          await updateMeeting.mutateAsync(
+            {
+              id: editingMeeting.id,
+              data: payload,
+            }
+          );
 
-      setFormError(message);
-      toast.error(message);
+        toast.success(
+          response.message ||
+            "Meeting updated successfully."
+        );
 
-      throw error;
-    }
-  };
+        setIsModalOpen(
+          false
+        );
+
+        setEditingMeeting(
+          null
+        );
+      } catch (
+        error: any
+      ) {
+        const message =
+          error?.response
+            ?.data?.message ||
+          "Failed to update meeting. Please try again.";
+
+        setFormError(
+          message
+        );
+
+        toast.error(
+          message
+        );
+
+        throw error;
+      }
+    };
+
+  /* ------------------------------------------------------------------------ */
+  /* Change status                                                            */
+  /* ------------------------------------------------------------------------ */
+
+  const handleChangeStatus =
+    async (
+      newStatus: MeetingStatus
+    ) => {
+      if (!statusMeeting) {
+        return;
+      }
+
+      try {
+        const response =
+          await changeMeetingStatus.mutateAsync(
+            {
+              id:
+                statusMeeting.id,
+              data: {
+                status:
+                  newStatus,
+              },
+            }
+          );
+
+        toast.success(
+          response.message ||
+            "Meeting status updated successfully."
+        );
+
+        setStatusMeeting(
+          null
+        );
+      } catch (
+        error: any
+      ) {
+        const message =
+          error?.response
+            ?.data?.message ||
+          "Failed to update meeting status. Please try again.";
+
+        toast.error(
+          message
+        );
+      }
+    };
 
   /* ------------------------------------------------------------------------ */
   /* Delete                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleDelete = async () => {
-    if (!deleteMeeting) {
-      return;
-    }
+  const handleDelete =
+    async () => {
+      if (!deleteMeeting) {
+        return;
+      }
 
-    try {
-      const response =
-        await deleteMeetingMutation.mutateAsync(
-          deleteMeeting.id
+      try {
+        const response =
+          await deleteMeetingMutation.mutateAsync(
+            deleteMeeting.id
+          );
+
+        toast.success(
+          response.message ||
+            "Meeting deleted successfully."
         );
 
-      toast.success(
-        response.message ||
-          "Meeting deleted successfully."
-      );
+        setDeleteMeeting(
+          null
+        );
 
-      setDeleteMeeting(null);
-
-      if (
-        data?.data.length === 1 &&
-        page > 1
+        if (
+          data?.data.length ===
+            1 &&
+          page > 1
+        ) {
+          setPage(
+            (
+              previous
+            ) =>
+              previous - 1
+          );
+        }
+      } catch (
+        error: any
       ) {
-        setPage((previous) => previous - 1);
+        const message =
+          error?.response
+            ?.data?.message ||
+          "Failed to delete meeting. Please try again.";
+
+        toast.error(
+          message
+        );
+
+        setDeleteMeeting(
+          null
+        );
       }
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        "Failed to delete meeting. Please try again.";
-
-      toast.error(message);
-      setDeleteMeeting(null);
-    }
-  };
+    };
 
   /* ------------------------------------------------------------------------ */
-  /* Add participant                                                           */
+  /* Participants                                                             */
   /* ------------------------------------------------------------------------ */
 
-  const handleAddParticipant = async (
-    userId: string
-  ) => {
-    if (!participantsMeeting) {
-      return;
-    }
-
-    setParticipantsError(null);
-
-    try {
-      const response =
-        await addParticipant.mutateAsync({
-          meetingId:
-            participantsMeeting.id,
-          data: {
-            userId,
-          },
-        });
-
-      toast.success(
-        response.message ||
-          "Participant added successfully."
+  const openParticipantsModal =
+    (
+      meeting: Meeting
+    ) => {
+      setParticipantsError(
+        null
       );
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        "Failed to add participant. Please try again.";
 
-      setParticipantsError(message);
-      toast.error(message);
-
-      throw error;
-    }
-  };
-
-  /* ------------------------------------------------------------------------ */
-  /* Remove participant                                                        */
-  /* ------------------------------------------------------------------------ */
-
-  const handleRemoveParticipant = async (
-    userId: string
-  ) => {
-    if (!participantsMeeting) {
-      return;
-    }
-
-    setParticipantsError(null);
-
-    try {
-      const response =
-        await removeParticipant.mutateAsync({
-          meetingId:
-            participantsMeeting.id,
-          userId,
-        });
-
-      toast.success(
-        response.message ||
-          "Participant removed successfully."
+      setParticipantsMeeting(
+        meeting
       );
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        "Failed to remove participant. Please try again.";
+    };
 
-      setParticipantsError(message);
-      toast.error(message);
+  const closeParticipantsModal =
+    () => {
+      if (
+        addParticipant.isPending ||
+        removeParticipant.isPending
+      ) {
+        return;
+      }
 
-      throw error;
-    }
-  };
+      setParticipantsMeeting(
+        null
+      );
+
+      setParticipantsError(
+        null
+      );
+    };
+
+  const handleAddParticipant =
+    async (
+      userId: string
+    ) => {
+      if (
+        !participantsMeeting
+      ) {
+        return;
+      }
+
+      setParticipantsError(
+        null
+      );
+
+      try {
+        const response =
+          await addParticipant.mutateAsync(
+            {
+              meetingId:
+                participantsMeeting.id,
+              data: {
+                userId,
+              },
+            }
+          );
+
+        toast.success(
+          response.message ||
+            "Participant added successfully."
+        );
+      } catch (
+        error: any
+      ) {
+        const message =
+          error?.response
+            ?.data?.message ||
+          "Failed to add participant. Please try again.";
+
+        setParticipantsError(
+          message
+        );
+
+        toast.error(
+          message
+        );
+
+        throw error;
+      }
+    };
+
+  const handleRemoveParticipant =
+    async (
+      userId: string
+    ) => {
+      if (
+        !participantsMeeting
+      ) {
+        return;
+      }
+
+      setParticipantsError(
+        null
+      );
+
+      try {
+        const response =
+          await removeParticipant.mutateAsync(
+            {
+              meetingId:
+                participantsMeeting.id,
+              userId,
+            }
+          );
+
+        toast.success(
+          response.message ||
+            "Participant removed successfully."
+        );
+      } catch (
+        error: any
+      ) {
+        const message =
+          error?.response
+            ?.data?.message ||
+          "Failed to remove participant. Please try again.";
+
+        setParticipantsError(
+          message
+        );
+
+        toast.error(
+          message
+        );
+
+        throw error;
+      }
+    };
 
   /* ------------------------------------------------------------------------ */
   /* Initial mounting                                                         */
@@ -528,6 +772,10 @@ export default function MeetingsPage() {
       </main>
     );
   }
+
+  /* ------------------------------------------------------------------------ */
+  /* User loading                                                             */
+  /* ------------------------------------------------------------------------ */
 
   if (
     isUserLoading ||
@@ -548,13 +796,20 @@ export default function MeetingsPage() {
   /* ------------------------------------------------------------------------ */
 
   const canAccessMeetings =
-    user.role === "SUPER_ADMIN" ||
-    user.role === "PROJECT_MANAGER" ||
-    user.role === "EMPLOYEE";
+    user.role ===
+      "SUPER_ADMIN" ||
+    user.role ===
+      "PROJECT_MANAGER" ||
+    user.role ===
+      "EMPLOYEE";
 
-  if (!canAccessMeetings) {
+  if (
+    !canAccessMeetings
+  ) {
     return (
-      <DashboardLayout user={user}>
+      <DashboardLayout
+        user={user}
+      >
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -581,7 +836,9 @@ export default function MeetingsPage() {
     !data
   ) {
     return (
-      <DashboardLayout user={user}>
+      <DashboardLayout
+        user={user}
+      >
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -592,12 +849,18 @@ export default function MeetingsPage() {
     );
   }
 
+  /* ------------------------------------------------------------------------ */
+  /* Meetings error                                                           */
+  /* ------------------------------------------------------------------------ */
+
   if (
     isMeetingsError ||
     !data
   ) {
     return (
-      <DashboardLayout user={user}>
+      <DashboardLayout
+        user={user}
+      >
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -612,7 +875,9 @@ export default function MeetingsPage() {
 
             <button
               type="button"
-              onClick={() => refetch()}
+              onClick={() =>
+                refetch()
+              }
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -627,97 +892,115 @@ export default function MeetingsPage() {
   /* Data                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const meetings = data.data;
-  const meta = data.meta;
+  const meetings =
+    data.data;
+
+  const meta =
+    data.meta;
 
   const projects =
-    projectsData?.data ?? [];
+    projectsData?.data ??
+    [];
 
   const organizers =
-    usersData?.users ?? [];
+    usersData?.users ??
+    [];
 
   const participants =
-    participantsData?.data ?? [];
+    participantsData?.data ??
+    [];
 
   /* ------------------------------------------------------------------------ */
   /* Permissions                                                              */
   /* ------------------------------------------------------------------------ */
 
   const canManageMeetings =
-    user.role === "SUPER_ADMIN" ||
-    user.role === "PROJECT_MANAGER";
+    user.role ===
+      "SUPER_ADMIN" ||
+    user.role ===
+      "PROJECT_MANAGER";
 
   const canCreateMeeting =
     canManageMeetings;
 
-  const canEditMeeting = (
-    meeting: Meeting
-  ) =>
-    canManageMeetings &&
+  /*
+   * Current backend authority:
+   *
+   * SUPER_ADMIN → any meeting
+   * PROJECT_MANAGER → own project's meetings
+   *
+   * The backend remains the final authority.
+   */
+  const canEditMeeting =
     (
-      user.role === "SUPER_ADMIN" ||
-      meeting.project.status !== "COMPLETED" &&
-      meeting.project.status !== "CANCELLED"
-    );
-
-  const canDeleteMeeting = (
-    meeting: Meeting
-  ) =>
-    canManageMeetings &&
-    (
-      user.role === "SUPER_ADMIN" ||
+      meeting: Meeting
+    ) =>
+      canManageMeetings &&
       (
-        meeting.project.status !== "COMPLETED" &&
-        meeting.project.status !== "CANCELLED"
-      )
-    );
+        user.role ===
+          "SUPER_ADMIN" ||
+        (
+          meeting.project.status !==
+            "COMPLETED" &&
+          meeting.project.status !==
+            "CANCELLED"
+        )
+      );
 
-  const canManageParticipants = (
-    meeting: Meeting
-  ) =>
-    canManageMeetings &&
+  const canDeleteMeeting =
     (
-      user.role === "SUPER_ADMIN" ||
+      meeting: Meeting
+    ) =>
+      canManageMeetings &&
       (
-        meeting.project.status !== "COMPLETED" &&
-        meeting.project.status !== "CANCELLED"
-      )
-    );
+        user.role ===
+          "SUPER_ADMIN" ||
+        (
+          meeting.project.status !==
+            "COMPLETED" &&
+          meeting.project.status !==
+            "CANCELLED"
+        )
+      );
+
+  const canManageParticipants =
+    (
+      meeting: Meeting
+    ) =>
+      canManageMeetings &&
+      (
+        user.role ===
+          "SUPER_ADMIN" ||
+        (
+          meeting.project.status !==
+            "COMPLETED" &&
+          meeting.project.status !==
+            "CANCELLED"
+        )
+      );
+
+  const canChangeMeetingStatus =
+    (
+      meeting: Meeting
+    ) =>
+      canManageMeetings &&
+      meeting.status ===
+        "SCHEDULED" &&
+      (
+        user.role ===
+          "SUPER_ADMIN" ||
+        (
+          meeting.project.status !==
+            "COMPLETED" &&
+          meeting.project.status !==
+            "CANCELLED"
+        )
+      );
 
   const canManageSelectedParticipants =
     Boolean(
       participantsMeeting &&
-      (
-        user.role === "SUPER_ADMIN" ||
-        (
-          user.role === "PROJECT_MANAGER" &&
-          participantsMeeting.projectId &&
-          meetings.find(
-            (meeting) =>
-              meeting.id ===
-              participantsMeeting.id
-          )?.organizerId !== undefined
-        )
-      )
-    );
-
-  const selectedMeeting =
-    participantsMeeting
-      ? meetings.find(
-          (meeting) =>
-            meeting.id ===
-            participantsMeeting.id
-        )
-      : null;
-
-  const canManageSelectedParticipantsFinal =
-    Boolean(
-      participantsMeeting &&
-      canManageMeetings &&
-      (
-        user.role === "SUPER_ADMIN" ||
-        selectedMeeting?.project !== undefined
-      )
+        canManageMeetings
     );
 
   /* ------------------------------------------------------------------------ */
@@ -725,86 +1008,192 @@ export default function MeetingsPage() {
   /* ------------------------------------------------------------------------ */
 
   return (
-    <DashboardLayout user={user}>
+    <DashboardLayout
+      user={user}
+    >
       <div className="mx-auto max-w-7xl space-y-6">
+        {/* Header */}
         <MeetingsHeader
-          search={searchInput}
-          onSearchChange={setSearchInput}
-          onCreate={openCreateModal}
-          canCreate={canCreateMeeting}
+          search={
+            searchInput
+          }
+          onSearchChange={
+            setSearchInput
+          }
+          onCreate={
+            openCreateModal
+          }
+          canCreate={
+            canCreateMeeting
+          }
         />
 
+        {/* Filters */}
         <MeetingsFilters
-          projects={projects}
-          organizers={organizers}
-          projectId={projectId}
-          organizerId={organizerId}
-          status={status}
-          onProjectChange={handleProjectChange}
-          onOrganizerChange={handleOrganizerChange}
-          onStatusChange={handleStatusChange}
-          onReset={resetFilters}
+          projects={
+            projects
+          }
+          organizers={
+            organizers
+          }
+          projectId={
+            projectId
+          }
+          organizerId={
+            organizerId
+          }
+          status={
+            status
+          }
+          onProjectChange={
+            handleProjectChange
+          }
+          onOrganizerChange={
+            handleOrganizerChange
+          }
+          onStatusChange={
+            handleStatusFilterChange
+          }
+          onReset={
+            resetFilters
+          }
         />
 
+        {/* Table */}
         <MeetingsTable
-          meetings={meetings}
-          search={search}
-          isFetching={isFetching}
-          canEdit={canEditMeeting}
-          canDelete={canDeleteMeeting}
+          meetings={
+            meetings
+          }
+          search={
+            search
+          }
+          isFetching={
+            isFetching
+          }
+          canEdit={
+            canEditMeeting
+          }
+          canDelete={
+            canDeleteMeeting
+          }
           canManageParticipants={
             canManageParticipants
           }
-          onView={handleView}
-          onEdit={openEditModal}
-          onDelete={setDeleteMeeting}
+          canChangeStatus={
+            canChangeMeetingStatus
+          }
+          onView={
+            handleView
+          }
+          onEdit={
+            openEditModal
+          }
+          onDelete={
+            setDeleteMeeting
+          }
           onManageParticipants={
             openParticipantsModal
           }
+          onChangeStatus={
+            setStatusMeeting
+          }
         />
 
+        {/* Pagination */}
         <MeetingsPagination
-          page={meta.page}
-          totalPages={meta.totalPages}
-          isFetching={isFetching}
-          onPageChange={setPage}
+          page={
+            meta.page
+          }
+          totalPages={
+            meta.totalPages
+          }
+          isFetching={
+            isFetching
+          }
+          onPageChange={
+            setPage
+          }
         />
       </div>
 
       {/* Create / Edit */}
       {canCreateMeeting && (
         <MeetingFormModal
-          open={isModalOpen}
-          meeting={editingMeeting}
-          projects={projects}
-          error={formError}
+          open={
+            isModalOpen
+          }
+          meeting={
+            editingMeeting
+          }
+          projects={
+            projects
+          }
+          error={
+            formError
+          }
           isSubmitting={
             createMeeting.isPending ||
             updateMeeting.isPending
           }
-          onClose={closeModal}
-          onCreate={handleCreate}
-          onUpdate={handleUpdate}
+          onClose={
+            closeModal
+          }
+          onCreate={
+            handleCreate
+          }
+          onUpdate={
+            handleUpdate
+          }
         />
       )}
 
       {/* Delete */}
       <DeleteMeetingDialog
-        meeting={deleteMeeting}
+        meeting={
+          deleteMeeting
+        }
         isDeleting={
           deleteMeetingMutation.isPending
         }
         onCancel={() =>
-          setDeleteMeeting(null)
+          setDeleteMeeting(
+            null
+          )
         }
-        onConfirm={handleDelete}
+        onConfirm={
+          handleDelete
+        }
+      />
+
+      {/* Change Status */}
+      <ChangeMeetingStatusDialog
+        meeting={
+          statusMeeting
+        }
+        isUpdating={
+          changeMeetingStatus.isPending
+        }
+        onCancel={() =>
+          setStatusMeeting(
+            null
+          )
+        }
+        onConfirm={
+          handleChangeStatus
+        }
       />
 
       {/* Participants */}
       <MeetingParticipantsModal
-        meeting={participantsMeeting}
-        participants={participants}
-        isLoading={isParticipantsLoading}
+        meeting={
+          participantsMeeting
+        }
+        participants={
+          participants
+        }
+        isLoading={
+          isParticipantsLoading
+        }
         isParticipantsError={
           isParticipantsError
         }
@@ -814,11 +1203,12 @@ export default function MeetingsPage() {
         removingUserId={
           removeParticipant.isPending
             ? removeParticipant.variables
-                ?.userId ?? null
+                ?.userId ??
+              null
             : null
         }
         canManage={
-          canManageSelectedParticipantsFinal
+          canManageSelectedParticipants
         }
         error={
           participantsError ??
@@ -839,12 +1229,16 @@ export default function MeetingsPage() {
         }
       />
 
-      {/* Meeting view */}
+      {/* Meeting View */}
       {viewingMeeting && (
         <MeetingViewPlaceholder
-          meeting={viewingMeeting}
+          meeting={
+            viewingMeeting
+          }
           onClose={() =>
-            setViewingMeeting(null)
+            setViewingMeeting(
+              null
+            )
           }
         />
       )}
@@ -879,7 +1273,9 @@ function MeetingViewPlaceholder({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={
+              onClose
+            }
             className="rounded-lg px-3 py-2 text-sm text-slate-500 transition hover:bg-slate-100"
           >
             Close
@@ -889,7 +1285,9 @@ function MeetingViewPlaceholder({
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <DetailCard
             label="Project"
-            value={meeting.project.name}
+            value={
+              meeting.project.name
+            }
           />
 
           <DetailCard
@@ -901,6 +1299,13 @@ function MeetingViewPlaceholder({
             label="Date & Time"
             value={formatDateTime(
               meeting.meetingDate
+            )}
+          />
+
+          <DetailCard
+            label="Status"
+            value={formatMeetingStatus(
+              meeting.status
             )}
           />
 
@@ -941,6 +1346,10 @@ function MeetingViewPlaceholder({
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Detail Card                                                                */
+/* -------------------------------------------------------------------------- */
+
 function DetailCard({
   label,
   value,
@@ -961,12 +1370,21 @@ function DetailCard({
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
 function formatDateTime(
   value: string
 ): string {
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "N/A";
   }
 
@@ -980,4 +1398,19 @@ function formatDateTime(
       minute: "2-digit",
     }
   ).format(date);
+}
+
+function formatMeetingStatus(
+  status: MeetingStatus
+): string {
+  switch (status) {
+    case "SCHEDULED":
+      return "Scheduled";
+
+    case "COMPLETED":
+      return "Completed";
+
+    case "CANCELLED":
+      return "Cancelled";
+  }
 }

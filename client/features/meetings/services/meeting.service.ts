@@ -7,6 +7,7 @@ import type {
   MeetingQueryParams,
   MeetingResponse,
   UpdateMeetingPayload,
+  MeetingStatus,
 } from "../types/meeting.types";
 
 export const meetingService = {
@@ -70,4 +71,19 @@ export const meetingService = {
 
     return response.data;
   },
+
+  async changeStatus(
+  id: string,
+  data: {
+    status: MeetingStatus;
+  }
+): Promise<MeetingMutationResponse> {
+  const response =
+    await api.patch<MeetingMutationResponse>(
+      `/meetings/${id}/status`,
+      data
+    );
+
+  return response.data;
+},
 };

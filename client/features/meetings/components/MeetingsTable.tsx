@@ -25,16 +25,39 @@ interface MeetingsTableProps {
   isFetching?: boolean;
   search?: string;
 
-  canEdit: (meeting: Meeting) => boolean;
-  canDelete: (meeting: Meeting) => boolean;
+  canEdit: (
+    meeting: Meeting
+  ) => boolean;
+
+  canDelete: (
+    meeting: Meeting
+  ) => boolean;
+
   canManageParticipants: (
     meeting: Meeting
   ) => boolean;
 
-  onView: (meeting: Meeting) => void;
-  onEdit: (meeting: Meeting) => void;
-  onDelete: (meeting: Meeting) => void;
+  canChangeStatus: (
+    meeting: Meeting
+  ) => boolean;
+
+  onView: (
+    meeting: Meeting
+  ) => void;
+
+  onEdit: (
+    meeting: Meeting
+  ) => void;
+
+  onDelete: (
+    meeting: Meeting
+  ) => void;
+
   onManageParticipants: (
+    meeting: Meeting
+  ) => void;
+
+  onChangeStatus: (
     meeting: Meeting
   ) => void;
 }
@@ -46,13 +69,16 @@ export default function MeetingsTable({
   canEdit,
   canDelete,
   canManageParticipants,
+  canChangeStatus,
   onView,
   onEdit,
   onDelete,
   onManageParticipants,
+  onChangeStatus,
 }: MeetingsTableProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      {/* Header */}
       <div className="border-b border-slate-200 px-6 py-5">
         <div className="flex items-center justify-between">
           <div>
@@ -75,6 +101,7 @@ export default function MeetingsTable({
         </div>
       </div>
 
+      {/* Empty State */}
       {meetings.length === 0 ? (
         <div className="flex min-h-[300px] flex-col items-center justify-center px-6 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
@@ -95,6 +122,7 @@ export default function MeetingsTable({
         </div>
       ) : (
         <>
+          {/* Desktop table */}
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead>
@@ -131,10 +159,13 @@ export default function MeetingsTable({
                     key={meeting.id}
                     className="transition hover:bg-slate-50"
                   >
+                    {/* Meeting */}
                     <td className="px-6 py-4">
                       <button
                         type="button"
-                        onClick={() => onView(meeting)}
+                        onClick={() =>
+                          onView(meeting)
+                        }
                         className="flex min-w-0 items-center gap-3 text-left"
                       >
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
@@ -154,12 +185,14 @@ export default function MeetingsTable({
                       </button>
                     </td>
 
+                    {/* Project */}
                     <td className="px-6 py-4">
                       <span className="max-w-[180px] truncate text-sm text-slate-600">
                         {meeting.project.name}
                       </span>
                     </td>
 
+                    {/* Organizer */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
@@ -181,26 +214,27 @@ export default function MeetingsTable({
                       </div>
                     </td>
 
+                    {/* Date */}
                     <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
 
-                          <span>
-                            {formatDateTime(
-                              meeting.meetingDate
-                            )}
-                          </span>
-                        </div>
+                        <span>
+                          {formatDateTime(
+                            meeting.meetingDate
+                          )}
+                        </span>
                       </div>
                     </td>
 
+                    {/* Status */}
                     <td className="px-6 py-4">
                       <MeetingStatusBadge
                         status={meeting.status}
                       />
                     </td>
 
+                    {/* Actions */}
                     <td className="px-6 py-4">
                       <MeetingActions
                         meeting={meeting}
@@ -209,11 +243,17 @@ export default function MeetingsTable({
                         canManageParticipants={canManageParticipants(
                           meeting
                         )}
+                        canChangeStatus={canChangeStatus(
+                          meeting
+                        )}
                         onView={onView}
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onManageParticipants={
                           onManageParticipants
+                        }
+                        onChangeStatus={
+                          onChangeStatus
                         }
                       />
                     </td>
@@ -223,6 +263,7 @@ export default function MeetingsTable({
             </table>
           </div>
 
+          {/* Mobile cards */}
           <div className="divide-y divide-slate-100 md:hidden">
             {meetings.map((meeting) => (
               <div
@@ -232,7 +273,9 @@ export default function MeetingsTable({
                 <div className="flex items-start justify-between gap-4">
                   <button
                     type="button"
-                    onClick={() => onView(meeting)}
+                    onClick={() =>
+                      onView(meeting)
+                    }
                     className="flex min-w-0 items-center gap-3 text-left"
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
@@ -257,11 +300,17 @@ export default function MeetingsTable({
                     canManageParticipants={canManageParticipants(
                       meeting
                     )}
+                    canChangeStatus={canChangeStatus(
+                      meeting
+                    )}
                     onView={onView}
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onManageParticipants={
                       onManageParticipants
+                    }
+                    onChangeStatus={
+                      onChangeStatus
                     }
                   />
                 </div>
@@ -317,14 +366,29 @@ export default function MeetingsTable({
 
 interface MeetingActionsProps {
   meeting: Meeting;
+
   canEdit: boolean;
   canDelete: boolean;
   canManageParticipants: boolean;
+  canChangeStatus: boolean;
 
-  onView: (meeting: Meeting) => void;
-  onEdit: (meeting: Meeting) => void;
-  onDelete: (meeting: Meeting) => void;
+  onView: (
+    meeting: Meeting
+  ) => void;
+
+  onEdit: (
+    meeting: Meeting
+  ) => void;
+
+  onDelete: (
+    meeting: Meeting
+  ) => void;
+
   onManageParticipants: (
+    meeting: Meeting
+  ) => void;
+
+  onChangeStatus: (
     meeting: Meeting
   ) => void;
 }
@@ -334,16 +398,21 @@ function MeetingActions({
   canEdit,
   canDelete,
   canManageParticipants,
+  canChangeStatus,
   onView,
   onEdit,
   onDelete,
   onManageParticipants,
+  onChangeStatus,
 }: MeetingActionsProps) {
   return (
     <div className="flex justify-end gap-1">
+      {/* View */}
       <button
         type="button"
-        onClick={() => onView(meeting)}
+        onClick={() =>
+          onView(meeting)
+        }
         className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
         title="View meeting"
         aria-label="View meeting"
@@ -351,11 +420,33 @@ function MeetingActions({
         <Eye className="h-4 w-4" />
       </button>
 
+      {/* Change Status */}
+      {canChangeStatus &&
+        meeting.status ===
+          "SCHEDULED" && (
+          <button
+            type="button"
+            onClick={() =>
+              onChangeStatus(
+                meeting
+              )
+            }
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            title="Change meeting status"
+            aria-label="Change meeting status"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+          </button>
+        )}
+
+      {/* Participants */}
       {canManageParticipants && (
         <button
           type="button"
           onClick={() =>
-            onManageParticipants(meeting)
+            onManageParticipants(
+              meeting
+            )
           }
           className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           title="Manage participants"
@@ -365,10 +456,13 @@ function MeetingActions({
         </button>
       )}
 
+      {/* Edit */}
       {canEdit && (
         <button
           type="button"
-          onClick={() => onEdit(meeting)}
+          onClick={() =>
+            onEdit(meeting)
+          }
           className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           title="Edit meeting"
           aria-label="Edit meeting"
@@ -377,10 +471,13 @@ function MeetingActions({
         </button>
       )}
 
+      {/* Delete */}
       {canDelete && (
         <button
           type="button"
-          onClick={() => onDelete(meeting)}
+          onClick={() =>
+            onDelete(meeting)
+          }
           className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700"
           title="Delete meeting"
           aria-label="Delete meeting"
@@ -402,15 +499,19 @@ function MeetingStatusBadge({
   status: MeetingStatus;
 }) {
   const config =
-    getMeetingStatusConfig(status);
+    getMeetingStatusConfig(
+      status
+    );
 
-  const Icon = config.icon;
+  const Icon =
+    config.icon;
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${config.className}`}
     >
       <Icon className="h-3.5 w-3.5" />
+
       {config.label}
     </span>
   );
@@ -453,9 +554,14 @@ function getMeetingStatusConfig(
 function formatDateTime(
   value: string
 ): string {
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "N/A";
   }
 
