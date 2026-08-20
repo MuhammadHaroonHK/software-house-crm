@@ -69,29 +69,72 @@ import type {
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 400;
 
+/* -------------------------------------------------------------------------- */
+/* Page                                                                       */
+/* -------------------------------------------------------------------------- */
+
 export default function QuotationsPage() {
-  const router =
-    useRouter();
+  const router = useRouter();
+
+  /* ------------------------------------------------------------------------ */
+  /* Auth                                                                     */
+  /* ------------------------------------------------------------------------ */
+
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    isError: isUserError,
+  } = useCurrentUser();
+
+  /* ------------------------------------------------------------------------ */
+  /* User role                                                                */
+  /* ------------------------------------------------------------------------ */
+
+  const isInternalUser =
+    user?.role === "SUPER_ADMIN" ||
+    user?.role === "PROJECT_MANAGER";
+
+  const isClientUser =
+    user?.role === "CLIENT";
+
+  const canAccessQuotations =
+    isInternalUser ||
+    isClientUser;
 
   /* ------------------------------------------------------------------------ */
   /* Supporting data                                                          */
   /* ------------------------------------------------------------------------ */
 
+  /*
+   * Clients and projects are only needed by internal users because CLIENT
+   * users cannot create/edit quotations and cannot access these internal
+   * management endpoints.
+   */
   const {
     data: clientsData,
-  } = useClients({
-    limit: 100,
-    sortBy: "createdAt",
-    sortOrder: "desc",
-  });
+  } = useClients(
+    {
+      limit: 100,
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    },
+    {
+      enabled: isInternalUser,
+    }
+  );
 
   const {
     data: projectsData,
-  } = useProjects({
-    limit: 100,
-    sortBy: "createdAt",
-    sortOrder: "desc",
-  });
+  } = useProjects(
+    {
+      limit: 100,
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    },
+    {
+      enabled: isInternalUser,
+    }
+  );
 
   /* ------------------------------------------------------------------------ */
   /* Local state                                                              */
@@ -152,18 +195,6 @@ export default function QuotationsPage() {
     );
 
   /* ------------------------------------------------------------------------ */
-  /* Auth                                                                     */
-  /* ------------------------------------------------------------------------ */
-
-  const {
-    data: user,
-    isLoading:
-      isUserLoading,
-    isError:
-      isUserError,
-  } = useCurrentUser();
-
-  /* ------------------------------------------------------------------------ */
   /* Quotations                                                               */
   /* ------------------------------------------------------------------------ */
 
@@ -177,8 +208,7 @@ export default function QuotationsPage() {
     refetch,
   } = useQuotations({
     page,
-    limit:
-      PAGE_SIZE,
+    limit: PAGE_SIZE,
     search:
       search ||
       undefined,
@@ -230,20 +260,26 @@ export default function QuotationsPage() {
     setMounted(true);
   }, []);
 
+  /* ------------------------------------------------------------------------ */
+  /* Authentication redirect                                                 */
+  /* ------------------------------------------------------------------------ */
+
   useEffect(() => {
     if (!mounted) {
       return;
     }
 
     if (!authStorage.getToken()) {
-      router.replace(
-        "/login"
-      );
+      router.replace("/login");
     }
   }, [
     mounted,
     router,
   ]);
+
+  /* ------------------------------------------------------------------------ */
+  /* Authentication error                                                     */
+  /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
     if (
@@ -255,9 +291,7 @@ export default function QuotationsPage() {
 
     authStorage.removeToken();
 
-    router.replace(
-      "/login"
-    );
+    router.replace("/login");
   }, [
     mounted,
     isUserError,
@@ -348,6 +382,10 @@ export default function QuotationsPage() {
 
   const openCreateForm =
     () => {
+      if (!isInternalUser) {
+        return;
+      }
+
       setEditingQuotation(
         null
       );
@@ -365,6 +403,17 @@ export default function QuotationsPage() {
     (
       quotation: Quotation
     ) => {
+      if (!isInternalUser) {
+        return;
+      }
+
+      if (
+        quotation.status !==
+        "DRAFT"
+      ) {
+        return;
+      }
+
       setEditingQuotation(
         quotation
       );
@@ -408,6 +457,10 @@ export default function QuotationsPage() {
     async (
       payload: CreateQuotationPayload
     ) => {
+      if (!isInternalUser) {
+        return;
+      }
+
       setFormError(
         null
       );
@@ -475,7 +528,8 @@ export default function QuotationsPage() {
       payload: UpdateQuotationPayload
     ) => {
       if (
-        !editingQuotation
+        !editingQuotation ||
+        !isInternalUser
       ) {
         return;
       }
@@ -536,6 +590,35 @@ export default function QuotationsPage() {
       quotation: Quotation,
       nextAction: QuotationAction
     ) => {
+      /*
+       * CLIENT:
+       *   ACCEPT / REJECT only
+       *
+       * INTERNAL:
+       *   SEND / EXPIRE / DELETE only
+       */
+      const clientAllowed =
+        isClientUser &&
+        (
+          nextAction === "ACCEPT" ||
+          nextAction === "REJECT"
+        );
+
+      const internalAllowed =
+        isInternalUser &&
+        (
+          nextAction === "SEND" ||
+          nextAction === "EXPIRE" ||
+          nextAction === "DELETE"
+        );
+
+      if (
+        !clientAllowed &&
+        !internalAllowed
+      ) {
+        return;
+      }
+
       setActionQuotation(
         quotation
       );
@@ -544,6 +627,14 @@ export default function QuotationsPage() {
         nextAction
       );
     };
+
+  const isActionPending =
+    () =>
+      sendQuotation.isPending ||
+      acceptQuotation.isPending ||
+      rejectQuotation.isPending ||
+      expireQuotation.isPending ||
+      deleteQuotation.isPending;
 
   const closeAction =
     () => {
@@ -571,11 +662,50 @@ export default function QuotationsPage() {
         return;
       }
 
+      /*
+       * Extra frontend permission guard.
+       * Backend remains the final authority.
+       */
+      const allowed =
+        (
+          isClientUser &&
+          (
+            action ===
+              "ACCEPT" ||
+            action ===
+              "REJECT"
+          )
+        ) ||
+        (
+          isInternalUser &&
+          (
+            action ===
+              "SEND" ||
+            action ===
+              "EXPIRE" ||
+            action ===
+              "DELETE"
+          )
+        );
+
+      if (!allowed) {
+        toast.error(
+          "You are not authorized to perform this action."
+        );
+
+        closeAction();
+        return;
+      }
+
       const id =
         actionQuotation.id;
 
       try {
-        let response;
+        let response:
+          | {
+              message?: string;
+            }
+          | undefined;
 
         switch (
           action
@@ -621,11 +751,14 @@ export default function QuotationsPage() {
             "Quotation updated successfully."
         );
 
+        const wasDelete =
+          action ===
+          "DELETE";
+
         closeAction();
 
         if (
-          action ===
-            "DELETE" &&
+          wasDelete &&
           data?.data.length ===
             1 &&
           page > 1
@@ -634,8 +767,7 @@ export default function QuotationsPage() {
             (
               previous
             ) =>
-              previous -
-              1
+              previous - 1
           );
         }
       } catch (
@@ -652,16 +784,8 @@ export default function QuotationsPage() {
       }
     };
 
-  const isActionPending =
-    () =>
-      sendQuotation.isPending ||
-      acceptQuotation.isPending ||
-      rejectQuotation.isPending ||
-      expireQuotation.isPending ||
-      deleteQuotation.isPending;
-
   /* ------------------------------------------------------------------------ */
-  /* View                                                                    */
+  /* View                                                                     */
   /* ------------------------------------------------------------------------ */
 
   const openView =
@@ -677,35 +801,43 @@ export default function QuotationsPage() {
   /* Permissions                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const canManageQuotations =
-    user?.role ===
-      "SUPER_ADMIN" ||
-    user?.role ===
-      "PROJECT_MANAGER";
-
   const getPermissions = (
     quotation: Quotation
   ): QuotationTablePermissions => {
-    if (
-      !canManageQuotations
-    ) {
+    /* ---------------------------------------------------------------------- */
+    /* CLIENT                                                                  */
+    /* ---------------------------------------------------------------------- */
+
+    if (isClientUser) {
       return {
         canEdit:
           false,
+
         canSend:
           false,
+
         canAccept:
-          false,
+          quotation.status ===
+          "SENT",
+
         canReject:
-          false,
+          quotation.status ===
+          "SENT",
+
         canExpire:
           false,
+
         canDelete:
           false,
+
         canManageItems:
           false,
       };
     }
+
+    /* ---------------------------------------------------------------------- */
+    /* INTERNAL USER                                                           */
+    /* ---------------------------------------------------------------------- */
 
     const isDraft =
       quotation.status ===
@@ -732,10 +864,10 @@ export default function QuotationsPage() {
         isDraft,
 
       canAccept:
-        isSent,
+        false,
 
       canReject:
-        isSent,
+        false,
 
       canExpire:
         isSent &&
@@ -787,7 +919,7 @@ export default function QuotationsPage() {
   /* ------------------------------------------------------------------------ */
 
   if (
-    !canManageQuotations
+    !canAccessQuotations
   ) {
     return (
       <DashboardLayout
@@ -802,7 +934,7 @@ export default function QuotationsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              You do not have permission to manage quotations.
+              You do not have permission to access quotations.
             </p>
           </div>
         </div>
@@ -886,9 +1018,7 @@ export default function QuotationsPage() {
     [];
 
   /*
-   * ProjectClient in our quotation types is
-   * intentionally small. Project API data has
-   * clientId, so map only what this page needs.
+   * Project data is only loaded for internal users.
    */
   const projects =
     (projectsData?.data ??
@@ -896,12 +1026,18 @@ export default function QuotationsPage() {
       (project) => ({
         id:
           project.id,
+
         name:
           project.name,
+
         clientId:
           project.clientId,
       })
     );
+
+  /* ------------------------------------------------------------------------ */
+  /* Render                                                                    */
+  /* ------------------------------------------------------------------------ */
 
   return (
     <DashboardLayout
@@ -919,38 +1055,43 @@ export default function QuotationsPage() {
           onCreate={
             openCreateForm
           }
+          canCreate={
+            isInternalUser
+          }
         />
 
-        {/* Filters */}
-        <QuotationsFilters
-          clients={
-            clients
-          }
-          projects={
-            projects
-          }
-          clientId={
-            clientId
-          }
-          projectId={
-            projectId
-          }
-          status={
-            status
-          }
-          onClientChange={
-            handleClientChange
-          }
-          onProjectChange={
-            handleProjectChange
-          }
-          onStatusChange={
-            handleStatusChange
-          }
-          onReset={
-            resetFilters
-          }
-        />
+        {/* Internal filters only */}
+        {isInternalUser && (
+          <QuotationsFilters
+            clients={
+              clients
+            }
+            projects={
+              projects
+            }
+            clientId={
+              clientId
+            }
+            projectId={
+              projectId
+            }
+            status={
+              status
+            }
+            onClientChange={
+              handleClientChange
+            }
+            onProjectChange={
+              handleProjectChange
+            }
+            onStatusChange={
+              handleStatusChange
+            }
+            onReset={
+              resetFilters
+            }
+          />
+        )}
 
         {/* Table */}
         <QuotationsTable
@@ -997,54 +1138,67 @@ export default function QuotationsPage() {
         />
       </div>
 
-      {/* Create / Edit */}
-      <QuotationFormModal
-        open={
-          isFormOpen
-        }
-        quotation={
-          editingQuotation
-        }
-        clients={
-          clients
-        }
-        projects={
-          projects
-        }
-        error={
-          formError
-        }
-        isSubmitting={
-          createQuotation.isPending ||
-          updateQuotation.isPending
-        }
-        onClose={
-          closeForm
-        }
-        onCreate={
-          handleCreate
-        }
-        onUpdate={
-          handleUpdate
-        }
-        onContinue={
-          setItemsQuotation
-        }
-      />
+      {/* -------------------------------------------------------------------- */}
+      {/* Create / Edit                                                        */}
+      {/* -------------------------------------------------------------------- */}
 
-      {/* Items */}
-      <QuotationItemsEditor
-        quotation={
-          itemsQuotation
-        }
-        onClose={() =>
-          setItemsQuotation(
-            null
-          )
-        }
-      />
+      {isInternalUser && (
+        <QuotationFormModal
+          open={
+            isFormOpen
+          }
+          quotation={
+            editingQuotation
+          }
+          clients={
+            clients
+          }
+          projects={
+            projects
+          }
+          error={
+            formError
+          }
+          isSubmitting={
+            createQuotation.isPending ||
+            updateQuotation.isPending
+          }
+          onClose={
+            closeForm
+          }
+          onCreate={
+            handleCreate
+          }
+          onUpdate={
+            handleUpdate
+          }
+          onContinue={
+            setItemsQuotation
+          }
+        />
+      )}
 
-      {/* Workflow confirmation */}
+      {/* -------------------------------------------------------------------- */}
+      {/* Items                                                                 */}
+      {/* -------------------------------------------------------------------- */}
+
+      {isInternalUser && (
+        <QuotationItemsEditor
+          quotation={
+            itemsQuotation
+          }
+          onClose={() =>
+            setItemsQuotation(
+              null
+            )
+          }
+        />
+      )}
+
+      {/* -------------------------------------------------------------------- */}
+      {/* Workflow confirmation                                                */}
+      {/* -------------------------------------------------------------------- */}
+
       <QuotationActionDialog
         quotation={
           actionQuotation
@@ -1063,11 +1217,19 @@ export default function QuotationsPage() {
         }
       />
 
-      {/* View */}
+      {/* -------------------------------------------------------------------- */}
+      {/* View                                                                  */}
+      {/* -------------------------------------------------------------------- */}
+
       {viewingQuotation && (
         <QuotationView
           quotation={
             viewingQuotation
+          }
+          canManageItems={
+            isInternalUser &&
+            viewingQuotation.status ===
+              "DRAFT"
           }
           onClose={() =>
             setViewingQuotation(
@@ -1078,6 +1240,7 @@ export default function QuotationsPage() {
             setViewingQuotation(
               null
             );
+
             setItemsQuotation(
               viewingQuotation
             );
@@ -1089,21 +1252,24 @@ export default function QuotationsPage() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* View                                                                       */
+/* Quotation View                                                             */
 /* -------------------------------------------------------------------------- */
 
 function QuotationView({
   quotation,
+  canManageItems,
   onClose,
   onManageItems,
 }: {
   quotation: Quotation;
+  canManageItems: boolean;
   onClose: () => void;
   onManageItems: () => void;
 }) {
   return (
     <div className="fixed inset-0 z-[110] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
       <div className="my-4 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:my-8">
+        {/* Header */}
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
@@ -1128,6 +1294,7 @@ function QuotationView({
           </button>
         </div>
 
+        {/* Content */}
         <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DetailCard
@@ -1181,6 +1348,7 @@ function QuotationView({
             />
           </div>
 
+          {/* Financial summary */}
           <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="space-y-3">
               <SummaryRow
@@ -1216,6 +1384,7 @@ function QuotationView({
             </div>
           </div>
 
+          {/* Notes */}
           <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
               Notes
@@ -1228,9 +1397,9 @@ function QuotationView({
           </div>
         </div>
 
+        {/* Footer */}
         <div className="flex shrink-0 justify-end gap-3 border-t border-slate-200 px-6 py-4">
-          {quotation.status ===
-            "DRAFT" && (
+          {canManageItems && (
             <button
               type="button"
               onClick={
@@ -1257,6 +1426,10 @@ function QuotationView({
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Detail Card                                                                */
+/* -------------------------------------------------------------------------- */
+
 function DetailCard({
   label,
   value,
@@ -1276,6 +1449,10 @@ function DetailCard({
     </div>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Summary Row                                                                */
+/* -------------------------------------------------------------------------- */
 
 function SummaryRow({
   label,
@@ -1311,6 +1488,10 @@ function SummaryRow({
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Date                                                                       */
+/* -------------------------------------------------------------------------- */
+
 function formatDate(
   value: string
 ) {
@@ -1334,6 +1515,10 @@ function formatDate(
     }
   ).format(date);
 }
+
+/* -------------------------------------------------------------------------- */
+/* Currency                                                                   */
+/* -------------------------------------------------------------------------- */
 
 function formatCurrency(
   value: string | number
@@ -1360,6 +1545,10 @@ function formatCurrency(
   ).format(amount);
 }
 
+/* -------------------------------------------------------------------------- */
+/* Status                                                                     */
+/* -------------------------------------------------------------------------- */
+
 function formatStatus(
   status: QuotationStatus
 ) {
@@ -1378,5 +1567,8 @@ function formatStatus(
 
     case "EXPIRED":
       return "Expired";
+
+    default:
+      return status;
   }
 }

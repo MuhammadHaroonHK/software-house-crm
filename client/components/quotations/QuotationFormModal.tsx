@@ -44,7 +44,6 @@ interface QuotationFormModalProps {
 }
 
 interface FormState {
-  quotationNumber: string;
   clientId: string;
   projectId: string;
   issueDate: string;
@@ -55,7 +54,6 @@ interface FormState {
 }
 
 interface FormErrors {
-  quotationNumber?: string;
   clientId?: string;
   projectId?: string;
   issueDate?: string;
@@ -66,7 +64,6 @@ interface FormErrors {
 }
 
 const emptyForm: FormState = {
-  quotationNumber: "",
   clientId: "",
   projectId: "",
   issueDate: "",
@@ -105,8 +102,6 @@ export default function QuotationFormModal({
 
     if (quotation) {
       setForm({
-        quotationNumber:
-          quotation.quotationNumber,
 
         clientId:
           quotation.clientId,
@@ -192,24 +187,6 @@ export default function QuotationFormModal({
   const validate = () => {
     const nextErrors: FormErrors =
       {};
-
-    const quotationNumber =
-      form.quotationNumber.trim();
-
-    if (!quotationNumber) {
-      nextErrors.quotationNumber =
-        "Quotation number is required.";
-    } else if (
-      quotationNumber.length < 3
-    ) {
-      nextErrors.quotationNumber =
-        "Quotation number must be at least 3 characters.";
-    } else if (
-      quotationNumber.length > 100
-    ) {
-      nextErrors.quotationNumber =
-        "Quotation number cannot exceed 100 characters.";
-    }
 
     if (!form.clientId) {
       nextErrors.clientId =
@@ -326,8 +303,6 @@ export default function QuotationFormModal({
     }
 
     const payload = {
-      quotationNumber:
-        form.quotationNumber.trim(),
 
       clientId:
         form.clientId,
@@ -422,47 +397,6 @@ export default function QuotationFormModal({
           className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {/* Quotation Number */}
-            <div className="sm:col-span-2">
-              <label
-                htmlFor="quotationNumber"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
-              >
-                Quotation Number{" "}
-                <span className="text-red-500">
-                  *
-                </span>
-              </label>
-
-              <input
-                id="quotationNumber"
-                type="text"
-                value={
-                  form.quotationNumber
-                }
-                onChange={(event) =>
-                  updateField(
-                    "quotationNumber",
-                    event.target.value
-                  )
-                }
-                placeholder="e.g. QT-2026-001"
-                maxLength={100}
-                autoFocus
-                disabled={
-                  isSubmitting
-                }
-                className={inputClass(
-                  errors.quotationNumber
-                )}
-              />
-
-              <FieldError
-                message={
-                  errors.quotationNumber
-                }
-              />
-            </div>
 
             {/* Client */}
             <div>

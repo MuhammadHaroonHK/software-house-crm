@@ -16,29 +16,13 @@ export interface QuotationProject {
   clientId?: string;
 }
 
-export interface QuotationItem {
-  id: string;
-  quotationId: string;
-
-  serviceName: string;
-  description: string | null;
-
-  quantity: number;
-
-  unitPrice: string | number;
-  totalPrice: string | number;
-
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Quotation {
   id: string;
 
+  quotationNumber: string;
+
   clientId: string;
   projectId: string | null;
-
-  quotationNumber: string;
 
   issueDate: string;
   expiryDate: string | null;
@@ -85,23 +69,9 @@ export interface QuotationMutationResponse {
   data: Quotation | null;
 }
 
-export interface QuotationItemsResponse {
-  success: boolean;
-  message: string;
-  data: QuotationItem[];
-}
-
-export interface QuotationItemMutationResponse {
-  success: boolean;
-  message: string;
-  data: QuotationItem | null;
-}
-
 export interface CreateQuotationPayload {
   clientId: string;
   projectId?: string;
-
-  quotationNumber: string;
 
   issueDate: string;
   expiryDate?: string;
@@ -116,8 +86,6 @@ export interface UpdateQuotationPayload {
   clientId?: string;
   projectId?: string | null;
 
-  quotationNumber?: string;
-
   issueDate?: string;
   expiryDate?: string | null;
 
@@ -127,31 +95,13 @@ export interface UpdateQuotationPayload {
   notes?: string;
 }
 
-export interface CreateQuotationItemPayload {
-  serviceName: string;
-  description?: string;
-
-  quantity: number;
-  unitPrice: number;
-}
-
-export interface UpdateQuotationItemPayload {
-  serviceName?: string;
-  description?: string;
-
-  quantity?: number;
-  unitPrice?: number;
-}
-
 export interface QuotationQueryParams {
   page?: number;
   limit?: number;
-
   search?: string;
 
   clientId?: string;
   projectId?: string;
-
   status?: QuotationStatus;
 
   sortBy?: string;

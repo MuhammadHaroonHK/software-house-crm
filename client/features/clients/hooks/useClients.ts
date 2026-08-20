@@ -20,7 +20,10 @@ export const CLIENTS_QUERY_KEY = [
 ] as const;
 
 export function useClients(
-  params?: ClientQueryParams
+  params?: ClientQueryParams,
+  options?: {
+    enabled?: boolean;
+  }
 ) {
   return useQuery({
     queryKey: [
@@ -31,11 +34,17 @@ export function useClients(
     queryFn: () =>
       clientService.getAll(params),
 
-    placeholderData: keepPreviousData,
+    placeholderData:
+      keepPreviousData,
 
-    staleTime: 30 * 1000,
+    staleTime:
+      30 * 1000,
 
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus:
+      false,
+
+    enabled:
+      options?.enabled ?? true,
   });
 }
 

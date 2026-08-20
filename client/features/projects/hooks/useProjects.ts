@@ -22,7 +22,10 @@ export const PROJECTS_QUERY_KEY = [
 ] as const;
 
 export function useProjects(
-  params?: ProjectQueryParams
+  params?: ProjectQueryParams,
+  options?: {
+    enabled?: boolean;
+  }
 ) {
   return useQuery({
     queryKey: [
@@ -33,11 +36,17 @@ export function useProjects(
     queryFn: () =>
       projectService.getAll(params),
 
-    placeholderData: keepPreviousData,
+    placeholderData:
+      keepPreviousData,
 
-    staleTime: 30 * 1000,
+    staleTime:
+      30 * 1000,
 
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus:
+      false,
+
+    enabled:
+      options?.enabled ?? true,
   });
 }
 
