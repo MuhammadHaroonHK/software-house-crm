@@ -118,6 +118,7 @@ const navigationItems: NavigationItem[] = [
     roles: [
       "SUPER_ADMIN",
       "PROJECT_MANAGER",
+      "CLIENT",
     ],
   },
 
