@@ -3,8 +3,6 @@ export interface CreateQuotationDTO {
 
   projectId?: string;
 
-  quotationNumber: string;
-
   issueDate: string;
   expiryDate?: string;
 

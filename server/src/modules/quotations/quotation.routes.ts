@@ -1,11 +1,26 @@
-import { Router } from "express";
-import { UserRole } from "@prisma/client";
+import {
+  Router,
+} from "express";
 
-import { authenticate } from "../../middleware/authenticate";
-import { authorize } from "../../middleware/authorize";
-import { validate } from "../../middleware/validate";
+import {
+  UserRole,
+} from "@prisma/client";
 
-import { quotationController } from "./quotation.controller";
+import {
+  authenticate,
+} from "../../middleware/authenticate";
+
+import {
+  authorize,
+} from "../../middleware/authorize";
+
+import {
+  validate,
+} from "../../middleware/validate";
+
+import {
+  quotationController,
+} from "./quotation.controller";
 
 import {
   createQuotationSchema,
@@ -13,7 +28,12 @@ import {
   getQuotationsSchema,
 } from "./quotation.validation";
 
-const router = Router();
+const router =
+  Router();
+
+/* -------------------------------------------------------------------------- */
+/* CREATE                                                                     */
+/* -------------------------------------------------------------------------- */
 
 router.post(
   "/",
@@ -22,20 +42,37 @@ router.post(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
-  validate(createQuotationSchema),
-  quotationController.create.bind(quotationController)
+  validate(
+    createQuotationSchema
+  ),
+  quotationController.create.bind(
+    quotationController
+  )
 );
+
+/* -------------------------------------------------------------------------- */
+/* LIST                                                                       */
+/* -------------------------------------------------------------------------- */
 
 router.get(
   "/",
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.CLIENT
   ),
-  validate(getQuotationsSchema),
-  quotationController.findAll.bind(quotationController)
+  validate(
+    getQuotationsSchema
+  ),
+  quotationController.findAll.bind(
+    quotationController
+  )
 );
+
+/* -------------------------------------------------------------------------- */
+/* SEND                                                                       */
+/* -------------------------------------------------------------------------- */
 
 router.patch(
   "/:id/send",
@@ -49,29 +86,42 @@ router.patch(
   )
 );
 
+/* -------------------------------------------------------------------------- */
+/* ACCEPT                                                                     */
+/* Client only                                                                */
+/* -------------------------------------------------------------------------- */
+
 router.patch(
   "/:id/accept",
   authenticate,
   authorize(
-    UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.CLIENT
   ),
   quotationController.accept.bind(
     quotationController
   )
 );
 
+/* -------------------------------------------------------------------------- */
+/* REJECT                                                                     */
+/* Client only                                                                */
+/* -------------------------------------------------------------------------- */
+
 router.patch(
   "/:id/reject",
   authenticate,
   authorize(
-    UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.CLIENT
   ),
   quotationController.reject.bind(
     quotationController
   )
 );
+
+/* -------------------------------------------------------------------------- */
+/* EXPIRE                                                                     */
+/* Internal users only                                                        */
+/* -------------------------------------------------------------------------- */
 
 router.patch(
   "/:id/expire",
@@ -85,15 +135,26 @@ router.patch(
   )
 );
 
+/* -------------------------------------------------------------------------- */
+/* GET BY ID                                                                  */
+/* -------------------------------------------------------------------------- */
+
 router.get(
   "/:id",
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.CLIENT
   ),
-  quotationController.findById.bind(quotationController)
+  quotationController.findById.bind(
+    quotationController
+  )
 );
+
+/* -------------------------------------------------------------------------- */
+/* UPDATE                                                                     */
+/* -------------------------------------------------------------------------- */
 
 router.patch(
   "/:id",
@@ -102,9 +163,17 @@ router.patch(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
-  validate(updateQuotationSchema),
-  quotationController.update.bind(quotationController)
+  validate(
+    updateQuotationSchema
+  ),
+  quotationController.update.bind(
+    quotationController
+  )
 );
+
+/* -------------------------------------------------------------------------- */
+/* DELETE                                                                     */
+/* -------------------------------------------------------------------------- */
 
 router.delete(
   "/:id",
@@ -113,7 +182,9 @@ router.delete(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER
   ),
-  quotationController.delete.bind(quotationController)
+  quotationController.delete.bind(
+    quotationController
+  )
 );
 
 export default router;

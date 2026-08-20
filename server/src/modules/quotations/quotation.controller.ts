@@ -1,138 +1,407 @@
-import { Request, Response, NextFunction } from "express";
-import { QuotationStatus } from "@prisma/client";
-import { successResponse } from "../../utils/apiResponse";
-import { QuotationService } from "./quotation.service";
+import {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 
-const quotationService = new QuotationService();
+import {
+  QuotationStatus,
+} from "@prisma/client";
+
+import { successResponse } from "../../utils/apiResponse";
+
+import {
+  QuotationService,
+} from "./quotation.service";
+
+const quotationService =
+  new QuotationService();
 
 export class QuotationController {
-  async create(req: Request, res: Response, next: NextFunction) {
+  /* ------------------------------------------------------------------------ */
+  /* Authenticated User                                                       */
+  /* ------------------------------------------------------------------------ */
+
+  private getAuthenticatedUser(
+    req: Request
+  ) {
+    if (!req.user) {
+      throw new Error(
+        "Authenticated user not found."
+      );
+    }
+
+    return req.user;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Create                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  async create(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const quotation = await quotationService.create(req.body);
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
+
+      quotationService.ensureInternalQuotationUser(
+        user.role
+      );
+
+      const quotation =
+        await quotationService.create(
+          req.body
+        );
 
       return successResponse(
         res,
         "Quotation created successfully.",
         quotation,
-        201,
+        201
       );
-    } catch (error) {
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 
-  async findAll(req: Request, res: Response, next: NextFunction) {
+  /* ------------------------------------------------------------------------ */
+  /* Find All                                                                 */
+  /* ------------------------------------------------------------------------ */
+
+  async findAll(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const result = await quotationService.findAll({
-        page: req.query.page ? Number(req.query.page) : undefined,
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
 
-        limit: req.query.limit ? Number(req.query.limit) : undefined,
+      const result =
+        await quotationService.findAll(
+          {
+            page:
+              req.query.page
+                ? Number(
+                    req.query.page
+                  )
+                : undefined,
 
-        search: req.query.search as string,
+            limit:
+              req.query.limit
+                ? Number(
+                    req.query.limit
+                  )
+                : undefined,
 
-        clientId: req.query.clientId as string,
+            search:
+              req.query.search as string,
 
-        projectId: req.query.projectId as string,
+            clientId:
+              req.query.clientId as string,
 
-        status: req.query.status as QuotationStatus,
+            projectId:
+              req.query.projectId as string,
 
-        sortBy: req.query.sortBy as string,
+            status:
+              req.query.status as QuotationStatus,
 
-        sortOrder: req.query.sortOrder as "asc" | "desc",
-      });
+            sortBy:
+              req.query.sortBy as string,
+
+            sortOrder:
+              req.query.sortOrder as
+                | "asc"
+                | "desc",
+          },
+
+          user.userId,
+
+          user.role
+        );
 
       return successResponse(
         res,
         "Quotations fetched successfully.",
         result.data,
         200,
-        result.meta,
+        result.meta
       );
-    } catch (error) {
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 
-  async findById(req: Request, res: Response, next: NextFunction) {
-    try {
-      const quotation = await quotationService.findById(String(req.params.id));
+  /* ------------------------------------------------------------------------ */
+  /* Find By ID                                                               */
+  /* ------------------------------------------------------------------------ */
 
-      return successResponse(res, "Quotation fetched successfully.", quotation);
-    } catch (error) {
+  async findById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
+
+      const quotation =
+        await quotationService.findById(
+          String(
+            req.params.id
+          ),
+          user.userId,
+          user.role
+        );
+
+      return successResponse(
+        res,
+        "Quotation fetched successfully.",
+        quotation
+      );
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 
-  async update(req: Request, res: Response, next: NextFunction) {
+  /* ------------------------------------------------------------------------ */
+  /* Update                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  async update(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const quotation = await quotationService.update(
-        String(req.params.id),
-        req.body,
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
+
+      quotationService.ensureInternalQuotationUser(
+        user.role
       );
 
-      return successResponse(res, "Quotation updated successfully.", quotation);
-    } catch (error) {
+      const quotation =
+        await quotationService.update(
+          String(
+            req.params.id
+          ),
+          req.body
+        );
+
+      return successResponse(
+        res,
+        "Quotation updated successfully.",
+        quotation
+      );
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 
-  async send(req: Request, res: Response, next: NextFunction) {
-    try {
-      const quotation = await quotationService.send(String(req.params.id));
+  /* ------------------------------------------------------------------------ */
+  /* Send                                                                     */
+  /* ------------------------------------------------------------------------ */
 
-      return successResponse(res, "Quotation sent successfully.", quotation);
-    } catch (error) {
+  async send(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
+
+      quotationService.ensureInternalQuotationUser(
+        user.role
+      );
+
+      const quotation =
+        await quotationService.send(
+          String(
+            req.params.id
+          )
+        );
+
+      return successResponse(
+        res,
+        "Quotation sent successfully.",
+        quotation
+      );
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 
-  async accept(req: Request, res: Response, next: NextFunction) {
+  /* ------------------------------------------------------------------------ */
+  /* Accept                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  async accept(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const quotation = await quotationService.accept(String(req.params.id));
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
+
+      const quotation =
+        await quotationService.accept(
+          String(
+            req.params.id
+          ),
+          user.userId,
+          user.role
+        );
 
       return successResponse(
         res,
         "Quotation accepted successfully.",
-        quotation,
+        quotation
       );
-    } catch (error) {
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 
-  async reject(req: Request, res: Response, next: NextFunction) {
+  /* ------------------------------------------------------------------------ */
+  /* Reject                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  async reject(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const quotation = await quotationService.reject(String(req.params.id));
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
+
+      const quotation =
+        await quotationService.reject(
+          String(
+            req.params.id
+          ),
+          user.userId,
+          user.role
+        );
 
       return successResponse(
         res,
         "Quotation rejected successfully.",
-        quotation,
+        quotation
       );
-    } catch (error) {
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 
-  async expire(req: Request, res: Response, next: NextFunction) {
-    try {
-      const quotation = await quotationService.expire(String(req.params.id));
+  /* ------------------------------------------------------------------------ */
+  /* Expire                                                                   */
+  /* ------------------------------------------------------------------------ */
 
-      return successResponse(res, "Quotation expired successfully.", quotation);
-    } catch (error) {
+  async expire(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
+
+      quotationService.ensureInternalQuotationUser(
+        user.role
+      );
+
+      const quotation =
+        await quotationService.expire(
+          String(
+            req.params.id
+          )
+        );
+
+      return successResponse(
+        res,
+        "Quotation expired successfully.",
+        quotation
+      );
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 
-  async delete(req: Request, res: Response, next: NextFunction) {
-    try {
-      await quotationService.delete(String(req.params.id));
+  /* ------------------------------------------------------------------------ */
+  /* Delete                                                                   */
+  /* ------------------------------------------------------------------------ */
 
-      return successResponse(res, "Quotation deleted successfully.");
-    } catch (error) {
+  async delete(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const user =
+        this.getAuthenticatedUser(
+          req
+        );
+
+      quotationService.ensureInternalQuotationUser(
+        user.role
+      );
+
+      await quotationService.delete(
+        String(
+          req.params.id
+        )
+      );
+
+      return successResponse(
+        res,
+        "Quotation deleted successfully."
+      );
+    } catch (
+      error
+    ) {
       next(error);
     }
   }
 }
 
-export const quotationController = new QuotationController();
+export const quotationController =
+  new QuotationController();

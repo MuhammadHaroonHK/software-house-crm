@@ -9,12 +9,6 @@ export const createQuotationSchema = z.object({
 
       projectId: z.uuid().optional(),
 
-      quotationNumber: z
-        .string()
-        .trim()
-        .min(3)
-        .max(100),
-
       issueDate: z.coerce.date(),
 
       expiryDate: z.coerce.date().optional(),

@@ -1,8 +1,18 @@
 import prisma from "../../lib/prisma";
-import { Prisma, QuotationStatus } from "@prisma/client";
+
+import {
+  Prisma,
+  QuotationStatus,
+} from "@prisma/client";
 
 export class QuotationRepository {
-  async create(data: Prisma.QuotationCreateInput) {
+  /* ------------------------------------------------------------------------ */
+  /* Create                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  async create(
+    data: Prisma.QuotationCreateInput
+  ) {
     return prisma.quotation.create({
       data,
 
@@ -19,9 +29,17 @@ export class QuotationRepository {
     });
   }
 
-  async findById(id: string) {
+  /* ------------------------------------------------------------------------ */
+  /* Find By ID                                                               */
+  /* ------------------------------------------------------------------------ */
+
+  async findById(
+    id: string
+  ) {
     return prisma.quotation.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
 
       include: {
         client: true,
@@ -36,7 +54,13 @@ export class QuotationRepository {
     });
   }
 
-  async findByQuotationNumber(quotationNumber: string) {
+  /* ------------------------------------------------------------------------ */
+  /* Find By Number                                                           */
+  /* ------------------------------------------------------------------------ */
+
+  async findByQuotationNumber(
+    quotationNumber: string
+  ) {
     return prisma.quotation.findUnique({
       where: {
         quotationNumber,
@@ -44,17 +68,96 @@ export class QuotationRepository {
     });
   }
 
-  async findClientById(id: string) {
-    return prisma.client.findUnique({
-      where: { id },
+  /* ------------------------------------------------------------------------ */
+  /* Find Latest Number                                                       */
+  /* ------------------------------------------------------------------------ */
+
+  async findLatestQuotationNumber(
+    prefix: string
+  ) {
+    const quotation =
+      await prisma.quotation.findFirst({
+        where: {
+          quotationNumber: {
+            startsWith:
+              prefix,
+          },
+        },
+
+        orderBy: {
+          quotationNumber:
+            "desc",
+        },
+
+        select: {
+          quotationNumber:
+            true,
+        },
+      });
+
+    return (
+      quotation?.quotationNumber ??
+      null
+    );
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Find User                                                                */
+  /* ------------------------------------------------------------------------ */
+
+  async findUserById(
+    id: string
+  ) {
+    return prisma.user.findUnique({
+      where: {
+        id,
+      },
+
+      select: {
+        id: true,
+        clientId: true,
+
+        role: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
   }
 
-  async findProjectById(id: string) {
-    return prisma.project.findUnique({
-      where: { id },
+  /* ------------------------------------------------------------------------ */
+  /* Find Client                                                              */
+  /* ------------------------------------------------------------------------ */
+
+  async findClientById(
+    id: string
+  ) {
+    return prisma.client.findUnique({
+      where: {
+        id,
+      },
     });
   }
+
+  /* ------------------------------------------------------------------------ */
+  /* Find Project                                                             */
+  /* ------------------------------------------------------------------------ */
+
+  async findProjectById(
+    id: string
+  ) {
+    return prisma.project.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Find All                                                                 */
+  /* ------------------------------------------------------------------------ */
+
   async findAll(
     skip: number,
     limit: number,
@@ -63,77 +166,89 @@ export class QuotationRepository {
     clientId?: string,
     projectId?: string,
     sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc",
+    sortOrder:
+      | "asc"
+      | "desc" = "desc"
   ) {
-    const where: Prisma.QuotationWhereInput = {
-      ...(search && {
-        OR: [
-          {
-            quotationNumber: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-
-          {
-            notes: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-
-          {
-            client: {
-              companyName: {
-                contains: search,
+    const where:
+      Prisma.QuotationWhereInput =
+      {
+        ...(search && {
+          OR: [
+            {
+              quotationNumber: {
+                contains:
+                  search,
                 mode: "insensitive",
               },
             },
-          },
-        ],
-      }),
 
-      ...(status && {
-        status,
-      }),
+            {
+              notes: {
+                contains:
+                  search,
+                mode: "insensitive",
+              },
+            },
 
-      ...(clientId && {
-        clientId,
-      }),
+            {
+              client: {
+                companyName: {
+                  contains:
+                    search,
+                  mode: "insensitive",
+                },
+              },
+            },
+          ],
+        }),
 
-      ...(projectId && {
-        projectId,
-      }),
-    };
+        ...(status && {
+          status,
+        }),
 
-    const [quotations, total] = await Promise.all([
-      prisma.quotation.findMany({
-        where,
+        ...(clientId && {
+          clientId,
+        }),
 
-        skip,
+        ...(projectId && {
+          projectId,
+        }),
+      };
 
-        take: limit,
+    const [
+      quotations,
+      total,
+    ] =
+      await Promise.all([
+        prisma.quotation.findMany({
+          where,
 
-        include: {
-          client: true,
+          skip,
 
-          project: {
-            select: {
-              id: true,
-              name: true,
+          take: limit,
+
+          include: {
+            client: true,
+
+            project: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
-        },
 
-        orderBy: {
-          [sortBy]: sortOrder,
-        },
-      }),
+          orderBy: {
+            [sortBy]:
+              sortOrder,
+          },
+        }),
 
-      prisma.quotation.count({
-        where,
-      }),
-    ]);
+        prisma.quotation.count({
+          where,
+        }),
+      ]);
 
     return {
       quotations,
@@ -141,7 +256,13 @@ export class QuotationRepository {
     };
   }
 
-  async findItemsByQuotationId(quotationId: string) {
+  /* ------------------------------------------------------------------------ */
+  /* Find Items                                                               */
+  /* ------------------------------------------------------------------------ */
+
+  async findItemsByQuotationId(
+    quotationId: string
+  ) {
     return prisma.quotationItem.findMany({
       where: {
         quotationId,
@@ -149,7 +270,14 @@ export class QuotationRepository {
     });
   }
 
-  async update(id: string, data: Prisma.QuotationUpdateInput) {
+  /* ------------------------------------------------------------------------ */
+  /* Update                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  async update(
+    id: string,
+    data: Prisma.QuotationUpdateInput
+  ) {
     return prisma.quotation.update({
       where: {
         id,
@@ -170,7 +298,13 @@ export class QuotationRepository {
     });
   }
 
-  async delete(id: string) {
+  /* ------------------------------------------------------------------------ */
+  /* Delete                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  async delete(
+    id: string
+  ) {
     return prisma.quotation.delete({
       where: {
         id,
