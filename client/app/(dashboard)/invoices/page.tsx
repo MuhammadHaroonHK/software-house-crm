@@ -403,46 +403,69 @@ export default function InvoicesPage() {
     }
   };
 
-  /* ------------------------------------------------------------------------ */
-  /* Permissions                                                              */
-  /* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+/* Permissions                                                              */
+/* ------------------------------------------------------------------------ */
 
-  const canManageInvoices =
-    user?.role ===
-      "SUPER_ADMIN" ||
-    user?.role ===
-      "PROJECT_MANAGER";
+const canAccessInvoices =
+  user?.role === "SUPER_ADMIN" ||
+  user?.role === "PROJECT_MANAGER" ||
+  user?.role === "CLIENT";
 
-  const canCreateInvoice =
-    canManageInvoices;
+const canManageInvoices =
+  user?.role === "SUPER_ADMIN" ||
+  user?.role === "PROJECT_MANAGER";
 
-  const getPermissions = (
-    invoice: Invoice,
-  ): InvoiceTablePermissions => {
-    if (!canManageInvoices) {
-      return {
-        canEdit: false,
-        canManageItems: false,
-        canSend: false,
-        canDelete: false,
-        canManagePayments: false,
-      };
-    }
+const canCreateInvoice =
+  canManageInvoices;
 
-    const isDraft =
-      invoice.status === "DRAFT";
-
-    const canManagePayments =
-      invoice.status !== "DRAFT";
-
+const getPermissions = (
+  invoice: Invoice,
+): InvoiceTablePermissions => {
+  /*
+   * CLIENT:
+   * Can view invoices and payment-related information,
+   * but cannot modify invoice records.
+   */
+  if (user?.role === "CLIENT") {
     return {
-      canEdit: isDraft,
-      canManageItems: isDraft,
-      canSend: isDraft,
-      canDelete: isDraft,
-      canManagePayments,
+      canEdit: false,
+      canManageItems: false,
+      canSend: false,
+      canDelete: false,
+      canManagePayments: false,
     };
+  }
+
+  /*
+   * Internal users:
+   * SUPER_ADMIN / PROJECT_MANAGER can manage invoices
+   * according to the invoice status workflow.
+   */
+  if (!canManageInvoices) {
+    return {
+      canEdit: false,
+      canManageItems: false,
+      canSend: false,
+      canDelete: false,
+      canManagePayments: false,
+    };
+  }
+
+  const isDraft =
+    invoice.status === "DRAFT";
+
+  const canManagePayments =
+    invoice.status !== "DRAFT";
+
+  return {
+    canEdit: isDraft,
+    canManageItems: isDraft,
+    canSend: isDraft,
+    canDelete: isDraft,
+    canManagePayments,
   };
+};
 
   /* ------------------------------------------------------------------------ */
   /* Next invoice number                                                      */
@@ -509,7 +532,7 @@ export default function InvoicesPage() {
   /* Authorization                                                            */
   /* ------------------------------------------------------------------------ */
 
-  if (!canManageInvoices) {
+  if (!canAccessInvoices) {
     return (
       <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">

@@ -16,8 +16,6 @@ export interface UpdateQuotationDTO {
   clientId?: string;
   projectId?: string | null;
 
-  quotationNumber?: string;
-
   issueDate?: string;
   expiryDate?: string | null;
 

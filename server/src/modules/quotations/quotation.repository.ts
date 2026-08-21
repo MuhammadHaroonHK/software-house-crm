@@ -73,33 +73,46 @@ export class QuotationRepository {
   /* ------------------------------------------------------------------------ */
 
   async findLatestQuotationNumber(
-    prefix: string
-  ) {
-    const quotation =
-      await prisma.quotation.findFirst({
-        where: {
-          quotationNumber: {
-            startsWith:
-              prefix,
-          },
+  prefix: string
+) {
+  const quotations =
+    await prisma.quotation.findMany({
+      where: {
+        quotationNumber: {
+          startsWith: prefix,
         },
+      },
 
-        orderBy: {
-          quotationNumber:
-            "desc",
-        },
+      select: {
+        quotationNumber: true,
+      },
+    });
 
-        select: {
-          quotationNumber:
-            true,
-        },
-      });
+  let highestNumber = 999;
 
-    return (
-      quotation?.quotationNumber ??
-      null
-    );
+  for (const quotation of quotations) {
+    const match =
+      quotation.quotationNumber.match(
+        /^QT-(\d+)$/
+      );
+
+    if (!match) {
+      continue;
+    }
+
+    const number =
+      Number(match[1]);
+
+    if (
+      Number.isInteger(number) &&
+      number > highestNumber
+    ) {
+      highestNumber = number;
+    }
   }
+
+  return `QT-${highestNumber}`;
+}
 
   /* ------------------------------------------------------------------------ */
   /* Find User                                                                */

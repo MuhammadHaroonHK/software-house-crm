@@ -39,13 +39,6 @@ export const updateQuotationSchema = z.object({
         .union([z.uuid(), z.null()])
         .optional(),
 
-      quotationNumber: z
-        .string()
-        .trim()
-        .min(3)
-        .max(100)
-        .optional(),
-
       issueDate: z.coerce.date().optional(),
 
       expiryDate: z
