@@ -16,8 +16,6 @@ export const createPaymentSchema = z.object({
 
     accountNumber: z.string().trim().optional(),
 
-    receiptImage: z.string().optional(),
-
     referenceNumber: z.string().trim().optional(),
 
     notes: z.string().trim().optional(),
