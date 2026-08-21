@@ -1,13 +1,8 @@
 import prisma from "../../lib/prisma";
-import {
-  InvoiceStatus,
-  Prisma,
-} from "@prisma/client";
+import { InvoiceStatus, Prisma } from "@prisma/client";
 
 export class InvoiceRepository {
-  async create(
-    data: Prisma.InvoiceCreateInput
-  ) {
+  async create(data: Prisma.InvoiceCreateInput) {
     return prisma.invoice.create({
       data,
 
@@ -47,9 +42,7 @@ export class InvoiceRepository {
     });
   }
 
-  async findByQuotationId(
-    quotationId: string
-  ) {
+  async findByQuotationId(quotationId: string) {
     return prisma.invoice.findUnique({
       where: {
         quotationId,
@@ -57,23 +50,20 @@ export class InvoiceRepository {
     });
   }
 
-  async findQuotationForInvoice(
-    id: string
-  ) {
-    const quotation =
-      await prisma.quotation.findUnique({
-        where: {
-          id,
-        },
+  async findQuotationForInvoice(id: string) {
+    const quotation = await prisma.quotation.findUnique({
+      where: {
+        id,
+      },
 
-        include: {
-          items: {
-            orderBy: {
-              createdAt: "asc",
-            },
+      include: {
+        items: {
+          orderBy: {
+            createdAt: "asc",
           },
         },
-      });
+      },
+    });
 
     if (!quotation) {
       return null;
@@ -82,8 +72,7 @@ export class InvoiceRepository {
     return {
       ...quotation,
 
-      totalAmount:
-        Number(quotation.totalAmount),
+      totalAmount: Number(quotation.totalAmount),
     };
   }
 
@@ -94,120 +83,96 @@ export class InvoiceRepository {
       issueDate: Date;
       dueDate: Date;
       notes?: string;
-    }
+    },
   ) {
-    return prisma.$transaction(
-      async (tx) => {
-        const quotation =
-          await tx.quotation.findUnique({
-            where: {
+    return prisma.$transaction(async (tx) => {
+      const quotation = await tx.quotation.findUnique({
+        where: {
+          id: quotationId,
+        },
+
+        include: {
+          items: true,
+        },
+      });
+
+      if (!quotation) {
+        throw new Error("Quotation not found.");
+      }
+
+      const invoice = await tx.invoice.create({
+        data: {
+          invoiceNumber: data.invoiceNumber,
+
+          issueDate: data.issueDate,
+
+          dueDate: data.dueDate,
+
+          status: InvoiceStatus.DRAFT,
+
+          subtotal: quotation.subtotal,
+
+          discount: quotation.discount,
+
+          tax: quotation.tax,
+
+          totalAmount: quotation.totalAmount,
+
+          amountPaid: 0,
+
+          balanceDue: quotation.totalAmount,
+
+          ...(data.notes !== undefined && {
+            notes: data.notes,
+          }),
+
+          quotation: {
+            connect: {
               id: quotationId,
             },
-
-            include: {
-              items: true,
-            },
-          });
-
-        if (!quotation) {
-          throw new Error(
-            "Quotation not found."
-          );
-        }
-
-        const invoice =
-          await tx.invoice.create({
-            data: {
-              invoiceNumber:
-                data.invoiceNumber,
-
-              issueDate:
-                data.issueDate,
-
-              dueDate:
-                data.dueDate,
-
-              status:
-                InvoiceStatus.DRAFT,
-
-              subtotal:
-                quotation.subtotal,
-
-              discount:
-                quotation.discount,
-
-              tax:
-                quotation.tax,
-
-              totalAmount:
-                quotation.totalAmount,
-
-              amountPaid: 0,
-
-              balanceDue:
-                quotation.totalAmount,
-
-              ...(data.notes !==
-                undefined && {
-                notes: data.notes,
-              }),
-
-              quotation: {
-                connect: {
-                  id: quotationId,
-                },
-              },
-            },
-          });
-
-        if (quotation.items.length > 0) {
-          await tx.invoiceItem.createMany({
-            data: quotation.items.map(
-              (item) => ({
-                invoiceId:
-                  invoice.id,
-
-                serviceName:
-                  item.serviceName,
-
-                description:
-                  item.description,
-
-                quantity:
-                  item.quantity,
-
-                unitPrice:
-                  item.unitPrice,
-
-                totalPrice:
-                  item.totalPrice,
-              })
-            ),
-          });
-        }
-
-        return tx.invoice.findUnique({
-          where: {
-            id: invoice.id,
           },
+        },
+      });
 
-          include: {
-            quotation: {
-              include: {
-                client: true,
-                project: true,
-              },
-            },
+      if (quotation.items.length > 0) {
+        await tx.invoiceItem.createMany({
+          data: quotation.items.map((item) => ({
+            invoiceId: invoice.id,
 
-            items: {
-              orderBy: {
-                createdAt: "asc",
-              },
-            },
-          },
+            serviceName: item.serviceName,
+
+            description: item.description,
+
+            quantity: item.quantity,
+
+            unitPrice: item.unitPrice,
+
+            totalPrice: item.totalPrice,
+          })),
         });
       }
-    );
+
+      return tx.invoice.findUnique({
+        where: {
+          id: invoice.id,
+        },
+
+        include: {
+          quotation: {
+            include: {
+              client: true,
+              project: true,
+            },
+          },
+
+          items: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
+        },
+      });
+    });
   }
 
   async findAll(
@@ -217,12 +182,9 @@ export class InvoiceRepository {
     status?: InvoiceStatus,
     quotationId?: string,
     sortBy: string = "createdAt",
-    sortOrder:
-      | "asc"
-      | "desc" = "desc"
+    sortOrder: "asc" | "desc" = "desc",
   ) {
-    const where:
-      Prisma.InvoiceWhereInput = {
+    const where: Prisma.InvoiceWhereInput = {
       ...(search && {
         invoiceNumber: {
           contains: search,
@@ -239,39 +201,38 @@ export class InvoiceRepository {
       }),
     };
 
-    const [invoices, total] =
-      await Promise.all([
-        prisma.invoice.findMany({
-          where,
+    const [invoices, total] = await Promise.all([
+      prisma.invoice.findMany({
+        where,
 
-          skip,
+        skip,
 
-          take: limit,
+        take: limit,
 
-          include: {
-            quotation: {
-              include: {
-                client: true,
-                project: true,
-              },
-            },
-
-            items: {
-              orderBy: {
-                createdAt: "asc",
-              },
+        include: {
+          quotation: {
+            include: {
+              client: true,
+              project: true,
             },
           },
 
-          orderBy: {
-            [sortBy]: sortOrder,
+          items: {
+            orderBy: {
+              createdAt: "asc",
+            },
           },
-        }),
+        },
 
-        prisma.invoice.count({
-          where,
-        }),
-      ]);
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+      }),
+
+      prisma.invoice.count({
+        where,
+      }),
+    ]);
 
     return {
       invoices,
@@ -279,10 +240,7 @@ export class InvoiceRepository {
     };
   }
 
-  async update(
-    id: string,
-    data: Prisma.InvoiceUpdateInput
-  ) {
+  async update(id: string, data: Prisma.InvoiceUpdateInput) {
     return prisma.invoice.update({
       where: {
         id,
@@ -316,29 +274,29 @@ export class InvoiceRepository {
   }
 
   async send(id: string) {
-  return prisma.invoice.update({
-    where: {
-      id,
-    },
-
-    data: {
-      status: InvoiceStatus.SENT,
-    },
-
-    include: {
-      quotation: {
-        include: {
-          client: true,
-          project: true,
-        },
+    return prisma.invoice.update({
+      where: {
+        id,
       },
 
-      items: {
-        orderBy: {
-          createdAt: "asc",
+      data: {
+        status: InvoiceStatus.SENT,
+      },
+
+      include: {
+        quotation: {
+          include: {
+            client: true,
+            project: true,
+          },
+        },
+
+        items: {
+          orderBy: {
+            createdAt: "asc",
+          },
         },
       },
-    },
-  });
-}
+    });
+  }
 }

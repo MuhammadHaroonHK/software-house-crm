@@ -2,9 +2,7 @@ import prisma from "../../lib/prisma";
 import { Prisma } from "@prisma/client";
 
 export class InvoiceItemRepository {
-  async create(
-    data: Prisma.InvoiceItemCreateInput
-  ) {
+  async create(data: Prisma.InvoiceItemCreateInput) {
     return prisma.invoiceItem.create({
       data,
     });
@@ -30,10 +28,7 @@ export class InvoiceItemRepository {
     });
   }
 
-  async update(
-    id: string,
-    data: Prisma.InvoiceItemUpdateInput
-  ) {
+  async update(id: string, data: Prisma.InvoiceItemUpdateInput) {
     return prisma.invoiceItem.update({
       where: {
         id,
@@ -59,60 +54,44 @@ export class InvoiceItemRepository {
     });
   }
 
-  async calculateSubtotal(
-    invoiceId: string
-  ) {
-    const result =
-      await prisma.invoiceItem.aggregate({
-        where: {
-          invoiceId,
-        },
+  async calculateSubtotal(invoiceId: string) {
+    const result = await prisma.invoiceItem.aggregate({
+      where: {
+        invoiceId,
+      },
 
-        _sum: {
-          totalPrice: true,
-        },
-      });
+      _sum: {
+        totalPrice: true,
+      },
+    });
 
-    return Number(
-      result._sum.totalPrice ?? 0
-    );
+    return Number(result._sum.totalPrice ?? 0);
   }
 
-  async updateInvoiceTotals(
-    invoiceId: string,
-    subtotal: number
-  ) {
-    const invoice =
-      await prisma.invoice.findUnique({
-        where: {
-          id: invoiceId,
-        },
-      });
+  async updateInvoiceTotals(invoiceId: string, subtotal: number) {
+    const invoice = await prisma.invoice.findUnique({
+      where: {
+        id: invoiceId,
+      },
+    });
 
     if (!invoice) {
       return null;
     }
 
-    const discount =
-      Number(invoice.discount);
+    const discount = Number(invoice.discount);
 
-    const tax =
-      Number(invoice.tax);
+    const tax = Number(invoice.tax);
 
-    const amountPaid =
-      Number(invoice.amountPaid);
+    const amountPaid = Number(invoice.amountPaid);
 
-    const totalAmount =
-      subtotal - discount + tax;
+    const totalAmount = subtotal - discount + tax;
 
     if (totalAmount < 0) {
-      throw new Error(
-        "Invoice total amount cannot be negative."
-      );
+      throw new Error("Invoice total amount cannot be negative.");
     }
 
-    const balanceDue =
-      totalAmount - amountPaid;
+    const balanceDue = totalAmount - amountPaid;
 
     return prisma.invoice.update({
       where: {
@@ -131,215 +110,150 @@ export class InvoiceItemRepository {
 
   async createAndRecalculate(
     invoiceId: string,
-    data: Prisma.InvoiceItemCreateWithoutInvoiceInput
+    data: Prisma.InvoiceItemCreateWithoutInvoiceInput,
   ) {
-    return prisma.$transaction(
-      async (tx) => {
-        const invoice =
-          await tx.invoice.findUnique({
-            where: {
+    return prisma.$transaction(async (tx) => {
+      const invoice = await tx.invoice.findUnique({
+        where: {
+          id: invoiceId,
+        },
+      });
+
+      if (!invoice) {
+        throw new Error("Invoice not found.");
+      }
+
+      if (invoice.status !== "DRAFT") {
+        throw new Error("Only draft invoices can be modified.");
+      }
+
+      const item = await tx.invoiceItem.create({
+        data: {
+          ...data,
+
+          invoice: {
+            connect: {
               id: invoiceId,
             },
-          });
+          },
+        },
+      });
 
-        if (!invoice) {
-          throw new Error(
-            "Invoice not found."
-          );
-        }
+      await this.recalculateInvoiceTotals(tx, invoiceId);
 
-        if (
-          invoice.status !==
-          "DRAFT"
-        ) {
-          throw new Error(
-            "Only draft invoices can be modified."
-          );
-        }
-
-        const item =
-          await tx.invoiceItem.create({
-            data: {
-              ...data,
-
-              invoice: {
-                connect: {
-                  id: invoiceId,
-                },
-              },
-            },
-          });
-
-        await this.recalculateInvoiceTotals(
-          tx,
-          invoiceId
-        );
-
-        return item;
-      }
-    );
+      return item;
+    });
   }
 
   async updateAndRecalculate(
     itemId: string,
     invoiceId: string,
-    data: Prisma.InvoiceItemUpdateInput
+    data: Prisma.InvoiceItemUpdateInput,
   ) {
-    return prisma.$transaction(
-      async (tx) => {
-        const invoice =
-          await tx.invoice.findUnique({
-            where: {
-              id: invoiceId,
-            },
-          });
+    return prisma.$transaction(async (tx) => {
+      const invoice = await tx.invoice.findUnique({
+        where: {
+          id: invoiceId,
+        },
+      });
 
-        if (!invoice) {
-          throw new Error(
-            "Invoice not found."
-          );
-        }
-
-        if (
-          invoice.status !==
-          "DRAFT"
-        ) {
-          throw new Error(
-            "Only draft invoices can be modified."
-          );
-        }
-
-        const item =
-          await tx.invoiceItem.findUnique({
-            where: {
-              id: itemId,
-            },
-          });
-
-        if (!item) {
-          throw new Error(
-            "Invoice item not found."
-          );
-        }
-
-        const updatedItem =
-          await tx.invoiceItem.update({
-            where: {
-              id: itemId,
-            },
-
-            data,
-          });
-
-        await this.recalculateInvoiceTotals(
-          tx,
-          invoiceId
-        );
-
-        return updatedItem;
+      if (!invoice) {
+        throw new Error("Invoice not found.");
       }
-    );
+
+      if (invoice.status !== "DRAFT") {
+        throw new Error("Only draft invoices can be modified.");
+      }
+
+      const item = await tx.invoiceItem.findUnique({
+        where: {
+          id: itemId,
+        },
+      });
+
+      if (!item) {
+        throw new Error("Invoice item not found.");
+      }
+
+      const updatedItem = await tx.invoiceItem.update({
+        where: {
+          id: itemId,
+        },
+
+        data,
+      });
+
+      await this.recalculateInvoiceTotals(tx, invoiceId);
+
+      return updatedItem;
+    });
   }
 
-  async deleteAndRecalculate(
-    itemId: string,
-    invoiceId: string
-  ) {
-    return prisma.$transaction(
-      async (tx) => {
-        const invoice =
-          await tx.invoice.findUnique({
-            where: {
-              id: invoiceId,
-            },
-          });
+  async deleteAndRecalculate(itemId: string, invoiceId: string) {
+    return prisma.$transaction(async (tx) => {
+      const invoice = await tx.invoice.findUnique({
+        where: {
+          id: invoiceId,
+        },
+      });
 
-        if (!invoice) {
-          throw new Error(
-            "Invoice not found."
-          );
-        }
-
-        if (
-          invoice.status !==
-          "DRAFT"
-        ) {
-          throw new Error(
-            "Only draft invoices can be modified."
-          );
-        }
-
-        await tx.invoiceItem.delete({
-          where: {
-            id: itemId,
-          },
-        });
-
-        await this.recalculateInvoiceTotals(
-          tx,
-          invoiceId
-        );
+      if (!invoice) {
+        throw new Error("Invoice not found.");
       }
-    );
+
+      if (invoice.status !== "DRAFT") {
+        throw new Error("Only draft invoices can be modified.");
+      }
+
+      await tx.invoiceItem.delete({
+        where: {
+          id: itemId,
+        },
+      });
+
+      await this.recalculateInvoiceTotals(tx, invoiceId);
+    });
   }
 
   private async recalculateInvoiceTotals(
     tx: Prisma.TransactionClient,
-    invoiceId: string
+    invoiceId: string,
   ) {
-    const invoice =
-      await tx.invoice.findUnique({
-        where: {
-          id: invoiceId,
-        },
+    const invoice = await tx.invoice.findUnique({
+      where: {
+        id: invoiceId,
+      },
 
-        include: {
-          items: true,
-        },
-      });
+      include: {
+        items: true,
+      },
+    });
 
     if (!invoice) {
-      throw new Error(
-        "Invoice not found."
-      );
+      throw new Error("Invoice not found.");
     }
 
-    const subtotal =
-      invoice.items.reduce(
-        (sum, item) =>
-          sum +
-          Number(item.totalPrice),
-        0
-      );
+    const subtotal = invoice.items.reduce(
+      (sum, item) => sum + Number(item.totalPrice),
+      0,
+    );
 
-    const discount =
-      Number(invoice.discount);
+    const discount = Number(invoice.discount);
 
-    const tax =
-      Number(invoice.tax);
+    const tax = Number(invoice.tax);
 
-    const totalAmount =
-      subtotal -
-      discount +
-      tax;
+    const totalAmount = subtotal - discount + tax;
 
     if (totalAmount < 0) {
-      throw new Error(
-        "Invoice total amount cannot be negative."
-      );
+      throw new Error("Invoice total amount cannot be negative.");
     }
 
-    const amountPaid =
-      Number(invoice.amountPaid);
+    const amountPaid = Number(invoice.amountPaid);
 
-    const balanceDue =
-      totalAmount -
-      amountPaid;
+    const balanceDue = totalAmount - amountPaid;
 
     if (balanceDue < 0) {
-      throw new Error(
-        "Invoice balance cannot be negative."
-      );
+      throw new Error("Invoice balance cannot be negative.");
     }
 
     await tx.invoice.update({

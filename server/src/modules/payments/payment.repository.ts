@@ -1,15 +1,9 @@
 import prisma from "../../lib/prisma";
 
-import {
-  Prisma,
-  PaymentMethod,
-  PaymentStatus,
-} from "@prisma/client";
+import { Prisma, PaymentMethod, PaymentStatus } from "@prisma/client";
 
 export class PaymentRepository {
-  async create(
-    data: Prisma.PaymentCreateInput
-  ) {
+  async create(data: Prisma.PaymentCreateInput) {
     return prisma.payment.create({
       data,
 
@@ -72,7 +66,7 @@ export class PaymentRepository {
     status?: PaymentStatus,
     paymentMethod?: PaymentMethod,
     sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc"
+    sortOrder: "asc" | "desc" = "desc",
   ) {
     const where: Prisma.PaymentWhereInput = {
       ...(invoiceId && {
@@ -88,10 +82,7 @@ export class PaymentRepository {
       }),
     };
 
-    const [
-      payments,
-      total,
-    ] = await Promise.all([
+    const [payments, total] = await Promise.all([
       prisma.payment.findMany({
         where,
 
@@ -144,10 +135,7 @@ export class PaymentRepository {
     };
   }
 
-  async update(
-    id: string,
-    data: Prisma.PaymentUpdateInput
-  ) {
+  async update(id: string, data: Prisma.PaymentUpdateInput) {
     return prisma.payment.update({
       where: {
         id,
@@ -202,40 +190,33 @@ export class PaymentRepository {
     });
   }
 
-  async getInvoicePaymentsTotal(
-    invoiceId: string,
-    excludePaymentId?: string
-  ) {
-    const result =
-      await prisma.payment.aggregate({
-        where: {
-          invoiceId,
+  async getInvoicePaymentsTotal(invoiceId: string, excludePaymentId?: string) {
+    const result = await prisma.payment.aggregate({
+      where: {
+        invoiceId,
 
-          ...(excludePaymentId && {
-            id: {
-              not: excludePaymentId,
-            },
-          }),
+        ...(excludePaymentId && {
+          id: {
+            not: excludePaymentId,
+          },
+        }),
 
-          status:
-            PaymentStatus.COMPLETED,
-        },
+        status: PaymentStatus.COMPLETED,
+      },
 
-        _sum: {
-          amount: true,
-        },
-      });
+      _sum: {
+        amount: true,
+      },
+    });
 
-    return Number(
-      result._sum.amount ?? 0
-    );
+    return Number(result._sum.amount ?? 0);
   }
 
   async updateInvoiceFinancials(
     invoiceId: string,
     amountPaid: number,
     balanceDue: number,
-    status: Prisma.InvoiceUpdateInput["status"]
+    status: Prisma.InvoiceUpdateInput["status"],
   ) {
     return prisma.invoice.update({
       where: {
@@ -265,78 +246,78 @@ export class PaymentRepository {
   }
 
   async completePaymentAndUpdateInvoice(
-  paymentId: string,
-  invoiceId: string,
-  verifiedById: string,
-  amountPaid: number,
-  balanceDue: number,
-  status: Prisma.InvoiceUpdateInput["status"]
-) {
-  return prisma.$transaction(async (tx) => {
-    await tx.payment.update({
-      where: {
-        id: paymentId,
-      },
+    paymentId: string,
+    invoiceId: string,
+    verifiedById: string,
+    amountPaid: number,
+    balanceDue: number,
+    status: Prisma.InvoiceUpdateInput["status"],
+  ) {
+    return prisma.$transaction(async (tx) => {
+      await tx.payment.update({
+        where: {
+          id: paymentId,
+        },
 
-      data: {
-        status: PaymentStatus.COMPLETED,
+        data: {
+          status: PaymentStatus.COMPLETED,
 
-        verifiedAt: new Date(),
+          verifiedAt: new Date(),
 
-        verifiedBy: {
-          connect: {
-            id: verifiedById,
+          verifiedBy: {
+            connect: {
+              id: verifiedById,
+            },
           },
         },
-      },
-    });
+      });
 
-    await tx.invoice.update({
-      where: {
-        id: invoiceId,
-      },
+      await tx.invoice.update({
+        where: {
+          id: invoiceId,
+        },
 
-      data: {
-        amountPaid,
-        balanceDue,
-        status,
-      },
-    });
+        data: {
+          amountPaid,
+          balanceDue,
+          status,
+        },
+      });
 
-    return tx.payment.findUnique({
-      where: {
-        id: paymentId,
-      },
+      return tx.payment.findUnique({
+        where: {
+          id: paymentId,
+        },
 
-      include: {
-        invoice: {
-          include: {
-            quotation: {
-              include: {
-                client: true,
-                project: true,
+        include: {
+          invoice: {
+            include: {
+              quotation: {
+                include: {
+                  client: true,
+                  project: true,
+                },
+              },
+            },
+          },
+
+          verifiedBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
         },
-
-        verifiedBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-
-            role: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      });
     });
-  });
-}
+  }
 }

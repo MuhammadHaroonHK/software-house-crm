@@ -1,190 +1,118 @@
-import {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
+import { Request, Response, NextFunction } from "express";
 
 import { PaymentService } from "./payment.service";
 import { successResponse } from "../../utils/apiResponse";
 
-const paymentService =
-  new PaymentService();
+const paymentService = new PaymentService();
 
 export class PaymentController {
-  async create(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const receiptImage = req.file
-      ? `/uploads/payments/${req.file.filename}`
-      : undefined;
+  async create(req: Request, res: Response, next: NextFunction) {
+    try {
+      const receiptImage = req.file
+        ? `/uploads/payments/${req.file.filename}`
+        : undefined;
 
-    const payment =
-      await paymentService.create({
+      const payment = await paymentService.create({
         ...req.body,
         receiptImage,
       });
 
-    return successResponse(
-      res,
-      "Payment created successfully.",
-      payment,
-      201
-    );
-  } catch (error) {
-    next(error);
+      return successResponse(
+        res,
+        "Payment created successfully.",
+        payment,
+        201,
+      );
+    } catch (error) {
+      next(error);
+    }
   }
-}
 
-  async findAll(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+  async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const payments =
-        await paymentService.findAll(
-          req.query as any
-        );
+      const payments = await paymentService.findAll(req.query as any);
 
       return successResponse(
         res,
         "Payments fetched successfully.",
         payments.data,
         200,
-        payments.meta
+        payments.meta,
       );
     } catch (error) {
       next(error);
     }
   }
 
-  async findById(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+  async findById(req: Request, res: Response, next: NextFunction) {
     try {
-      const payment =
-        await paymentService.findById(
-          String(req.params.id)
-        );
+      const payment = await paymentService.findById(String(req.params.id));
 
-      return successResponse(
-        res,
-        "Payment fetched successfully.",
-        payment
-      );
+      return successResponse(res, "Payment fetched successfully.", payment);
     } catch (error) {
       next(error);
     }
   }
 
-  async update(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+  async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const payment =
-        await paymentService.update(
-          String(req.params.id),
-          req.body
-        );
-
-      return successResponse(
-        res,
-        "Payment updated successfully.",
-        payment
-      );
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async delete(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      await paymentService.delete(
-        String(req.params.id)
-      );
-
-      return successResponse(
-        res,
-        "Payment deleted successfully."
-      );
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getReceiverDetails(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const details =
-      await paymentService.getReceiverDetails();
-
-    return successResponse(
-      res,
-      "Payment receiver details fetched successfully.",
-      details
-    );
-  } catch (error) {
-    next(error);
-  }
-}
-
-async verify(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const payment =
-      await paymentService.verify(
+      const payment = await paymentService.update(
         String(req.params.id),
-        req.user!.userId
+        req.body,
       );
 
-    return successResponse(
-      res,
-      "Payment verified successfully.",
-      payment
-    );
-  } catch (error) {
-    next(error);
+      return successResponse(res, "Payment updated successfully.", payment);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      await paymentService.delete(String(req.params.id));
+
+      return successResponse(res, "Payment deleted successfully.");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getReceiverDetails(req: Request, res: Response, next: NextFunction) {
+    try {
+      const details = await paymentService.getReceiverDetails();
+
+      return successResponse(
+        res,
+        "Payment receiver details fetched successfully.",
+        details,
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async verify(req: Request, res: Response, next: NextFunction) {
+    try {
+      const payment = await paymentService.verify(
+        String(req.params.id),
+        req.user!.userId,
+      );
+
+      return successResponse(res, "Payment verified successfully.", payment);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async reject(req: Request, res: Response, next: NextFunction) {
+    try {
+      const payment = await paymentService.reject(String(req.params.id));
+
+      return successResponse(res, "Payment rejected successfully.", payment);
+    } catch (error) {
+      next(error);
+    }
   }
 }
 
-async reject(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const payment =
-      await paymentService.reject(
-        String(req.params.id)
-      );
-
-    return successResponse(
-      res,
-      "Payment rejected successfully.",
-      payment
-    );
-  } catch (error) {
-    next(error);
-  }
-}
-}
-
-export const paymentController =
-  new PaymentController();
+export const paymentController = new PaymentController();
