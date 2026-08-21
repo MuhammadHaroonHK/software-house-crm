@@ -13,8 +13,11 @@ import {
 
 import type {
   Quotation,
-  QuotationItem,
 } from "@/features/quotations/types/quotation.types";
+
+import type {
+  QuotationItem,
+} from "@/features/quotations/types/quotationItem.types";
 
 interface QuotationItemsEditorProps {
   quotation: Quotation | null;
@@ -77,7 +80,8 @@ export default function QuotationItemsEditor({
     return null;
   }
 
-  const items = data?.data ?? [];
+  const items: QuotationItem[] =
+  data?.data ?? [];
 
   const isDraft = quotation.status === "DRAFT";
 
