@@ -33,7 +33,8 @@ router.get(
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.CLIENT,
   ),
   validate(getInvoicesSchema),
   invoiceController.findAll.bind(
@@ -46,7 +47,8 @@ router.get(
   authenticate,
   authorize(
     UserRole.SUPER_ADMIN,
-    UserRole.PROJECT_MANAGER
+    UserRole.PROJECT_MANAGER,
+    UserRole.CLIENT,
   ),
   invoiceController.findById.bind(
     invoiceController

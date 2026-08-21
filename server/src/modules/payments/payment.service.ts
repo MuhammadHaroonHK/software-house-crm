@@ -1,135 +1,317 @@
-import { InvoiceStatus, PaymentStatus } from "@prisma/client";
+import {
+  InvoiceStatus,
+  PaymentStatus,
+  UserRole,
+} from "@prisma/client";
 
 import { AppError } from "../../utils/AppError";
 import { getPagination } from "../../utils/pagination";
 
-import { CreatePaymentDTO, UpdatePaymentDTO } from "./payment.types";
+import {
+  CreatePaymentDTO,
+  UpdatePaymentDTO,
+} from "./payment.types";
 
-import { PaymentRepository } from "./payment.repository";
+import {
+  PaymentRepository,
+} from "./payment.repository";
 
-const paymentRepository = new PaymentRepository();
+const paymentRepository =
+  new PaymentRepository();
 
 export class PaymentService {
-  async create(data: CreatePaymentDTO) {
-    const invoice = await paymentRepository.findInvoiceById(data.invoiceId);
+  private async ensureClientInvoiceAccess(
+    invoiceId: string,
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    if (
+      actorRole !==
+      UserRole.CLIENT
+    ) {
+      return;
+    }
+
+    const clientId =
+      await paymentRepository.findClientIdByUserId(
+        actorId
+      );
+
+    if (!clientId) {
+      throw new AppError(
+        403,
+        "Your account is not linked to a client."
+      );
+    }
+
+    const invoice =
+      await paymentRepository.findInvoiceByIdWithClient(
+        invoiceId
+      );
 
     if (!invoice) {
-      throw new AppError(404, "Invoice not found.");
-    }
-
-    // Payments cannot be created for draft invoices.
-    if (invoice.status === InvoiceStatus.DRAFT) {
       throw new AppError(
-        400,
-        "Payment cannot be recorded for a draft invoice.",
+        404,
+        "Invoice not found."
       );
     }
 
-    // A fully paid invoice cannot receive another payment.
-    if (invoice.status === InvoiceStatus.PAID) {
-      throw new AppError(400, "Invoice is already fully paid.");
-    }
-
-    if (data.amount <= 0) {
-      throw new AppError(400, "Payment amount must be greater than zero.");
-    }
-
-    if (data.amount > Number(invoice.balanceDue)) {
+    if (
+      invoice.quotation.clientId !==
+      clientId
+    ) {
       throw new AppError(
-        400,
-        "Payment amount cannot exceed the invoice balance due.",
+        403,
+        "You can only make payments for your own invoices."
       );
     }
-
-    // New payments always require verification.
-    const payment = await paymentRepository.create({
-      amount: data.amount,
-
-      paymentMethod: data.paymentMethod,
-
-      ...(data.paymentDate && {
-        paymentDate: new Date(data.paymentDate),
-      }),
-
-      ...(data.accountTitle !== undefined && {
-        accountTitle: data.accountTitle,
-      }),
-
-      ...(data.accountNumber !== undefined && {
-        accountNumber: data.accountNumber,
-      }),
-
-      ...(data.receiptImage !== undefined && {
-        receiptImage: data.receiptImage,
-      }),
-
-      ...(data.referenceNumber !== undefined && {
-        referenceNumber: data.referenceNumber,
-      }),
-
-      status: PaymentStatus.PENDING,
-
-      ...(data.notes !== undefined && {
-        notes: data.notes,
-      }),
-
-      invoice: {
-        connect: {
-          id: data.invoiceId,
-        },
-      },
-    });
-
-    // IMPORTANT:
-    // Pending payments are not included in amountPaid.
-    // Invoice financials change only after verification.
-
-    return paymentRepository.findById(payment.id);
   }
 
-  async findAll(query: {
-    page?: number;
-    limit?: number;
-    invoiceId?: string;
-    status?: PaymentStatus;
-    paymentMethod?: string;
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
-  }) {
-    const pagination = getPagination(query);
+  async create(
+    data: CreatePaymentDTO,
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    const invoice =
+      await paymentRepository.findInvoiceById(
+        data.invoiceId
+      );
 
-    const paymentMethod = query.paymentMethod as
-      | import("@prisma/client").PaymentMethod
-      | undefined;
+    if (!invoice) {
+      throw new AppError(
+        404,
+        "Invoice not found."
+      );
+    }
 
-    const { payments, total } = await paymentRepository.findAll(
-      pagination.skip,
-      pagination.limit,
-      query.invoiceId,
-      query.status,
-      paymentMethod,
-      pagination.sortBy,
-      pagination.sortOrder,
+    await this.ensureClientInvoiceAccess(
+      data.invoiceId,
+      actorId,
+      actorRole
     );
 
+    if (
+      invoice.status ===
+      InvoiceStatus.DRAFT
+    ) {
+      throw new AppError(
+        400,
+        "Payment cannot be recorded for a draft invoice."
+      );
+    }
+
+    if (
+      invoice.status ===
+      InvoiceStatus.PAID
+    ) {
+      throw new AppError(
+        400,
+        "Invoice is already fully paid."
+      );
+    }
+
+    if (
+      data.amount <= 0
+    ) {
+      throw new AppError(
+        400,
+        "Payment amount must be greater than zero."
+      );
+    }
+
+    if (
+      data.amount >
+      Number(
+        invoice.balanceDue
+      )
+    ) {
+      throw new AppError(
+        400,
+        "Payment amount cannot exceed the invoice balance due."
+      );
+    }
+
+    const payment =
+      await paymentRepository.create(
+        {
+          amount:
+            data.amount,
+
+          paymentMethod:
+            data.paymentMethod,
+
+          ...(data.paymentDate && {
+            paymentDate:
+              new Date(
+                data.paymentDate
+              ),
+          }),
+
+          ...(data.accountTitle !==
+            undefined && {
+            accountTitle:
+              data.accountTitle,
+          }),
+
+          ...(data.accountNumber !==
+            undefined && {
+            accountNumber:
+              data.accountNumber,
+          }),
+
+          ...(data.receiptImage !==
+            undefined && {
+            receiptImage:
+              data.receiptImage,
+          }),
+
+          ...(data.referenceNumber !==
+            undefined && {
+            referenceNumber:
+              data.referenceNumber,
+          }),
+
+          status:
+            PaymentStatus.PENDING,
+
+          ...(data.notes !==
+            undefined && {
+            notes:
+              data.notes,
+          }),
+
+          invoice: {
+            connect: {
+              id:
+                data.invoiceId,
+            },
+          },
+        }
+      );
+
+    return paymentRepository.findById(
+      payment.id
+    );
+  }
+
+  async findAll(
+    query: {
+      page?: number;
+      limit?: number;
+      invoiceId?: string;
+      status?: PaymentStatus;
+      paymentMethod?: string;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+    },
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    const pagination =
+      getPagination(query);
+
+    let clientId:
+      | string
+      | undefined;
+
+    if (
+      actorRole ===
+      UserRole.CLIENT
+    ) {
+      const resolvedClientId =
+        await paymentRepository.findClientIdByUserId(
+          actorId
+        );
+
+      if (!resolvedClientId) {
+        throw new AppError(
+          403,
+          "Your account is not linked to a client."
+        );
+      }
+
+      clientId =
+        resolvedClientId;
+    }
+
+    const paymentMethod =
+      query.paymentMethod as
+        | import("@prisma/client").PaymentMethod
+        | undefined;
+
+    const {
+      payments,
+      total,
+    } =
+      await paymentRepository.findAll(
+        pagination.skip,
+        pagination.limit,
+        query.invoiceId,
+        query.status,
+        paymentMethod,
+        clientId,
+        pagination.sortBy,
+        pagination.sortOrder
+      );
+
     return {
-      data: payments,
+      data:
+        payments,
 
       meta: {
-        page: pagination.page,
-        limit: pagination.limit,
+        page:
+          pagination.page,
+
+        limit:
+          pagination.limit,
+
         total,
 
-        totalPages: Math.ceil(total / pagination.limit),
+        totalPages:
+          Math.ceil(
+            total /
+              pagination.limit
+          ),
       },
     };
   }
 
-  async findById(id: string) {
-    const payment = await paymentRepository.findById(id);
+  async findById(
+    id: string,
+    actorId: string,
+    actorRole: UserRole
+  ) {
+    const payment =
+      await paymentRepository.findById(
+        id
+      );
 
     if (!payment) {
-      throw new AppError(404, "Payment not found.");
+      throw new AppError(
+        404,
+        "Payment not found."
+      );
+    }
+
+    if (
+      actorRole ===
+      UserRole.CLIENT
+    ) {
+      const clientId =
+        await paymentRepository.findClientIdByUserId(
+          actorId
+        );
+
+      if (
+        !clientId ||
+        payment.invoice.quotation.clientId !==
+          clientId
+      ) {
+        throw new AppError(
+          403,
+          "You do not have access to this payment."
+        );
+      }
     }
 
     return payment;

@@ -39,7 +39,8 @@ router.get(
   authorize(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER,
-    UserRole.EMPLOYEE
+    UserRole.EMPLOYEE,
+    UserRole.CLIENT,
   ),
   validate(getPaymentsSchema),
   paymentController.findAll.bind(
@@ -86,7 +87,8 @@ router.get(
   authorize(
     UserRole.SUPER_ADMIN,
     UserRole.PROJECT_MANAGER,
-    UserRole.EMPLOYEE
+    UserRole.EMPLOYEE,
+    UserRole.CLIENT,
   ),
   paymentController.findById.bind(
     paymentController

@@ -60,29 +60,45 @@ export class PaymentRepository {
   }
 
   async findAll(
-    skip: number,
-    limit: number,
-    invoiceId?: string,
-    status?: PaymentStatus,
-    paymentMethod?: PaymentMethod,
-    sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc",
-  ) {
-    const where: Prisma.PaymentWhereInput = {
-      ...(invoiceId && {
-        invoiceId,
-      }),
+  skip: number,
+  limit: number,
+  invoiceId?: string,
+  status?: PaymentStatus,
+  paymentMethod?: PaymentMethod,
+  clientId?: string,
+  sortBy = "createdAt",
+  sortOrder:
+    | "asc"
+    | "desc" = "desc"
+) {
+  const where:
+    Prisma.PaymentWhereInput = {
+    ...(invoiceId && {
+      invoiceId,
+    }),
 
-      ...(status && {
-        status,
-      }),
+    ...(status && {
+      status,
+    }),
 
-      ...(paymentMethod && {
-        paymentMethod,
-      }),
-    };
+    ...(paymentMethod && {
+      paymentMethod,
+    }),
 
-    const [payments, total] = await Promise.all([
+    ...(clientId && {
+      invoice: {
+        quotation: {
+          clientId,
+        },
+      },
+    }),
+  };
+
+  const [
+    payments,
+    total,
+  ] =
+    await Promise.all([
       prisma.payment.findMany({
         where,
 
@@ -120,7 +136,8 @@ export class PaymentRepository {
         },
 
         orderBy: {
-          [sortBy]: sortOrder,
+          [sortBy]:
+            sortOrder,
         },
       }),
 
@@ -129,11 +146,11 @@ export class PaymentRepository {
       }),
     ]);
 
-    return {
-      payments,
-      total,
-    };
-  }
+  return {
+    payments,
+    total,
+  };
+}
 
   async update(id: string, data: Prisma.PaymentUpdateInput) {
     return prisma.payment.update({
@@ -320,4 +337,44 @@ export class PaymentRepository {
       });
     });
   }
+
+  async findInvoiceByIdWithClient(
+  id: string
+) {
+  return prisma.invoice.findUnique({
+    where: {
+      id,
+    },
+
+    include: {
+      quotation: {
+        select: {
+          clientId: true,
+        },
+      },
+    },
+  });
+}
+
+async findClientIdByUserId(
+  userId: string
+) {
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        id:
+          userId,
+      },
+
+      select: {
+        clientId:
+          true,
+      },
+    });
+
+  return (
+    user?.clientId ??
+    null
+  );
+}
 }

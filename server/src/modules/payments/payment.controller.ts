@@ -6,53 +6,105 @@ import { successResponse } from "../../utils/apiResponse";
 const paymentService = new PaymentService();
 
 export class PaymentController {
-  async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      const receiptImage = req.file
+  async create(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw new Error(
+        "Authenticated user not found."
+      );
+    }
+
+    const receiptImage =
+      req.file
         ? `/uploads/payments/${req.file.filename}`
         : undefined;
 
-      const payment = await paymentService.create({
-        ...req.body,
-        receiptImage,
-      });
-
-      return successResponse(
-        res,
-        "Payment created successfully.",
-        payment,
-        201,
+    const payment =
+      await paymentService.create(
+        {
+          ...req.body,
+          receiptImage,
+        },
+        req.user.userId,
+        req.user.role
       );
-    } catch (error) {
-      next(error);
-    }
+
+    return successResponse(
+      res,
+      "Payment created successfully.",
+      payment,
+      201
+    );
+  } catch (error) {
+    next(error);
   }
+}
 
-  async findAll(req: Request, res: Response, next: NextFunction) {
-    try {
-      const payments = await paymentService.findAll(req.query as any);
-
-      return successResponse(
-        res,
-        "Payments fetched successfully.",
-        payments.data,
-        200,
-        payments.meta,
+  async findAll(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw new Error(
+        "Authenticated user not found."
       );
-    } catch (error) {
-      next(error);
     }
+
+    const payments =
+      await paymentService.findAll(
+        req.query as any,
+        req.user.userId,
+        req.user.role
+      );
+
+    return successResponse(
+      res,
+      "Payments fetched successfully.",
+      payments.data,
+      200,
+      payments.meta
+    );
+  } catch (error) {
+    next(error);
   }
+}
 
-  async findById(req: Request, res: Response, next: NextFunction) {
-    try {
-      const payment = await paymentService.findById(String(req.params.id));
-
-      return successResponse(res, "Payment fetched successfully.", payment);
-    } catch (error) {
-      next(error);
+  async findById(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw new Error(
+        "Authenticated user not found."
+      );
     }
+
+    const payment =
+      await paymentService.findById(
+        String(
+          req.params.id
+        ),
+        req.user.userId,
+        req.user.role
+      );
+
+    return successResponse(
+      res,
+      "Payment fetched successfully.",
+      payment
+    );
+  } catch (error) {
+    next(error);
   }
+}
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {

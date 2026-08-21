@@ -4,12 +4,20 @@ import {
   NextFunction,
 } from "express";
 
-import { InvoiceStatus } from "@prisma/client";
+import {
+  InvoiceStatus,
+} from "@prisma/client";
 
-import { successResponse } from "../../utils/apiResponse";
-import { InvoiceService } from "./invoice.service";
+import {
+  successResponse,
+} from "../../utils/apiResponse";
 
-const invoiceService = new InvoiceService();
+import {
+  InvoiceService,
+} from "./invoice.service";
+
+const invoiceService =
+  new InvoiceService();
 
 export class InvoiceController {
   async create(
@@ -19,7 +27,9 @@ export class InvoiceController {
   ) {
     try {
       const invoice =
-        await invoiceService.create(req.body);
+        await invoiceService.create(
+          req.body
+        );
 
       return successResponse(
         res,
@@ -38,32 +48,50 @@ export class InvoiceController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const result =
-        await invoiceService.findAll({
-          page: req.query.page
-            ? Number(req.query.page)
-            : undefined,
+        await invoiceService.findAll(
+          {
+            page:
+              req.query.page
+                ? Number(
+                    req.query.page
+                  )
+                : undefined,
 
-          limit: req.query.limit
-            ? Number(req.query.limit)
-            : undefined,
+            limit:
+              req.query.limit
+                ? Number(
+                    req.query.limit
+                  )
+                : undefined,
 
-          search: req.query.search as string,
+            search:
+              req.query.search as string,
 
-          quotationId:
-            req.query.quotationId as string,
+            quotationId:
+              req.query.quotationId as string,
 
-          status:
-            req.query.status as InvoiceStatus,
+            status:
+              req.query.status as InvoiceStatus,
 
-          sortBy:
-            req.query.sortBy as string,
+            sortBy:
+              req.query.sortBy as string,
 
-          sortOrder:
-            req.query.sortOrder as
-              | "asc"
-              | "desc",
-        });
+            sortOrder:
+              req.query
+                .sortOrder as
+                | "asc"
+                | "desc",
+          },
+          req.user.userId,
+          req.user.role
+        );
 
       return successResponse(
         res,
@@ -83,9 +111,19 @@ export class InvoiceController {
     next: NextFunction
   ) {
     try {
+      if (!req.user) {
+        throw new Error(
+          "Authenticated user not found."
+        );
+      }
+
       const invoice =
         await invoiceService.findById(
-          String(req.params.id)
+          String(
+            req.params.id
+          ),
+          req.user.userId,
+          req.user.role
         );
 
       return successResponse(
@@ -106,7 +144,9 @@ export class InvoiceController {
     try {
       const invoice =
         await invoiceService.update(
-          String(req.params.id),
+          String(
+            req.params.id
+          ),
           req.body
         );
 
@@ -127,7 +167,9 @@ export class InvoiceController {
   ) {
     try {
       await invoiceService.delete(
-        String(req.params.id)
+        String(
+          req.params.id
+        )
       );
 
       return successResponse(
@@ -140,25 +182,27 @@ export class InvoiceController {
   }
 
   async send(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const invoice =
-      await invoiceService.send(
-        String(req.params.id)
-      );
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const invoice =
+        await invoiceService.send(
+          String(
+            req.params.id
+          )
+        );
 
-    return successResponse(
-      res,
-      "Invoice sent successfully.",
-      invoice
-    );
-  } catch (error) {
-    next(error);
+      return successResponse(
+        res,
+        "Invoice sent successfully.",
+        invoice
+      );
+    } catch (error) {
+      next(error);
+    }
   }
-}
 }
 
 export const invoiceController =
