@@ -7,6 +7,7 @@ import {
 
 import {
   AlertCircle,
+  ExternalLink,
   Loader2,
   X,
 } from "lucide-react";
@@ -37,17 +38,11 @@ import PaymentsTable, {
   type PaymentTablePermissions,
 } from "@/features/payments/components/PaymentsTable";
 
-import {
-  useInvoices,
-} from "@/features/invoices/hooks/useInvoices";
+import { useInvoices } from "@/features/invoices/hooks/useInvoices";
 
-import {
-  useCurrentUser,
-} from "@/features/auth/hooks/useAuth";
+import { useCurrentUser } from "@/features/auth/hooks/useAuth";
 
-import {
-  authStorage,
-} from "@/features/auth/services/auth-storage";
+import { authStorage } from "@/features/auth/services/auth-storage";
 
 import type {
   Payment,
@@ -58,6 +53,68 @@ import type {
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 400;
+
+/*
+ * Backend API URL.
+ *
+ * Example:
+ * NEXT_PUBLIC_API_URL=http://localhost:5000/api
+ *
+ * Receipt files are served from:
+ * http://localhost:5000/uploads/...
+ */
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:5000/api";
+
+/* -------------------------------------------------------------------------- */
+/* Upload URL helper                                                          */
+/* -------------------------------------------------------------------------- */
+
+function getReceiptImageUrl(
+  receiptImage: string,
+) {
+  if (!receiptImage) {
+    return "";
+  }
+
+  /*
+   * Already absolute:
+   * https://...
+   */
+  if (
+    receiptImage.startsWith(
+      "http://",
+    ) ||
+    receiptImage.startsWith(
+      "https://",
+    )
+  ) {
+    return receiptImage;
+  }
+
+  /*
+   * Remove /api from the API base URL because uploads
+   * are served from /uploads, not /api/uploads.
+   *
+   * Example:
+   * http://localhost:5000/api
+   *       ↓
+   * http://localhost:5000
+   */
+  const serverBaseUrl =
+    API_BASE_URL.replace(
+      /\/api\/?$/,
+      "",
+    );
+
+  const normalizedPath =
+    receiptImage.startsWith("/")
+      ? receiptImage
+      : `/${receiptImage}`;
+
+  return `${serverBaseUrl}${normalizedPath}`;
+}
 
 export default function PaymentsPage() {
   const router = useRouter();
@@ -278,14 +335,20 @@ export default function PaymentsPage() {
   /* ------------------------------------------------------------------------ */
 
   const canAccessPayments =
-    user?.role === "SUPER_ADMIN" ||
-    user?.role === "PROJECT_MANAGER" ||
-    user?.role === "EMPLOYEE" ||
-    user?.role === "CLIENT";
+    user?.role ===
+      "SUPER_ADMIN" ||
+    user?.role ===
+      "PROJECT_MANAGER" ||
+    user?.role ===
+      "EMPLOYEE" ||
+    user?.role ===
+      "CLIENT";
 
   const canManagePayments =
-    user?.role === "SUPER_ADMIN" ||
-    user?.role === "PROJECT_MANAGER";
+    user?.role ===
+      "SUPER_ADMIN" ||
+    user?.role ===
+      "PROJECT_MANAGER";
 
   /*
    * Normal CRM workflow:
@@ -295,10 +358,12 @@ export default function PaymentsPage() {
    *   → payment becomes PENDING
    *
    * SUPER_ADMIN / PROJECT_MANAGER
+   *   → review payment
    *   → verify or reject
    */
   const canCreatePayment =
-    user?.role === "CLIENT";
+    user?.role ===
+    "CLIENT";
 
   const getPermissions = (
     payment: Payment,
@@ -306,11 +371,13 @@ export default function PaymentsPage() {
     return {
       canVerify:
         canManagePayments &&
-        payment.status === "PENDING",
+        payment.status ===
+          "PENDING",
 
       canReject:
         canManagePayments &&
-        payment.status === "PENDING",
+        payment.status ===
+          "PENDING",
 
       canView:
         canAccessPayments,
@@ -341,48 +408,66 @@ export default function PaymentsPage() {
   };
 
   const handleCreate = async (
-  payload: PaymentFormSubmitData,
-) => {
-  setFormError(null);
+    payload: PaymentFormSubmitData,
+  ) => {
+    setFormError(null);
 
-  try {
-    const response =
-      await createPayment.mutateAsync({
-        invoiceId: payload.invoiceId,
-        amount: payload.amount,
-        paymentMethod: payload.paymentMethod,
-        paymentDate: payload.paymentDate,
-        accountTitle: payload.accountTitle,
-        accountNumber: payload.accountNumber,
-        referenceNumber: payload.referenceNumber,
-        notes: payload.notes,
-        receiptImage:
-          payload.receiptImage ?? undefined,
-      });
+    try {
+      const response =
+        await createPayment.mutateAsync({
+          invoiceId:
+            payload.invoiceId,
 
-    toast.success(
-      response.message ||
-        "Payment submitted successfully.",
-    );
+          amount:
+            payload.amount,
 
-    setIsFormOpen(false);
-  } catch (error: any) {
-    console.error(
-      "PAYMENT CREATE ERROR:",
-      error?.response?.data,
-    );
+          paymentMethod:
+            payload.paymentMethod,
 
-    const message =
-      error?.response?.data?.message ||
-      "Failed to submit payment.";
+          paymentDate:
+            payload.paymentDate,
 
-    setFormError(message);
-    toast.error(message);
+          accountTitle:
+            payload.accountTitle,
 
-    // Do NOT rethrow it.
-    return;
-  }
-};
+          accountNumber:
+            payload.accountNumber,
+
+          referenceNumber:
+            payload.referenceNumber,
+
+          notes:
+            payload.notes,
+
+          receiptImage:
+            payload.receiptImage ??
+            undefined,
+        });
+
+      toast.success(
+        response.message ||
+          "Payment submitted successfully.",
+      );
+
+      setIsFormOpen(false);
+    } catch (error: any) {
+      console.error(
+        "PAYMENT CREATE ERROR:",
+        error?.response?.data,
+      );
+
+      const message =
+        error?.response?.data
+          ?.message ||
+        "Failed to submit payment.";
+
+      setFormError(message);
+
+      toast.error(message);
+
+      return;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Verify                                                                   */
@@ -446,45 +531,82 @@ export default function PaymentsPage() {
     }
   };
 
-const invoices =
-  invoicesData?.data ?? [];
+  /* ------------------------------------------------------------------------ */
+  /* Supporting invoice mapping                                              */
+  /* ------------------------------------------------------------------------ */
 
-const paymentFilterInvoices: PaymentInvoice[] =
-  invoices.map((invoice) => ({
-    id: invoice.id,
-    invoiceNumber: invoice.invoiceNumber,
+  const invoices =
+    invoicesData?.data ??
+    [];
 
-    totalAmount: invoice.totalAmount,
-    amountPaid: invoice.amountPaid,
-    balanceDue: invoice.balanceDue,
-
-    status: invoice.status,
-
-    quotation: {
-      id: invoice.quotation.id,
-      quotationNumber:
-        invoice.quotation.quotationNumber,
-
-      client: {
+  const paymentFilterInvoices: PaymentInvoice[] =
+    invoices.map(
+      (invoice) => ({
         id:
-          invoice.quotation.client?.id ??
-          "",
-        companyName:
-          invoice.quotation.client?.companyName ??
-          "Unknown client",
-      },
+          invoice.id,
 
-      project:
-        invoice.quotation.project
-          ? {
-              id:
-                invoice.quotation.project.id,
-              name:
-                invoice.quotation.project.name,
-            }
-          : null,
-    },
-  }));
+        invoiceNumber:
+          invoice.invoiceNumber,
+
+        totalAmount:
+          invoice.totalAmount,
+
+        amountPaid:
+          invoice.amountPaid,
+
+        balanceDue:
+          invoice.balanceDue,
+
+        status:
+          invoice.status,
+
+        quotation: {
+          id:
+            invoice
+              .quotation.id,
+
+          quotationNumber:
+            invoice
+              .quotation
+              .quotationNumber,
+
+          client: {
+            id:
+              invoice
+                .quotation
+                .client
+                ?.id ??
+              "",
+
+            companyName:
+              invoice
+                .quotation
+                .client
+                ?.companyName ??
+              "Unknown client",
+          },
+
+          project:
+            invoice
+              .quotation
+              .project
+              ? {
+                  id:
+                    invoice
+                      .quotation
+                      .project
+                      .id,
+
+                  name:
+                    invoice
+                      .quotation
+                      .project
+                      .name,
+                }
+              : null,
+        },
+      }),
+    );
 
   /* ------------------------------------------------------------------------ */
   /* Initial loading                                                          */
@@ -523,7 +645,9 @@ const paymentFilterInvoices: PaymentInvoice[] =
     !canAccessPayments
   ) {
     return (
-      <DashboardLayout user={user}>
+      <DashboardLayout
+        user={user}
+      >
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -550,7 +674,9 @@ const paymentFilterInvoices: PaymentInvoice[] =
     !data
   ) {
     return (
-      <DashboardLayout user={user}>
+      <DashboardLayout
+        user={user}
+      >
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -570,7 +696,9 @@ const paymentFilterInvoices: PaymentInvoice[] =
     !data
   ) {
     return (
-      <DashboardLayout user={user}>
+      <DashboardLayout
+        user={user}
+      >
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -585,7 +713,9 @@ const paymentFilterInvoices: PaymentInvoice[] =
 
             <button
               type="button"
-              onClick={() => refetch()}
+              onClick={() =>
+                refetch()
+              }
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -610,12 +740,10 @@ const paymentFilterInvoices: PaymentInvoice[] =
    * Only invoices with an outstanding balance
    * can receive a new payment.
    *
-   * The backend still enforces client ownership,
-   * so a CLIENT can only submit payment for their
-   * own invoices.
+   * Backend still enforces client ownership.
    */
   const invoiceOptions: PaymentInvoiceOption[] =
-    (invoicesData?.data ?? [])
+    invoices
       .filter(
         (invoice) =>
           invoice.status !==
@@ -648,7 +776,8 @@ const paymentFilterInvoices: PaymentInvoice[] =
 
           quotation: {
             client:
-              invoice.quotation
+              invoice
+                .quotation
                 ?.client
                 ? {
                     id:
@@ -672,9 +801,13 @@ const paymentFilterInvoices: PaymentInvoice[] =
     receiverData?.data;
 
   return (
-    <DashboardLayout user={user}>
+    <DashboardLayout
+      user={user}
+    >
       <div className="mx-auto max-w-7xl space-y-6">
-        {/* Header */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Header                                                            */}
+        {/* ---------------------------------------------------------------- */}
 
         <PaymentsHeader
           search={
@@ -691,12 +824,14 @@ const paymentFilterInvoices: PaymentInvoice[] =
           }
         />
 
-        {/* Filters */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Filters                                                           */}
+        {/* ---------------------------------------------------------------- */}
 
         <PaymentsFilters
           invoices={
-    paymentFilterInvoices
-  }
+            paymentFilterInvoices
+          }
           invoiceId={
             invoiceId
           }
@@ -720,7 +855,9 @@ const paymentFilterInvoices: PaymentInvoice[] =
           }
         />
 
-        {/* Table */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Table                                                             */}
+        {/* ---------------------------------------------------------------- */}
 
         <PaymentsTable
           payments={
@@ -746,7 +883,9 @@ const paymentFilterInvoices: PaymentInvoice[] =
           }
         />
 
-        {/* Pagination */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Pagination                                                        */}
+        {/* ---------------------------------------------------------------- */}
 
         <PaymentsPagination
           page={
@@ -914,9 +1053,18 @@ function PaymentView({
   onVerify: () => void;
   onReject: () => void;
 }) {
+  const receiptImageUrl =
+    payment.receiptImage
+      ? getReceiptImageUrl(
+          payment.receiptImage,
+        )
+      : "";
+
   return (
     <div className="fixed inset-0 z-[110] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
       <div className="my-4 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:my-8">
+        {/* Header */}
+
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
@@ -942,6 +1090,8 @@ function PaymentView({
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Content */}
 
         <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1027,23 +1177,65 @@ function PaymentView({
             )}
           </div>
 
-          {payment.receiptImage && (
-            <div className="mt-5 rounded-xl border border-slate-200 p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                Receipt
-              </p>
+          {/* ---------------------------------------------------------------- */}
+          {/* Receipt                                                          */}
+          {/* ---------------------------------------------------------------- */}
 
-              <div className="mt-3 overflow-hidden rounded-lg bg-slate-50">
+          {receiptImageUrl && (
+            <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    Payment Receipt
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Proof submitted with this payment.
+                  </p>
+                </div>
+
+                <a
+                  href={
+                    receiptImageUrl
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open
+                </a>
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
                 <img
                   src={
-                    payment.receiptImage
+                    receiptImageUrl
                   }
                   alt="Payment receipt"
-                  className="max-h-[360px] w-full object-contain"
+                  className="max-h-[420px] w-full object-contain"
+                  onError={(event) => {
+                    event.currentTarget.style.display =
+                      "none";
+                  }}
                 />
               </div>
             </div>
           )}
+
+          {!receiptImageUrl && (
+            <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5">
+              <p className="text-sm font-medium text-slate-700">
+                No payment receipt uploaded.
+              </p>
+
+              <p className="mt-1 text-xs text-slate-500">
+                The client did not provide a receipt image with this payment.
+              </p>
+            </div>
+          )}
+
+          {/* Notes */}
 
           {payment.notes && (
             <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -1056,6 +1248,8 @@ function PaymentView({
               </p>
             </div>
           )}
+
+          {/* Verified By */}
 
           {payment.verifiedBy && (
             <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -1083,9 +1277,20 @@ function PaymentView({
                     .email
                 }
               </p>
+
+              {payment.verifiedAt && (
+                <p className="mt-2 text-xs text-slate-400">
+                  Verified on{" "}
+                  {formatDate(
+                    payment.verifiedAt,
+                  )}
+                </p>
+              )}
             </div>
           )}
         </div>
+
+        {/* Footer */}
 
         <div className="flex shrink-0 flex-wrap justify-end gap-3 border-t border-slate-200 px-6 py-4">
           {canVerify &&
