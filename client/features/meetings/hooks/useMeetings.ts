@@ -18,7 +18,12 @@ import type {
 
 export const MEETINGS_QUERY_KEY = ["meetings"] as const;
 
-export function useMeetings(params?: MeetingQueryParams) {
+export function useMeetings(
+  params?: MeetingQueryParams,
+  options?: {
+    enabled?: boolean;
+  },
+) {
   return useQuery({
     queryKey: [...MEETINGS_QUERY_KEY, params],
 
@@ -29,6 +34,8 @@ export function useMeetings(params?: MeetingQueryParams) {
     staleTime: 30 * 1000,
 
     refetchOnWindowFocus: false,
+
+    enabled: options?.enabled ?? true,
   });
 }
 

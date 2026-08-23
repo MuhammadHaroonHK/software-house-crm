@@ -18,7 +18,12 @@ import type {
 
 export const TASKS_QUERY_KEY = ["tasks"] as const;
 
-export function useTasks(params?: TaskQueryParams) {
+export function useTasks(
+  params?: TaskQueryParams,
+  options?: {
+    enabled?: boolean;
+  },
+) {
   return useQuery({
     queryKey: [...TASKS_QUERY_KEY, params],
 
@@ -29,6 +34,8 @@ export function useTasks(params?: TaskQueryParams) {
     staleTime: 30 * 1000,
 
     refetchOnWindowFocus: false,
+
+    enabled: options?.enabled ?? true,
   });
 }
 
