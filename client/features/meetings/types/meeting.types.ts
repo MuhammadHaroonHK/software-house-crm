@@ -1,17 +1,9 @@
-export type MeetingStatus =
-  | "SCHEDULED"
-  | "COMPLETED"
-  | "CANCELLED";
+export type MeetingStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED";
 
 export interface MeetingProject {
   id: string;
   name: string;
-  status:
-    | "PLANNING"
-    | "IN_PROGRESS"
-    | "ON_HOLD"
-    | "COMPLETED"
-    | "CANCELLED";
+  status: "PLANNING" | "IN_PROGRESS" | "ON_HOLD" | "COMPLETED" | "CANCELLED";
 }
 
 export interface MeetingOrganizer {
@@ -22,11 +14,7 @@ export interface MeetingOrganizer {
 
   role: {
     id: string;
-    name:
-      | "SUPER_ADMIN"
-      | "PROJECT_MANAGER"
-      | "EMPLOYEE"
-      | "CLIENT";
+    name: "SUPER_ADMIN" | "PROJECT_MANAGER" | "EMPLOYEE" | "CLIENT";
   };
 }
 

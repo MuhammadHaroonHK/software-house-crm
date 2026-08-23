@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -37,8 +34,7 @@ export function useCurrentUser() {
       return response.data;
     },
 
-    enabled:
-      isClient && !!authStorage.getToken(),
+    enabled: isClient && !!authStorage.getToken(),
 
     staleTime: 0,
 

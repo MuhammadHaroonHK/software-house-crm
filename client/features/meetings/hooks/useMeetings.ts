@@ -7,9 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import {
-  meetingService,
-} from "../services/meeting.service";
+import { meetingService } from "../services/meeting.service";
 
 import type {
   CreateMeetingPayload,
@@ -18,24 +16,15 @@ import type {
   MeetingStatus,
 } from "../types/meeting.types";
 
-export const MEETINGS_QUERY_KEY = [
-  "meetings",
-] as const;
+export const MEETINGS_QUERY_KEY = ["meetings"] as const;
 
-export function useMeetings(
-  params?: MeetingQueryParams
-) {
+export function useMeetings(params?: MeetingQueryParams) {
   return useQuery({
-    queryKey: [
-      ...MEETINGS_QUERY_KEY,
-      params,
-    ],
+    queryKey: [...MEETINGS_QUERY_KEY, params],
 
-    queryFn: () =>
-      meetingService.getAll(params),
+    queryFn: () => meetingService.getAll(params),
 
-    placeholderData:
-      keepPreviousData,
+    placeholderData: keepPreviousData,
 
     staleTime: 30 * 1000,
 
@@ -44,70 +33,50 @@ export function useMeetings(
 }
 
 export function useCreateMeeting() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: CreateMeetingPayload
-    ) =>
-      meetingService.create(data),
+    mutationFn: (data: CreateMeetingPayload) => meetingService.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey:
-          MEETINGS_QUERY_KEY,
+        queryKey: MEETINGS_QUERY_KEY,
       });
     },
   });
 }
 
 export function useUpdateMeeting() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateMeetingPayload;
-    }) =>
-      meetingService.update(
-        id,
-        data
-      ),
+    mutationFn: ({ id, data }: { id: string; data: UpdateMeetingPayload }) =>
+      meetingService.update(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey:
-          MEETINGS_QUERY_KEY,
+        queryKey: MEETINGS_QUERY_KEY,
       });
     },
   });
 }
 
 export function useDeleteMeeting() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      meetingService.delete(id),
+    mutationFn: (id: string) => meetingService.delete(id),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey:
-          MEETINGS_QUERY_KEY,
+        queryKey: MEETINGS_QUERY_KEY,
       });
     },
   });
 }
 
 export function useChangeMeetingStatus() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
@@ -118,16 +87,11 @@ export function useChangeMeetingStatus() {
       data: {
         status: MeetingStatus;
       };
-    }) =>
-      meetingService.changeStatus(
-        id,
-        data
-      ),
+    }) => meetingService.changeStatus(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey:
-          MEETINGS_QUERY_KEY,
+        queryKey: MEETINGS_QUERY_KEY,
       });
     },
   });

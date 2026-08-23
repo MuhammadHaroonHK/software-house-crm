@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { userService } from "../services/user.service";
 
@@ -15,33 +11,21 @@ import type {
   UserFilters,
 } from "../types/user.types";
 
-export const USERS_QUERY_KEY = [
-  "users",
-] as const;
+export const USERS_QUERY_KEY = ["users"] as const;
 
-export const DEPARTMENTS_QUERY_KEY = [
-  "departments",
-] as const;
+export const DEPARTMENTS_QUERY_KEY = ["departments"] as const;
 
-export const CLIENTS_QUERY_KEY = [
-  "clients",
-] as const;
+export const CLIENTS_QUERY_KEY = ["clients"] as const;
 
 /**
  * Get paginated users.
  */
-export function useUsers(
-  filters: UserFilters
-) {
+export function useUsers(filters: UserFilters) {
   return useQuery({
-    queryKey: [
-      ...USERS_QUERY_KEY,
-      filters,
-    ],
+    queryKey: [...USERS_QUERY_KEY, filters],
 
     queryFn: async () => {
-      const response =
-        await userService.getUsers(filters);
+      const response = await userService.getUsers(filters);
 
       return {
         users: response.data,
@@ -60,19 +44,12 @@ export function useUsers(
 /**
  * Get a single user.
  */
-export function useUser(
-  id: string,
-  enabled = true
-) {
+export function useUser(id: string, enabled = true) {
   return useQuery({
-    queryKey: [
-      ...USERS_QUERY_KEY,
-      id,
-    ],
+    queryKey: [...USERS_QUERY_KEY, id],
 
     queryFn: async () => {
-      const response =
-        await userService.getUser(id);
+      const response = await userService.getUser(id);
 
       return response.data;
     },
@@ -95,8 +72,7 @@ export function useDepartments() {
     queryKey: DEPARTMENTS_QUERY_KEY,
 
     queryFn: async () => {
-      const response =
-        await userService.getDepartments();
+      const response = await userService.getDepartments();
 
       return response.data;
     },
@@ -117,8 +93,7 @@ export function useClients() {
     queryKey: CLIENTS_QUERY_KEY,
 
     queryFn: async () => {
-      const response =
-        await userService.getClients();
+      const response = await userService.getClients();
 
       return response.data;
     },
@@ -135,14 +110,10 @@ export function useClients() {
  * Create user.
  */
 export function useCreateUser() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: CreateUserPayload
-    ) =>
-      userService.createUser(data),
+    mutationFn: (data: CreateUserPayload) => userService.createUser(data),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -156,17 +127,10 @@ export function useCreateUser() {
  * Update user.
  */
 export function useUpdateUser() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateUserPayload;
-    }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateUserPayload }) =>
       userService.updateUser(id, data),
 
     onSuccess: async (_, variables) => {
@@ -175,10 +139,7 @@ export function useUpdateUser() {
       });
 
       await queryClient.invalidateQueries({
-        queryKey: [
-          ...USERS_QUERY_KEY,
-          variables.id,
-        ],
+        queryKey: [...USERS_QUERY_KEY, variables.id],
       });
     },
   });
@@ -188,21 +149,11 @@ export function useUpdateUser() {
  * Update user status.
  */
 export function useUpdateUserStatus() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateUserStatusPayload;
-    }) =>
-      userService.updateUserStatus(
-        id,
-        data
-      ),
+    mutationFn: ({ id, data }: { id: string; data: UpdateUserStatusPayload }) =>
+      userService.updateUserStatus(id, data),
 
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -210,10 +161,7 @@ export function useUpdateUserStatus() {
       });
 
       await queryClient.invalidateQueries({
-        queryKey: [
-          ...USERS_QUERY_KEY,
-          variables.id,
-        ],
+        queryKey: [...USERS_QUERY_KEY, variables.id],
       });
     },
   });
@@ -223,12 +171,10 @@ export function useUpdateUserStatus() {
  * Delete user.
  */
 export function useDeleteUser() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      userService.deleteUser(id),
+    mutationFn: (id: string) => userService.deleteUser(id),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({

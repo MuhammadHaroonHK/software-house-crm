@@ -40,12 +40,7 @@ const navigationItems: NavigationItem[] = [
     label: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "EMPLOYEE",
-      "CLIENT",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE", "CLIENT"],
   },
 
   {
@@ -68,127 +63,82 @@ const navigationItems: NavigationItem[] = [
     icon: Building2,
     roles: ["SUPER_ADMIN"],
   },
-  
+
   {
-  label: "Clients",
-  href: "/clients",
-  icon: Building2,
-  roles: [
-    "SUPER_ADMIN",
-    "PROJECT_MANAGER",
-  ],
-},
+    label: "Clients",
+    href: "/clients",
+    icon: Building2,
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER"],
+  },
 
   {
     label: "Projects",
     href: "/projects",
     icon: FolderKanban,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER"],
   },
 
   {
     label: "Tasks",
     href: "/tasks",
     icon: CheckSquare,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "EMPLOYEE",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE"],
   },
 
   {
     label: "Meetings",
     href: "/meetings",
     icon: CalendarDays,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "EMPLOYEE",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE"],
   },
 
   {
     label: "Quotations",
     href: "/quotations",
     icon: FileText,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "CLIENT",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "CLIENT"],
   },
 
   {
     label: "Invoices",
     href: "/invoices",
     icon: Receipt,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "CLIENT",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "CLIENT"],
   },
 
   {
     label: "Payments",
     href: "/payments",
     icon: CreditCard,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "EMPLOYEE",
-      "CLIENT",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE", "CLIENT"],
   },
 
   {
     label: "Notifications",
     href: "/notifications",
     icon: Bell,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "EMPLOYEE",
-      "CLIENT",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE", "CLIENT"],
   },
 
   {
     label: "Files",
     href: "/files",
     icon: File,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "EMPLOYEE",
-      "CLIENT",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE", "CLIENT"],
   },
 
   {
     label: "Contact Persons",
     href: "/contact-persons",
     icon: UserRound,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER"],
   },
 
   {
     label: "Settings",
     href: "/settings",
     icon: Settings,
-    roles: [
-      "SUPER_ADMIN",
-      "PROJECT_MANAGER",
-      "EMPLOYEE",
-      "CLIENT",
-    ],
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE", "CLIENT"],
   },
 ];
 
@@ -201,7 +151,7 @@ export default function Sidebar({
   const pathname = usePathname();
 
   const visibleItems = navigationItems.filter((item) =>
-    item.roles.includes(role)
+    item.roles.includes(role),
   );
 
   /*
@@ -233,19 +183,9 @@ export default function Sidebar({
           border-r border-slate-200 bg-white
           transition-all duration-300 ease-in-out
 
-          ${
-            mobileOpen
-              ? "w-64"
-              : collapsed
-                ? "w-20"
-                : "w-64"
-          }
+          ${mobileOpen ? "w-64" : collapsed ? "w-20" : "w-64"}
 
-          ${
-            mobileOpen
-              ? "translate-x-0"
-              : "-translate-x-full md:translate-x-0"
-          }
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
         {/* Logo */}
@@ -253,11 +193,7 @@ export default function Sidebar({
           className={`
             flex h-16 shrink-0 items-center
             border-b border-slate-200
-            ${
-              showText
-                ? "px-6"
-                : "justify-center px-3"
-            }
+            ${showText ? "px-6" : "justify-center px-3"}
           `}
         >
           <Link
@@ -271,9 +207,7 @@ export default function Sidebar({
                 Software House CRM
               </span>
             ) : (
-              <span className="text-xl font-bold text-slate-900">
-                CRM
-              </span>
+              <span className="text-xl font-bold text-slate-900">CRM</span>
             )}
           </Link>
 
@@ -303,30 +237,20 @@ export default function Sidebar({
               const isActive =
                 pathname === item.href ||
                 (item.href !== "/dashboard" &&
-                  pathname.startsWith(
-                    `${item.href}/`
-                  ));
+                  pathname.startsWith(`${item.href}/`));
 
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={onCloseMobile}
-                  title={
-                    !showText
-                      ? item.label
-                      : undefined
-                  }
+                  title={!showText ? item.label : undefined}
                   className={`
                     flex items-center rounded-lg
                     py-2.5 text-sm font-medium
                     transition
 
-                    ${
-                      showText
-                        ? "gap-3 px-3"
-                        : "justify-center px-3"
-                    }
+                    ${showText ? "gap-3 px-3" : "justify-center px-3"}
 
                     ${
                       isActive
@@ -337,9 +261,7 @@ export default function Sidebar({
                 >
                   <Icon className="h-4 w-4 shrink-0" />
 
-                  {showText && (
-                    <span>{item.label}</span>
-                  )}
+                  {showText && <span>{item.label}</span>}
                 </Link>
               );
             })}
@@ -350,9 +272,7 @@ export default function Sidebar({
         <div className="shrink-0 border-t border-slate-200 p-4">
           {showText ? (
             <>
-              <p className="text-xs text-slate-400">
-                Current role
-              </p>
+              <p className="text-xs text-slate-400">Current role</p>
 
               <p className="mt-1 text-sm font-medium text-slate-700">
                 {role.replaceAll("_", " ")}

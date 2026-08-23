@@ -14,25 +14,17 @@ import type {
   PaymentQueryParams,
 } from "../types/payment.types";
 
-export const PAYMENTS_QUERY_KEY = [
-  "payments",
-] as const;
+export const PAYMENTS_QUERY_KEY = ["payments"] as const;
 
 /* -------------------------------------------------------------------------- */
 /* List                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export function usePayments(
-  params?: PaymentQueryParams,
-) {
+export function usePayments(params?: PaymentQueryParams) {
   return useQuery({
-    queryKey: [
-      ...PAYMENTS_QUERY_KEY,
-      params,
-    ],
+    queryKey: [...PAYMENTS_QUERY_KEY, params],
 
-    queryFn: () =>
-      paymentService.getAll(params),
+    queryFn: () => paymentService.getAll(params),
 
     placeholderData: keepPreviousData,
 
@@ -46,18 +38,11 @@ export function usePayments(
 /* Single                                                                     */
 /* -------------------------------------------------------------------------- */
 
-export function usePayment(
-  id?: string,
-) {
+export function usePayment(id?: string) {
   return useQuery({
-    queryKey: [
-      ...PAYMENTS_QUERY_KEY,
-      "detail",
-      id,
-    ],
+    queryKey: [...PAYMENTS_QUERY_KEY, "detail", id],
 
-    queryFn: () =>
-      paymentService.getById(id as string),
+    queryFn: () => paymentService.getById(id as string),
 
     enabled: Boolean(id),
 
@@ -73,13 +58,9 @@ export function usePayment(
 
 export function usePaymentReceiverDetails() {
   return useQuery({
-    queryKey: [
-      ...PAYMENTS_QUERY_KEY,
-      "receiver-details",
-    ],
+    queryKey: [...PAYMENTS_QUERY_KEY, "receiver-details"],
 
-    queryFn: () =>
-      paymentService.getReceiverDetails(),
+    queryFn: () => paymentService.getReceiverDetails(),
 
     staleTime: 5 * 60 * 1000,
 
@@ -95,10 +76,7 @@ export function useCreatePayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: CreatePaymentPayload,
-    ) =>
-      paymentService.create(data),
+    mutationFn: (data: CreatePaymentPayload) => paymentService.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -116,23 +94,15 @@ export function useVerifyPayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      paymentService.verify(id),
+    mutationFn: (id: string) => paymentService.verify(id),
 
-    onSuccess: (
-      _response,
-      id,
-    ) => {
+    onSuccess: (_response, id) => {
       queryClient.invalidateQueries({
         queryKey: PAYMENTS_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...PAYMENTS_QUERY_KEY,
-          "detail",
-          id,
-        ],
+        queryKey: [...PAYMENTS_QUERY_KEY, "detail", id],
       });
 
       queryClient.invalidateQueries({
@@ -150,23 +120,15 @@ export function useRejectPayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      paymentService.reject(id),
+    mutationFn: (id: string) => paymentService.reject(id),
 
-    onSuccess: (
-      _response,
-      id,
-    ) => {
+    onSuccess: (_response, id) => {
       queryClient.invalidateQueries({
         queryKey: PAYMENTS_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...PAYMENTS_QUERY_KEY,
-          "detail",
-          id,
-        ],
+        queryKey: [...PAYMENTS_QUERY_KEY, "detail", id],
       });
     },
   });

@@ -37,12 +37,7 @@ export interface InvoiceQuotation {
   tax: string | number;
   totalAmount: string | number;
 
-  status:
-    | "DRAFT"
-    | "SENT"
-    | "ACCEPTED"
-    | "REJECTED"
-    | "EXPIRED";
+  status: "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "EXPIRED";
 
   notes: string | null;
 

@@ -1,24 +1,11 @@
-export type TaskPriority =
-  | "LOW"
-  | "MEDIUM"
-  | "HIGH"
-  | "URGENT";
+export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
-export type TaskStatus =
-  | "TODO"
-  | "IN_PROGRESS"
-  | "IN_REVIEW"
-  | "COMPLETED";
+export type TaskStatus = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "COMPLETED";
 
 export interface TaskProject {
   id: string;
   name: string;
-  status:
-    | "PLANNING"
-    | "IN_PROGRESS"
-    | "ON_HOLD"
-    | "COMPLETED"
-    | "CANCELLED";
+  status: "PLANNING" | "IN_PROGRESS" | "ON_HOLD" | "COMPLETED" | "CANCELLED";
   managerId: string;
 }
 
@@ -30,11 +17,7 @@ export interface TaskAssignedUser {
 
   role: {
     id: string;
-    name:
-      | "SUPER_ADMIN"
-      | "PROJECT_MANAGER"
-      | "EMPLOYEE"
-      | "CLIENT";
+    name: "SUPER_ADMIN" | "PROJECT_MANAGER" | "EMPLOYEE" | "CLIENT";
   };
 }
 

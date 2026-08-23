@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  type ReactNode,
-  useEffect,
-  useState,
-} from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -20,11 +16,9 @@ export default function DashboardLayout({
   children,
   user,
 }: DashboardLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] =
-    useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const [mobileSidebarOpen, setMobileSidebarOpen] =
-    useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   /*
    * Automatically collapse sidebar on medium screens.
@@ -46,16 +40,10 @@ export default function DashboardLayout({
 
     handleResize();
 
-    window.addEventListener(
-      "resize",
-      handleResize
-    );
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener(
-        "resize",
-        handleResize
-      );
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -64,16 +52,12 @@ export default function DashboardLayout({
      * On mobile/tablet we open the sidebar as an overlay.
      */
     if (window.innerWidth < 768) {
-      setMobileSidebarOpen(
-        (previous) => !previous
-      );
+      setMobileSidebarOpen((previous) => !previous);
 
       return;
     }
 
-    setSidebarCollapsed(
-      (previous) => !previous
-    );
+    setSidebarCollapsed((previous) => !previous);
   };
 
   return (
@@ -82,29 +66,18 @@ export default function DashboardLayout({
         role={user.role}
         collapsed={sidebarCollapsed}
         mobileOpen={mobileSidebarOpen}
-        onCloseMobile={() =>
-          setMobileSidebarOpen(false)
-        }
+        onCloseMobile={() => setMobileSidebarOpen(false)}
       />
 
       <div
         className={`
           min-h-screen transition-all duration-300
-          ${
-            sidebarCollapsed
-              ? "md:pl-20"
-              : "md:pl-64"
-          }
+          ${sidebarCollapsed ? "md:pl-20" : "md:pl-64"}
         `}
       >
-        <Header
-          user={user}
-          onToggleSidebar={toggleSidebar}
-        />
+        <Header user={user} onToggleSidebar={toggleSidebar} />
 
-        <main className="p-4 sm:p-6">
-          {children}
-        </main>
+        <main className="p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

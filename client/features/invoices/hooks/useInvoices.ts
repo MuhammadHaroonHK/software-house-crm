@@ -15,28 +15,19 @@ import type {
   UpdateInvoicePayload,
 } from "../types/invoice.types";
 
-export const INVOICES_QUERY_KEY = [
-  "invoices",
-] as const;
+export const INVOICES_QUERY_KEY = ["invoices"] as const;
 
 /* -------------------------------------------------------------------------- */
 /* List                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export function useInvoices(
-  params?: InvoiceQueryParams,
-) {
+export function useInvoices(params?: InvoiceQueryParams) {
   return useQuery({
-    queryKey: [
-      ...INVOICES_QUERY_KEY,
-      params,
-    ],
+    queryKey: [...INVOICES_QUERY_KEY, params],
 
-    queryFn: () =>
-      invoiceService.getAll(params),
+    queryFn: () => invoiceService.getAll(params),
 
-    placeholderData:
-      keepPreviousData,
+    placeholderData: keepPreviousData,
 
     staleTime: 30 * 1000,
 
@@ -48,20 +39,11 @@ export function useInvoices(
 /* Single invoice                                                             */
 /* -------------------------------------------------------------------------- */
 
-export function useInvoice(
-  id?: string,
-) {
+export function useInvoice(id?: string) {
   return useQuery({
-    queryKey: [
-      ...INVOICES_QUERY_KEY,
-      "detail",
-      id,
-    ],
+    queryKey: [...INVOICES_QUERY_KEY, "detail", id],
 
-    queryFn: () =>
-      invoiceService.getById(
-        id as string,
-      ),
+    queryFn: () => invoiceService.getById(id as string),
 
     enabled: Boolean(id),
 
@@ -76,19 +58,14 @@ export function useInvoice(
 /* -------------------------------------------------------------------------- */
 
 export function useCreateInvoice() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: CreateInvoicePayload,
-    ) =>
-      invoiceService.create(data),
+    mutationFn: (data: CreateInvoicePayload) => invoiceService.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey:
-          INVOICES_QUERY_KEY,
+        queryKey: INVOICES_QUERY_KEY,
       });
     },
   });
@@ -99,37 +76,19 @@ export function useCreateInvoice() {
 /* -------------------------------------------------------------------------- */
 
 export function useUpdateInvoice() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateInvoicePayload;
-    }) =>
-      invoiceService.update(
-        id,
-        data,
-      ),
+    mutationFn: ({ id, data }: { id: string; data: UpdateInvoicePayload }) =>
+      invoiceService.update(id, data),
 
-    onSuccess: (
-      response,
-      variables,
-    ) => {
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({
-        queryKey:
-          INVOICES_QUERY_KEY,
+        queryKey: INVOICES_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...INVOICES_QUERY_KEY,
-          "detail",
-          variables.id,
-        ],
+        queryKey: [...INVOICES_QUERY_KEY, "detail", variables.id],
       });
     },
   });
@@ -140,30 +99,18 @@ export function useUpdateInvoice() {
 /* -------------------------------------------------------------------------- */
 
 export function useSendInvoice() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      id: string,
-    ) =>
-      invoiceService.send(id),
+    mutationFn: (id: string) => invoiceService.send(id),
 
-    onSuccess: (
-      response,
-      id,
-    ) => {
+    onSuccess: (response, id) => {
       queryClient.invalidateQueries({
-        queryKey:
-          INVOICES_QUERY_KEY,
+        queryKey: INVOICES_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...INVOICES_QUERY_KEY,
-          "detail",
-          id,
-        ],
+        queryKey: [...INVOICES_QUERY_KEY, "detail", id],
       });
     },
   });
@@ -174,19 +121,14 @@ export function useSendInvoice() {
 /* -------------------------------------------------------------------------- */
 
 export function useDeleteInvoice() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      id: string,
-    ) =>
-      invoiceService.delete(id),
+    mutationFn: (id: string) => invoiceService.delete(id),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey:
-          INVOICES_QUERY_KEY,
+        queryKey: INVOICES_QUERY_KEY,
       });
     },
   });

@@ -15,24 +15,15 @@ import type {
   UpdateQuotationPayload,
 } from "../types/quotation.types";
 
-export const QUOTATIONS_QUERY_KEY = [
-  "quotations",
-] as const;
+export const QUOTATIONS_QUERY_KEY = ["quotations"] as const;
 
-export function useQuotations(
-  params?: QuotationQueryParams
-) {
+export function useQuotations(params?: QuotationQueryParams) {
   return useQuery({
-    queryKey: [
-      ...QUOTATIONS_QUERY_KEY,
-      params,
-    ],
+    queryKey: [...QUOTATIONS_QUERY_KEY, params],
 
-    queryFn: () =>
-      quotationService.getAll(params),
+    queryFn: () => quotationService.getAll(params),
 
-    placeholderData:
-      keepPreviousData,
+    placeholderData: keepPreviousData,
 
     staleTime: 30 * 1000,
 
@@ -40,20 +31,11 @@ export function useQuotations(
   });
 }
 
-export function useQuotation(
-  id?: string
-) {
+export function useQuotation(id?: string) {
   return useQuery({
-    queryKey: [
-      ...QUOTATIONS_QUERY_KEY,
-      "detail",
-      id,
-    ],
+    queryKey: [...QUOTATIONS_QUERY_KEY, "detail", id],
 
-    queryFn: () =>
-      quotationService.getById(
-        id as string
-      ),
+    queryFn: () => quotationService.getById(id as string),
 
     enabled: Boolean(id),
 
@@ -64,182 +46,119 @@ export function useQuotation(
 }
 
 export function useCreateQuotation() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: CreateQuotationPayload
-    ) =>
-      quotationService.create(
-        data
-      ),
+    mutationFn: (data: CreateQuotationPayload) => quotationService.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey:
-          QUOTATIONS_QUERY_KEY,
+        queryKey: QUOTATIONS_QUERY_KEY,
       });
     },
   });
 }
 
 export function useUpdateQuotation() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateQuotationPayload;
-    }) =>
-      quotationService.update(
-        id,
-        data
-      ),
+    mutationFn: ({ id, data }: { id: string; data: UpdateQuotationPayload }) =>
+      quotationService.update(id, data),
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey:
-          QUOTATIONS_QUERY_KEY,
+        queryKey: QUOTATIONS_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...QUOTATIONS_QUERY_KEY,
-          "detail",
-          variables.id,
-        ],
+        queryKey: [...QUOTATIONS_QUERY_KEY, "detail", variables.id],
       });
     },
   });
 }
 
 export function useSendQuotation() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      id: string
-    ) =>
-      quotationService.send(id),
+    mutationFn: (id: string) => quotationService.send(id),
 
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({
-        queryKey:
-          QUOTATIONS_QUERY_KEY,
+        queryKey: QUOTATIONS_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...QUOTATIONS_QUERY_KEY,
-          "detail",
-          id,
-        ],
+        queryKey: [...QUOTATIONS_QUERY_KEY, "detail", id],
       });
     },
   });
 }
 
 export function useAcceptQuotation() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      id: string
-    ) =>
-      quotationService.accept(id),
+    mutationFn: (id: string) => quotationService.accept(id),
 
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({
-        queryKey:
-          QUOTATIONS_QUERY_KEY,
+        queryKey: QUOTATIONS_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...QUOTATIONS_QUERY_KEY,
-          "detail",
-          id,
-        ],
+        queryKey: [...QUOTATIONS_QUERY_KEY, "detail", id],
       });
     },
   });
 }
 
 export function useRejectQuotation() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      id: string
-    ) =>
-      quotationService.reject(id),
+    mutationFn: (id: string) => quotationService.reject(id),
 
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({
-        queryKey:
-          QUOTATIONS_QUERY_KEY,
+        queryKey: QUOTATIONS_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...QUOTATIONS_QUERY_KEY,
-          "detail",
-          id,
-        ],
+        queryKey: [...QUOTATIONS_QUERY_KEY, "detail", id],
       });
     },
   });
 }
 
 export function useExpireQuotation() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      id: string
-    ) =>
-      quotationService.expire(id),
+    mutationFn: (id: string) => quotationService.expire(id),
 
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({
-        queryKey:
-          QUOTATIONS_QUERY_KEY,
+        queryKey: QUOTATIONS_QUERY_KEY,
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          ...QUOTATIONS_QUERY_KEY,
-          "detail",
-          id,
-        ],
+        queryKey: [...QUOTATIONS_QUERY_KEY, "detail", id],
       });
     },
   });
 }
 
 export function useDeleteQuotation() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      id: string
-    ) =>
-      quotationService.delete(id),
+    mutationFn: (id: string) => quotationService.delete(id),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey:
-          QUOTATIONS_QUERY_KEY,
+        queryKey: QUOTATIONS_QUERY_KEY,
       });
     },
   });

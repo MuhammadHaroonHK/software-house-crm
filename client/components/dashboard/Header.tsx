@@ -2,13 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  Bell,
-  ChevronDown,
-  LogOut,
-  Menu,
-  User,
-} from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, User } from "lucide-react";
 
 import type { MeResponse } from "@/features/auth/types/auth.types";
 import { useLogout } from "@/features/auth/hooks/useAuth";
@@ -18,15 +12,10 @@ interface HeaderProps {
   onToggleSidebar: () => void;
 }
 
-export default function Header({
-  user,
-  onToggleSidebar,
-}: HeaderProps) {
-  const [isProfileOpen, setIsProfileOpen] =
-    useState(false);
+export default function Header({ user, onToggleSidebar }: HeaderProps) {
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const dropdownRef =
-    useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { logout } = useLogout();
 
@@ -34,24 +23,16 @@ export default function Header({
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(
-          event.target as Node
-        )
+        !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsProfileOpen(false);
       }
     };
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -74,9 +55,7 @@ export default function Header({
         </button>
 
         <div className="hidden sm:block">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Dashboard
-          </h2>
+          <h2 className="text-lg font-semibold text-slate-900">Dashboard</h2>
         </div>
       </div>
 
@@ -95,17 +74,10 @@ export default function Header({
         </Link>
 
         {/* Profile */}
-        <div
-          ref={dropdownRef}
-          className="relative"
-        >
+        <div ref={dropdownRef} className="relative">
           <button
             type="button"
-            onClick={() =>
-              setIsProfileOpen(
-                (previous) => !previous
-              )
-            }
+            onClick={() => setIsProfileOpen((previous) => !previous)}
             className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-slate-100"
             aria-expanded={isProfileOpen}
             aria-haspopup="menu"
@@ -119,9 +91,7 @@ export default function Header({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                initials || (
-                  <User className="h-4 w-4" />
-                )
+                initials || <User className="h-4 w-4" />
               )}
             </div>
 
@@ -131,16 +101,12 @@ export default function Header({
                 {user.firstName} {user.lastName}
               </p>
 
-              <p className="text-xs text-slate-500">
-                {role}
-              </p>
+              <p className="text-xs text-slate-500">{role}</p>
             </div>
 
             <ChevronDown
               className={`hidden h-4 w-4 text-slate-500 transition sm:block ${
-                isProfileOpen
-                  ? "rotate-180"
-                  : ""
+                isProfileOpen ? "rotate-180" : ""
               }`}
             />
           </button>
@@ -160,9 +126,7 @@ export default function Header({
 
               <Link
                 href="/profile"
-                onClick={() =>
-                  setIsProfileOpen(false)
-                }
+                onClick={() => setIsProfileOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
               >
                 <User className="h-4 w-4" />

@@ -15,48 +15,34 @@ import type {
   UpdateClientPayload,
 } from "../types/client.types";
 
-export const CLIENTS_QUERY_KEY = [
-  "clients",
-] as const;
+export const CLIENTS_QUERY_KEY = ["clients"] as const;
 
 export function useClients(
   params?: ClientQueryParams,
   options?: {
     enabled?: boolean;
-  }
+  },
 ) {
   return useQuery({
-    queryKey: [
-      ...CLIENTS_QUERY_KEY,
-      params,
-    ],
+    queryKey: [...CLIENTS_QUERY_KEY, params],
 
-    queryFn: () =>
-      clientService.getAll(params),
+    queryFn: () => clientService.getAll(params),
 
-    placeholderData:
-      keepPreviousData,
+    placeholderData: keepPreviousData,
 
-    staleTime:
-      30 * 1000,
+    staleTime: 30 * 1000,
 
-    refetchOnWindowFocus:
-      false,
+    refetchOnWindowFocus: false,
 
-    enabled:
-      options?.enabled ?? true,
+    enabled: options?.enabled ?? true,
   });
 }
 
 export function useCreateClient() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: CreateClientPayload
-    ) =>
-      clientService.create(data),
+    mutationFn: (data: CreateClientPayload) => clientService.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -67,21 +53,11 @@ export function useCreateClient() {
 }
 
 export function useUpdateClient() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateClientPayload;
-    }) =>
-      clientService.update(
-        id,
-        data
-      ),
+    mutationFn: ({ id, data }: { id: string; data: UpdateClientPayload }) =>
+      clientService.update(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -92,12 +68,10 @@ export function useUpdateClient() {
 }
 
 export function useDeleteClient() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      clientService.delete(id),
+    mutationFn: (id: string) => clientService.delete(id),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

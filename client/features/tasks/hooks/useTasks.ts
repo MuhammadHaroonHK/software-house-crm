@@ -16,24 +16,15 @@ import type {
   UpdateTaskStatusPayload,
 } from "../types/task.types";
 
-export const TASKS_QUERY_KEY = [
-  "tasks",
-] as const;
+export const TASKS_QUERY_KEY = ["tasks"] as const;
 
-export function useTasks(
-  params?: TaskQueryParams
-) {
+export function useTasks(params?: TaskQueryParams) {
   return useQuery({
-    queryKey: [
-      ...TASKS_QUERY_KEY,
-      params,
-    ],
+    queryKey: [...TASKS_QUERY_KEY, params],
 
-    queryFn: () =>
-      taskService.getAll(params),
+    queryFn: () => taskService.getAll(params),
 
-    placeholderData:
-      keepPreviousData,
+    placeholderData: keepPreviousData,
 
     staleTime: 30 * 1000,
 
@@ -42,14 +33,10 @@ export function useTasks(
 }
 
 export function useCreateTask() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: CreateTaskPayload
-    ) =>
-      taskService.create(data),
+    mutationFn: (data: CreateTaskPayload) => taskService.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -60,21 +47,11 @@ export function useCreateTask() {
 }
 
 export function useUpdateTask() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateTaskPayload;
-    }) =>
-      taskService.update(
-        id,
-        data
-      ),
+    mutationFn: ({ id, data }: { id: string; data: UpdateTaskPayload }) =>
+      taskService.update(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -85,21 +62,11 @@ export function useUpdateTask() {
 }
 
 export function useUpdateTaskStatus() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateTaskStatusPayload;
-    }) =>
-      taskService.updateStatus(
-        id,
-        data
-      ),
+    mutationFn: ({ id, data }: { id: string; data: UpdateTaskStatusPayload }) =>
+      taskService.updateStatus(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -110,12 +77,10 @@ export function useUpdateTaskStatus() {
 }
 
 export function useDeleteTask() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      taskService.delete(id),
+    mutationFn: (id: string) => taskService.delete(id),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

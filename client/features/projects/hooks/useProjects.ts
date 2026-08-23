@@ -17,48 +17,34 @@ import type {
   UpdateProjectPayload,
 } from "../types/project.types";
 
-export const PROJECTS_QUERY_KEY = [
-  "projects",
-] as const;
+export const PROJECTS_QUERY_KEY = ["projects"] as const;
 
 export function useProjects(
   params?: ProjectQueryParams,
   options?: {
     enabled?: boolean;
-  }
+  },
 ) {
   return useQuery({
-    queryKey: [
-      ...PROJECTS_QUERY_KEY,
-      params,
-    ],
+    queryKey: [...PROJECTS_QUERY_KEY, params],
 
-    queryFn: () =>
-      projectService.getAll(params),
+    queryFn: () => projectService.getAll(params),
 
-    placeholderData:
-      keepPreviousData,
+    placeholderData: keepPreviousData,
 
-    staleTime:
-      30 * 1000,
+    staleTime: 30 * 1000,
 
-    refetchOnWindowFocus:
-      false,
+    refetchOnWindowFocus: false,
 
-    enabled:
-      options?.enabled ?? true,
+    enabled: options?.enabled ?? true,
   });
 }
 
 export function useCreateProject() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: CreateProjectPayload
-    ) =>
-      projectService.create(data),
+    mutationFn: (data: CreateProjectPayload) => projectService.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -69,21 +55,11 @@ export function useCreateProject() {
 }
 
 export function useUpdateProject() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateProjectPayload;
-    }) =>
-      projectService.update(
-        id,
-        data
-      ),
+    mutationFn: ({ id, data }: { id: string; data: UpdateProjectPayload }) =>
+      projectService.update(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -94,8 +70,7 @@ export function useUpdateProject() {
 }
 
 export function useChangeProjectManager() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
@@ -104,11 +79,7 @@ export function useChangeProjectManager() {
     }: {
       id: string;
       data: ChangeProjectManagerPayload;
-    }) =>
-      projectService.changeManager(
-        id,
-        data
-      ),
+    }) => projectService.changeManager(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -119,8 +90,7 @@ export function useChangeProjectManager() {
 }
 
 export function useChangeProjectStatus() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
@@ -129,11 +99,7 @@ export function useChangeProjectStatus() {
     }: {
       id: string;
       data: ChangeProjectStatusPayload;
-    }) =>
-      projectService.changeStatus(
-        id,
-        data
-      ),
+    }) => projectService.changeStatus(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -144,12 +110,10 @@ export function useChangeProjectStatus() {
 }
 
 export function useDeleteProject() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      projectService.delete(id),
+    mutationFn: (id: string) => projectService.delete(id),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

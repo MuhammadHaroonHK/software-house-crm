@@ -1,14 +1,6 @@
-export type PaymentMethod =
-  | "CASH"
-  | "BANK_TRANSFER"
-  | "EASYPAISA"
-  | "JAZZCASH";
+export type PaymentMethod = "CASH" | "BANK_TRANSFER" | "EASYPAISA" | "JAZZCASH";
 
-export type PaymentStatus =
-  | "PENDING"
-  | "COMPLETED"
-  | "FAILED"
-  | "REFUNDED";
+export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED";
 
 export interface PaymentClient {
   id: string;
@@ -33,12 +25,7 @@ export interface PaymentInvoice {
   totalAmount: string | number;
   amountPaid: string | number;
   balanceDue: string | number;
-  status:
-    | "DRAFT"
-    | "SENT"
-    | "PARTIALLY_PAID"
-    | "PAID"
-    | "OVERDUE";
+  status: "DRAFT" | "SENT" | "PARTIALLY_PAID" | "PAID" | "OVERDUE";
   quotation: PaymentQuotation;
 }
 
@@ -138,10 +125,7 @@ export interface PaymentQueryParams {
   invoiceId?: string;
   status?: PaymentStatus;
   paymentMethod?: PaymentMethod;
-  sortBy?:
-    | "amount"
-    | "paymentDate"
-    | "createdAt";
+  sortBy?: "amount" | "paymentDate" | "createdAt";
   sortOrder?: "asc" | "desc";
 }
 
