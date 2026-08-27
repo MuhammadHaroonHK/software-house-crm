@@ -5,7 +5,7 @@ import type {
   QuotationItemMutationResponse,
   QuotationItemsResponse,
   UpdateQuotationItemPayload,
-} from "../types/quotation.types";
+} from "../types/quotationItem.types";
 
 export const quotationItemService = {
   async getAll(

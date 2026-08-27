@@ -17,7 +17,7 @@ import {
 import type {
   CreateQuotationItemPayload,
   UpdateQuotationItemPayload,
-} from "../types/quotation.types";
+} from "../types/quotationItem.types";
 
 export const QUOTATION_ITEMS_QUERY_KEY = [
   "quotation-items",
