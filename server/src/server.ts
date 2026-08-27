@@ -1,49 +1,9 @@
-import express from "express";
+import "dotenv/config";
+
 import env from "./config/env";
-import routes from "./routes";
-import { errorHandler } from "./middleware/errorHandler";
-
-import cors from "cors";
-
-const app = express();
+import app from "./app";
 
 const PORT = Number(env.PORT);
-
-/* -------------------------------------------------------------------------- */
-/* CORS                                                                       */
-/* -------------------------------------------------------------------------- */
-
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
-
-/* -------------------------------------------------------------------------- */
-/* Body                                                                       */
-/* -------------------------------------------------------------------------- */
-
-app.use(express.json());
-
-/* -------------------------------------------------------------------------- */
-/* Routes                                                                     */
-/* -------------------------------------------------------------------------- */
-
-app.use("/api", routes);
-
-/* -------------------------------------------------------------------------- */
-/* Error Handler                                                              */
-/* -------------------------------------------------------------------------- */
-
-app.use(errorHandler);
-
-/* -------------------------------------------------------------------------- */
-/* Server                                                                     */
-/* -------------------------------------------------------------------------- */
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

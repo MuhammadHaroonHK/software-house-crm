@@ -21,7 +21,7 @@ import auditLogRoutes from "../modules/auditLogs/auditLog.routes";
 
 const router = Router();
 
-router.use("/", healthRoutes);
+router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/departments", departmentRoutes);
