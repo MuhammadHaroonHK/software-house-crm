@@ -50,11 +50,26 @@ const navigationItems: NavigationItem[] = [
     roles: ["SUPER_ADMIN"],
   },
 
+  
   {
     label: "Departments",
     href: "/departments",
     icon: Building2,
     roles: ["SUPER_ADMIN"],
+  },
+
+  {
+    label: "Clients",
+    href: "/clients",
+    icon: Building2,
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER"],
+  },
+
+  {
+    label: "Contact Persons",
+    href: "/contact-persons",
+    icon: UserRound,
+    roles: ["SUPER_ADMIN", "PROJECT_MANAGER"],
   },
 
   // {
@@ -63,13 +78,6 @@ const navigationItems: NavigationItem[] = [
   //   icon: Building2,
   //   roles: ["SUPER_ADMIN"],
   // },
-
-  {
-    label: "Clients",
-    href: "/clients",
-    icon: Building2,
-    roles: ["SUPER_ADMIN", "PROJECT_MANAGER"],
-  },
 
   {
     label: "Projects",
@@ -127,12 +135,6 @@ const navigationItems: NavigationItem[] = [
   //   roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE", "CLIENT"],
   // },
 
-  {
-    label: "Contact Persons",
-    href: "/contact-persons",
-    icon: UserRound,
-    roles: ["SUPER_ADMIN", "PROJECT_MANAGER"],
-  },
 
   {
     label: "Settings",
