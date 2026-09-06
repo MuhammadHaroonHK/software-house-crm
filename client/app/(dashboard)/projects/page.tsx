@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 
@@ -69,23 +63,16 @@ export default function ProjectsPage() {
   /* Supporting data                                                          */
   /* ------------------------------------------------------------------------ */
 
-  const {
-    data: clientsData,
-  } = useClients({
+  const { data: clientsData } = useClients({
     limit: 100,
   });
 
-  const {
-    data: usersData,
-  } = useUsers({
+  const { data: usersData } = useUsers({
     limit: 100,
     role: "PROJECT_MANAGER",
   });
 
-  const {
-    data: employeesData,
-    isLoading: isEmployeesLoading,
-  } = useUsers({
+  const { data: employeesData, isLoading: isEmployeesLoading } = useUsers({
     limit: 100,
     role: "EMPLOYEE",
   });
@@ -94,41 +81,29 @@ export default function ProjectsPage() {
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [editingProject, setEditingProject] =
-    useState<Project | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
 
-  const [viewingProject, setViewingProject] =
-    useState<Project | null>(null);
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);
 
-  const [deleteProject, setDeleteProject] =
-    useState<Project | null>(null);
+  const [deleteProject, setDeleteProject] = useState<Project | null>(null);
 
-  const [statusProject, setStatusProject] =
-    useState<Project | null>(null);
+  const [statusProject, setStatusProject] = useState<Project | null>(null);
 
-  const [membersProject, setMembersProject] =
-    useState<Project | null>(null);
+  const [membersProject, setMembersProject] = useState<Project | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const [membersError, setMembersError] =
-    useState<string | null>(null);
+  const [membersError, setMembersError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication                                                           */
@@ -153,8 +128,7 @@ export default function ProjectsPage() {
   } = useProjects({
     page,
     limit: PAGE_SIZE,
-    search:
-      search || undefined,
+    search: search || undefined,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
@@ -167,31 +141,23 @@ export default function ProjectsPage() {
     data: membersData,
     isLoading: isMembersLoading,
     isError: isMembersError,
-  } = useProjectMembers(
-    membersProject?.id
-  );
+  } = useProjectMembers(membersProject?.id);
 
-  const addProjectMember =
-    useAddProjectMember();
+  const addProjectMember = useAddProjectMember();
 
-  const removeProjectMember =
-    useRemoveProjectMember();
+  const removeProjectMember = useRemoveProjectMember();
 
   /* ------------------------------------------------------------------------ */
   /* Mutations                                                                */
   /* ------------------------------------------------------------------------ */
 
-  const createProject =
-    useCreateProject();
+  const createProject = useCreateProject();
 
-  const updateProject =
-    useUpdateProject();
+  const updateProject = useUpdateProject();
 
-  const changeProjectStatus =
-    useChangeProjectStatus();
+  const changeProjectStatus = useChangeProjectStatus();
 
-  const deleteProjectMutation =
-    useDeleteProject();
+  const deleteProjectMutation = useDeleteProject();
 
   /* ------------------------------------------------------------------------ */
   /* Mount                                                                    */
@@ -213,45 +179,33 @@ export default function ProjectsPage() {
     if (!authStorage.getToken()) {
       router.replace("/login");
     }
-  }, [
-    mounted,
-    router,
-  ]);
+  }, [mounted, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication error                                                     */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    if (
-      !mounted ||
-      !isUserError
-    ) {
+    if (!mounted || !isUserError) {
       return;
     }
 
     authStorage.removeToken();
 
     router.replace("/login");
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    const timeout =
-      setTimeout(() => {
-        const trimmedSearch =
-          searchInput.trim();
+    const timeout = setTimeout(() => {
+      const trimmedSearch = searchInput.trim();
 
-        setSearch(trimmedSearch);
-        setPage(1);
-      }, SEARCH_DEBOUNCE_MS);
+      setSearch(trimmedSearch);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
 
     return () => {
       clearTimeout(timeout);
@@ -268,19 +222,14 @@ export default function ProjectsPage() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (
-    project: Project
-  ) => {
+  const openEditModal = (project: Project) => {
     setEditingProject(project);
     setFormError(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    if (
-      createProject.isPending ||
-      updateProject.isPending
-    ) {
+    if (createProject.isPending || updateProject.isPending) {
       return;
     }
 
@@ -289,18 +238,13 @@ export default function ProjectsPage() {
     setFormError(null);
   };
 
-  const openMembersModal = (
-    project: Project
-  ) => {
+  const openMembersModal = (project: Project) => {
     setMembersError(null);
     setMembersProject(project);
   };
 
   const closeMembersModal = () => {
-    if (
-      addProjectMember.isPending ||
-      removeProjectMember.isPending
-    ) {
+    if (addProjectMember.isPending || removeProjectMember.isPending) {
       return;
     }
 
@@ -312,9 +256,7 @@ export default function ProjectsPage() {
   /* View Project                                                             */
   /* ------------------------------------------------------------------------ */
 
-  const handleView = (
-    project: Project
-  ) => {
+  const handleView = (project: Project) => {
     setViewingProject(project);
   };
 
@@ -322,21 +264,13 @@ export default function ProjectsPage() {
   /* Create Project                                                           */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate = async (
-    payload: CreateProjectPayload
-  ) => {
+  const handleCreate = async (payload: CreateProjectPayload) => {
     setFormError(null);
 
     try {
-      const response =
-        await createProject.mutateAsync(
-          payload
-        );
+      const response = await createProject.mutateAsync(payload);
 
-      toast.success(
-        response.message ||
-          "Project created successfully."
-      );
+      toast.success(response.message || "Project created successfully.");
 
       setIsModalOpen(false);
       setEditingProject(null);
@@ -359,9 +293,7 @@ export default function ProjectsPage() {
   /* Update Project                                                           */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate = async (
-    payload: UpdateProjectPayload
-  ) => {
+  const handleUpdate = async (payload: UpdateProjectPayload) => {
     if (!editingProject) {
       return;
     }
@@ -369,16 +301,12 @@ export default function ProjectsPage() {
     setFormError(null);
 
     try {
-      const response =
-        await updateProject.mutateAsync({
-          id: editingProject.id,
-          data: payload,
-        });
+      const response = await updateProject.mutateAsync({
+        id: editingProject.id,
+        data: payload,
+      });
 
-      toast.success(
-        response.message ||
-          "Project updated successfully."
-      );
+      toast.success(response.message || "Project updated successfully.");
 
       setIsModalOpen(false);
       setEditingProject(null);
@@ -399,28 +327,20 @@ export default function ProjectsPage() {
   /* Change Project Status                                                    */
   /* ------------------------------------------------------------------------ */
 
-  const handleChangeStatus = async (
-    status: Project["status"]
-  ) => {
+  const handleChangeStatus = async (status: Project["status"]) => {
     if (!statusProject) {
       return;
     }
 
     try {
-      const response =
-        await changeProjectStatus.mutateAsync(
-          {
-            id: statusProject.id,
-            data: {
-              status,
-            },
-          }
-        );
+      const response = await changeProjectStatus.mutateAsync({
+        id: statusProject.id,
+        data: {
+          status,
+        },
+      });
 
-      toast.success(
-        response.message ||
-          "Project status updated successfully."
-      );
+      toast.success(response.message || "Project status updated successfully.");
 
       setStatusProject(null);
     } catch (error: any) {
@@ -436,9 +356,7 @@ export default function ProjectsPage() {
   /* Add Project Member                                                       */
   /* ------------------------------------------------------------------------ */
 
-  const handleAddMember = async (
-    userId: string
-  ) => {
+  const handleAddMember = async (userId: string) => {
     if (!membersProject) {
       return;
     }
@@ -446,19 +364,14 @@ export default function ProjectsPage() {
     setMembersError(null);
 
     try {
-      const response =
-        await addProjectMember.mutateAsync({
-          projectId:
-            membersProject.id,
-          data: {
-            userId,
-          },
-        });
+      const response = await addProjectMember.mutateAsync({
+        projectId: membersProject.id,
+        data: {
+          userId,
+        },
+      });
 
-      toast.success(
-        response.message ||
-          "Project member added successfully."
-      );
+      toast.success(response.message || "Project member added successfully.");
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
@@ -476,9 +389,7 @@ export default function ProjectsPage() {
   /* Remove Project Member                                                    */
   /* ------------------------------------------------------------------------ */
 
-  const handleRemoveMember = async (
-    userId: string
-  ) => {
+  const handleRemoveMember = async (userId: string) => {
     if (!membersProject) {
       return;
     }
@@ -486,17 +397,12 @@ export default function ProjectsPage() {
     setMembersError(null);
 
     try {
-      const response =
-        await removeProjectMember.mutateAsync({
-          projectId:
-            membersProject.id,
-          userId,
-        });
+      const response = await removeProjectMember.mutateAsync({
+        projectId: membersProject.id,
+        userId,
+      });
 
-      toast.success(
-        response.message ||
-          "Project member removed successfully."
-      );
+      toast.success(response.message || "Project member removed successfully.");
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
@@ -520,26 +426,16 @@ export default function ProjectsPage() {
     }
 
     try {
-      const response =
-        await deleteProjectMutation.mutateAsync(
-          deleteProject.id
-        );
-
-      toast.success(
-        response.message ||
-          "Project deleted successfully."
+      const response = await deleteProjectMutation.mutateAsync(
+        deleteProject.id,
       );
+
+      toast.success(response.message || "Project deleted successfully.");
 
       setDeleteProject(null);
 
-      if (
-        data?.data.length === 1 &&
-        page > 1
-      ) {
-        setPage(
-          (previous) =>
-            previous - 1
-        );
+      if (data?.data.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
       }
     } catch (error: any) {
       const message =
@@ -571,10 +467,7 @@ export default function ProjectsPage() {
   /* User loading                                                             */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isUserLoading ||
-    !user
-  ) {
+  if (isUserLoading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -590,8 +483,7 @@ export default function ProjectsPage() {
   /* ------------------------------------------------------------------------ */
 
   const canManageProjects =
-    user.role === "SUPER_ADMIN" ||
-    user.role === "PROJECT_MANAGER";
+    user.role === "SUPER_ADMIN" || user.role === "PROJECT_MANAGER";
 
   if (!canManageProjects) {
     return (
@@ -605,8 +497,7 @@ export default function ProjectsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              You do not have permission
-              to manage projects.
+              You do not have permission to manage projects.
             </p>
           </div>
         </div>
@@ -618,9 +509,7 @@ export default function ProjectsPage() {
   /* Projects loading                                                         */
   /* ------------------------------------------------------------------------ */
 
-  const showInitialLoading =
-    isProjectsLoading &&
-    !data;
+  const showInitialLoading = isProjectsLoading && !data;
 
   if (showInitialLoading) {
     return (
@@ -639,10 +528,7 @@ export default function ProjectsPage() {
   /* Projects error                                                           */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isProjectsError ||
-    !data
-  ) {
+  if (isProjectsError || !data) {
     return (
       <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -654,15 +540,12 @@ export default function ProjectsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              Something went wrong while
-              loading projects.
+              Something went wrong while loading projects.
             </p>
 
             <button
               type="button"
-              onClick={() =>
-                refetch()
-              }
+              onClick={() => refetch()}
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -680,32 +563,20 @@ export default function ProjectsPage() {
   const projects = data.data;
   const meta = data.meta;
 
-  const clients =
-    clientsData?.data ?? [];
+  const clients = clientsData?.data ?? [];
 
-  const managers =
-    usersData?.users ?? [];
+  const managers = usersData?.users ?? [];
 
-  const employees =
-    employeesData?.users ?? [];
+  const employees = employeesData?.users ?? [];
 
-  const members =
-    membersData?.data ?? [];
+  const members = membersData?.data ?? [];
 
-  const canManageSelectedMembers =
-    Boolean(
-      membersProject &&
-      (
-        user.role ===
-          "SUPER_ADMIN" ||
-        (
-          user.role ===
-            "PROJECT_MANAGER" &&
-          membersProject.managerId ===
-            user.id
-        )
-      )
-    );
+  const canManageSelectedMembers = Boolean(
+    membersProject &&
+    (user.role === "SUPER_ADMIN" ||
+      (user.role === "PROJECT_MANAGER" &&
+        membersProject.managerId === user.id)),
+  );
 
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
@@ -716,77 +587,37 @@ export default function ProjectsPage() {
       <div className="mx-auto max-w-7xl space-y-6">
         <ProjectsHeader
           search={searchInput}
-          onSearchChange={
-            setSearchInput
-          }
-          onCreate={
-            openCreateModal
-          }
+          onSearchChange={setSearchInput}
+          onCreate={openCreateModal}
         />
 
         <ProjectsTable
           projects={projects}
           search={search}
           isFetching={isFetching}
-
           canEdit={(project) =>
-            user.role ===
-              "SUPER_ADMIN" ||
-            (
-              user.role ===
-                "PROJECT_MANAGER" &&
-              project.manager?.id ===
-                user.id
-            )
+            user.role === "SUPER_ADMIN" ||
+            (user.role === "PROJECT_MANAGER" && project.manager?.id === user.id)
           }
-
-          canDelete={() =>
-            user.role ===
-            "SUPER_ADMIN"
+          canDelete={() => user.role === "SUPER_ADMIN"}
+          canChangeStatus={(project) =>
+            user.role === "SUPER_ADMIN" ||
+            (user.role === "PROJECT_MANAGER" && project.manager?.id === user.id)
           }
-
-          canChangeStatus={(
-            project
-          ) =>
-            user.role ===
-              "SUPER_ADMIN" ||
-            (
-              user.role ===
-                "PROJECT_MANAGER" &&
-              project.manager?.id ===
-                user.id
-            )
+          canManageMembers={(project) =>
+            user.role === "SUPER_ADMIN" ||
+            (user.role === "PROJECT_MANAGER" && project.manager?.id === user.id)
           }
-
-          canManageMembers={(
-            project
-          ) =>
-            user.role ===
-              "SUPER_ADMIN" ||
-            (
-              user.role ===
-                "PROJECT_MANAGER" &&
-              project.manager?.id ===
-                user.id
-            )
-          }
-
           onView={handleView}
           onEdit={openEditModal}
           onDelete={setDeleteProject}
-          onChangeStatus={
-            setStatusProject
-          }
-          onManageMembers={
-            openMembersModal
-          }
+          onChangeStatus={setStatusProject}
+          onManageMembers={openMembersModal}
         />
 
         <ProjectsPagination
           page={meta.page}
-          totalPages={
-            meta.totalPages
-          }
+          totalPages={meta.totalPages}
           isFetching={isFetching}
           onPageChange={setPage}
         />
@@ -799,10 +630,7 @@ export default function ProjectsPage() {
         clients={clients}
         managers={managers}
         error={formError}
-        isSubmitting={
-          createProject.isPending ||
-          updateProject.isPending
-        }
+        isSubmitting={createProject.isPending || updateProject.isPending}
         onClose={closeModal}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
@@ -811,24 +639,16 @@ export default function ProjectsPage() {
       {/* Delete dialog */}
       <DeleteProjectDialog
         project={deleteProject}
-        isDeleting={
-          deleteProjectMutation.isPending
-        }
-        onCancel={() =>
-          setDeleteProject(null)
-        }
+        isDeleting={deleteProjectMutation.isPending}
+        onCancel={() => setDeleteProject(null)}
         onConfirm={handleDelete}
       />
 
       {/* Change status dialog */}
       <ChangeProjectStatusDialog
         project={statusProject}
-        isUpdating={
-          changeProjectStatus.isPending
-        }
-        onCancel={() =>
-          setStatusProject(null)
-        }
+        isUpdating={changeProjectStatus.isPending}
+        onCancel={() => setStatusProject(null)}
         onConfirm={handleChangeStatus}
       />
 
@@ -837,50 +657,29 @@ export default function ProjectsPage() {
         project={membersProject}
         members={members}
         employees={employees}
-        isLoading={
-          isMembersLoading
-        }
-        isLoadingEmployees={
-          isEmployeesLoading
-        }
-        isAdding={
-          addProjectMember.isPending
-        }
+        isLoading={isMembersLoading}
+        isLoadingEmployees={isEmployeesLoading}
+        isAdding={addProjectMember.isPending}
         removingUserId={
           removeProjectMember.isPending
-            ? removeProjectMember.variables
-                ?.userId ?? null
+            ? (removeProjectMember.variables?.userId ?? null)
             : null
         }
-        canManageMembers={
-          canManageSelectedMembers
-        }
+        canManageMembers={canManageSelectedMembers}
         error={
           membersError ??
-          (
-            isMembersError
-              ? "Unable to load project members."
-              : null
-          )
+          (isMembersError ? "Unable to load project members." : null)
         }
-        onClose={
-          closeMembersModal
-        }
-        onAddMember={
-          handleAddMember
-        }
-        onRemoveMember={
-          handleRemoveMember
-        }
+        onClose={closeMembersModal}
+        onAddMember={handleAddMember}
+        onRemoveMember={handleRemoveMember}
       />
 
       {/* View project */}
       {viewingProject && (
         <ProjectViewPlaceholder
           project={viewingProject}
-          onClose={() =>
-            setViewingProject(null)
-          }
+          onClose={() => setViewingProject(null)}
         />
       )}
     </DashboardLayout>
@@ -907,9 +706,7 @@ function ProjectViewPlaceholder({
               {project.name}
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Project details
-            </p>
+            <p className="mt-1 text-sm text-slate-500">Project details</p>
           </div>
 
           <button
@@ -923,9 +720,8 @@ function ProjectViewPlaceholder({
 
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
           <p className="text-sm text-slate-600">
-            Project details view will be
-            implemented in the project
-            details workflow.
+            Project details view will be implemented in the project details
+            workflow.
           </p>
         </div>
       </div>

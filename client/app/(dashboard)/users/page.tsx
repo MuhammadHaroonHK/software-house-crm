@@ -31,38 +31,30 @@ import UsersPagination from "@/features/users/components/UsersPagination";
 import DeleteUserDialog from "@/features/users/components/DeleteUserDialog";
 
 export default function UsersPage() {
-  const {
-    data: currentUser,
-    isLoading: currentUserLoading,
-  } = useCurrentUser();
+  const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
 
   /* ------------------------------------------------------------------------ */
   /* Filters                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const [filters, setFilters] =
-    useState<UserFilters>({
-      page: 1,
-      limit: 10,
-      sortBy: "createdAt",
-      sortOrder: "desc",
-    });
+  const [filters, setFilters] = useState<UserFilters>({
+    page: 1,
+    limit: 10,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
 
   /* ------------------------------------------------------------------------ */
   /* User state                                                               */
   /* ------------------------------------------------------------------------ */
 
-  const [deleteUser, setDeleteUser] =
-    useState<User | null>(null);
+  const [deleteUser, setDeleteUser] = useState<User | null>(null);
 
-  const [formModalOpen, setFormModalOpen] =
-    useState(false);
+  const [formModalOpen, setFormModalOpen] = useState(false);
 
-  const [editingUser, setEditingUser] =
-    useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Queries                                                                  */
@@ -74,38 +66,26 @@ export default function UsersPage() {
     isError: usersError,
   } = useUsers(filters);
 
-  const {
-    data: departments = [],
-  } = useDepartments();
+  const { data: departments = [] } = useDepartments();
 
   /* ------------------------------------------------------------------------ */
   /* Mutations                                                                */
   /* ------------------------------------------------------------------------ */
 
-  const updateStatusMutation =
-    useUpdateUserStatus();
+  const updateStatusMutation = useUpdateUserStatus();
 
-  const deleteMutation =
-    useDeleteUser();
+  const deleteMutation = useDeleteUser();
 
-  const createMutation =
-    useCreateUser();
+  const createMutation = useCreateUser();
 
-  const updateMutation =
-    useUpdateUser();
+  const updateMutation = useUpdateUser();
 
   /* ------------------------------------------------------------------------ */
   /* Error helper                                                             */
   /* ------------------------------------------------------------------------ */
 
-  const getErrorMessage = (
-    error: unknown
-  ): string => {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "response" in error
-    ) {
+  const getErrorMessage = (error: unknown): string => {
+    if (typeof error === "object" && error !== null && "response" in error) {
       const response = (
         error as {
           response?: {
@@ -132,27 +112,18 @@ export default function UsersPage() {
   /* Create User                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreateUser = async (
-    data: CreateUserPayload
-  ) => {
+  const handleCreateUser = async (data: CreateUserPayload) => {
     setFormError(null);
 
     try {
-      const response =
-        await createMutation.mutateAsync(
-          data
-        );
+      const response = await createMutation.mutateAsync(data);
 
-      toast.success(
-        response.message ||
-          "User created successfully."
-      );
+      toast.success(response.message || "User created successfully.");
 
       setFormModalOpen(false);
       setEditingUser(null);
     } catch (error) {
-      const message =
-        getErrorMessage(error);
+      const message = getErrorMessage(error);
 
       setFormError(message);
 
@@ -164,9 +135,7 @@ export default function UsersPage() {
   /* Update User                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdateUser = async (
-    data: UpdateUserPayload
-  ) => {
+  const handleUpdateUser = async (data: UpdateUserPayload) => {
     if (!editingUser) {
       return;
     }
@@ -174,22 +143,17 @@ export default function UsersPage() {
     setFormError(null);
 
     try {
-      const response =
-        await updateMutation.mutateAsync({
-          id: editingUser.id,
-          data,
-        });
+      const response = await updateMutation.mutateAsync({
+        id: editingUser.id,
+        data,
+      });
 
-      toast.success(
-        response.message ||
-          "User updated successfully."
-      );
+      toast.success(response.message || "User updated successfully.");
 
       setFormModalOpen(false);
       setEditingUser(null);
     } catch (error) {
-      const message =
-        getErrorMessage(error);
+      const message = getErrorMessage(error);
 
       setFormError(message);
 
@@ -201,9 +165,7 @@ export default function UsersPage() {
   /* Filters                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const handleFilterChange = (
-    changes: Partial<UserFilters>
-  ) => {
+  const handleFilterChange = (changes: Partial<UserFilters>) => {
     setFilters((previous) => ({
       ...previous,
       ...changes,
@@ -223,35 +185,25 @@ export default function UsersPage() {
   /* Toggle User Status                                                       */
   /* ------------------------------------------------------------------------ */
 
-  const handleToggleStatus = async (
-    user: User
-  ) => {
-    const newStatus =
-      user.status === "ACTIVE"
-        ? "INACTIVE"
-        : "ACTIVE";
+  const handleToggleStatus = async (user: User) => {
+    const newStatus = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
 
     try {
-      const response =
-        await updateStatusMutation.mutateAsync({
-          id: user.id,
-          data: {
-            status: newStatus,
-          },
-        });
+      const response = await updateStatusMutation.mutateAsync({
+        id: user.id,
+        data: {
+          status: newStatus,
+        },
+      });
 
       toast.success(
         response.message ||
           `User ${
-            newStatus === "ACTIVE"
-              ? "activated"
-              : "deactivated"
-          } successfully.`
+            newStatus === "ACTIVE" ? "activated" : "deactivated"
+          } successfully.`,
       );
     } catch (error) {
-      toast.error(
-        getErrorMessage(error)
-      );
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -265,21 +217,13 @@ export default function UsersPage() {
     }
 
     try {
-      const response =
-        await deleteMutation.mutateAsync(
-          deleteUser.id
-        );
+      const response = await deleteMutation.mutateAsync(deleteUser.id);
 
-      toast.success(
-        response.message ||
-          "User deleted successfully."
-      );
+      toast.success(response.message || "User deleted successfully.");
 
       setDeleteUser(null);
     } catch (error) {
-      toast.error(
-        getErrorMessage(error)
-      );
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -290,9 +234,7 @@ export default function UsersPage() {
   if (currentUserLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="text-sm text-slate-500">
-          Loading...
-        </div>
+        <div className="text-sm text-slate-500">Loading...</div>
       </main>
     );
   }
@@ -309,11 +251,9 @@ export default function UsersPage() {
   /* Data                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const users =
-    usersData?.users ?? [];
+  const users = usersData?.users ?? [];
 
-  const meta =
-    usersData?.meta;
+  const meta = usersData?.meta;
 
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
@@ -322,7 +262,6 @@ export default function UsersPage() {
   return (
     <DashboardLayout user={currentUser}>
       <div className="space-y-6">
-
         {/* Header */}
         <UsersHeader
           onCreate={() => {
@@ -355,9 +294,7 @@ export default function UsersPage() {
                 setFormError(null);
                 setFormModalOpen(true);
               }}
-              onToggleStatus={
-                handleToggleStatus
-              }
+              onToggleStatus={handleToggleStatus}
               onDelete={setDeleteUser}
             />
 
@@ -383,13 +320,9 @@ export default function UsersPage() {
       <DeleteUserDialog
         user={deleteUser}
         open={!!deleteUser}
-        loading={
-          deleteMutation.isPending
-        }
+        loading={deleteMutation.isPending}
         onClose={() => {
-          if (
-            !deleteMutation.isPending
-          ) {
+          if (!deleteMutation.isPending) {
             setDeleteUser(null);
           }
         }}
@@ -402,10 +335,7 @@ export default function UsersPage() {
         user={editingUser}
         error={formError}
         onClose={() => {
-          if (
-            !createMutation.isPending &&
-            !updateMutation.isPending
-          ) {
+          if (!createMutation.isPending && !updateMutation.isPending) {
             setFormModalOpen(false);
             setEditingUser(null);
             setFormError(null);
@@ -413,10 +343,7 @@ export default function UsersPage() {
         }}
         onCreate={handleCreateUser}
         onUpdate={handleUpdateUser}
-        isSubmitting={
-          createMutation.isPending ||
-          updateMutation.isPending
-        }
+        isSubmitting={createMutation.isPending || updateMutation.isPending}
       />
     </DashboardLayout>
   );

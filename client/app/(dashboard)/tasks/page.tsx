@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 
@@ -66,17 +60,13 @@ export default function TasksPage() {
   /* Supporting data                                                          */
   /* ------------------------------------------------------------------------ */
 
-  const {
-    data: projectsData,
-  } = useProjects({
+  const { data: projectsData } = useProjects({
     limit: 100,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
 
-  const {
-    data: employeesData,
-  } = useUsers({
+  const { data: employeesData } = useUsers({
     limit: 100,
     role: "EMPLOYEE",
     status: "ACTIVE",
@@ -86,51 +76,33 @@ export default function TasksPage() {
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [projectId, setProjectId] =
-    useState("");
+  const [projectId, setProjectId] = useState("");
 
-  const [assignedToId, setAssignedToId] =
-    useState("");
+  const [assignedToId, setAssignedToId] = useState("");
 
-  const [priority, setPriority] =
-    useState<TaskPriority | "">(
-      ""
-    );
+  const [priority, setPriority] = useState<TaskPriority | "">("");
 
-  const [status, setStatus] =
-    useState<TaskStatus | "">(
-      ""
-    );
+  const [status, setStatus] = useState<TaskStatus | "">("");
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [editingTask, setEditingTask] =
-    useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  const [viewingTask, setViewingTask] =
-    useState<Task | null>(null);
+  const [viewingTask, setViewingTask] = useState<Task | null>(null);
 
-  const [deleteTask, setDeleteTask] =
-    useState<Task | null>(null);
+  const [deleteTask, setDeleteTask] = useState<Task | null>(null);
 
-  const [statusTask, setStatusTask] =
-    useState<Task | null>(null);
+  const [statusTask, setStatusTask] = useState<Task | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication                                                           */
@@ -155,17 +127,11 @@ export default function TasksPage() {
   } = useTasks({
     page,
     limit: PAGE_SIZE,
-    search:
-      search || undefined,
-    projectId:
-      projectId || undefined,
-    assignedToId:
-      assignedToId ||
-      undefined,
-    priority:
-      priority || undefined,
-    status:
-      status || undefined,
+    search: search || undefined,
+    projectId: projectId || undefined,
+    assignedToId: assignedToId || undefined,
+    priority: priority || undefined,
+    status: status || undefined,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
@@ -174,17 +140,13 @@ export default function TasksPage() {
   /* Mutations                                                                */
   /* ------------------------------------------------------------------------ */
 
-  const createTask =
-    useCreateTask();
+  const createTask = useCreateTask();
 
-  const updateTask =
-    useUpdateTask();
+  const updateTask = useUpdateTask();
 
-  const updateTaskStatus =
-    useUpdateTaskStatus();
+  const updateTaskStatus = useUpdateTaskStatus();
 
-  const deleteTaskMutation =
-    useDeleteTask();
+  const deleteTaskMutation = useDeleteTask();
 
   /* ------------------------------------------------------------------------ */
   /* Mount                                                                    */
@@ -203,62 +165,40 @@ export default function TasksPage() {
       return;
     }
 
-    if (
-      !authStorage.getToken()
-    ) {
-      router.replace(
-        "/login"
-      );
+    if (!authStorage.getToken()) {
+      router.replace("/login");
     }
-  }, [
-    mounted,
-    router,
-  ]);
+  }, [mounted, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication error                                                     */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    if (
-      !mounted ||
-      !isUserError
-    ) {
+    if (!mounted || !isUserError) {
       return;
     }
 
     authStorage.removeToken();
 
-    router.replace(
-      "/login"
-    );
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+    router.replace("/login");
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    const timeout =
-      setTimeout(() => {
-        const trimmed =
-          searchInput.trim();
+    const timeout = setTimeout(() => {
+      const trimmed = searchInput.trim();
 
-        setSearch(
-          trimmed
-        );
+      setSearch(trimmed);
 
-        setPage(1);
-      }, SEARCH_DEBOUNCE_MS);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
 
     return () => {
-      clearTimeout(
-        timeout
-      );
+      clearTimeout(timeout);
     };
   }, [searchInput]);
 
@@ -266,316 +206,193 @@ export default function TasksPage() {
   /* Filters                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const resetFilters =
-    () => {
-      setProjectId("");
-      setAssignedToId("");
-      setPriority("");
-      setStatus("");
-      setSearchInput("");
-      setSearch("");
-      setPage(1);
-    };
+  const resetFilters = () => {
+    setProjectId("");
+    setAssignedToId("");
+    setPriority("");
+    setStatus("");
+    setSearchInput("");
+    setSearch("");
+    setPage(1);
+  };
 
-  const handleProjectFilterChange =
-    (value: string) => {
-      setProjectId(
-        value
-      );
-      setPage(1);
-    };
+  const handleProjectFilterChange = (value: string) => {
+    setProjectId(value);
+    setPage(1);
+  };
 
-  const handleAssigneeFilterChange =
-    (value: string) => {
-      setAssignedToId(
-        value
-      );
-      setPage(1);
-    };
+  const handleAssigneeFilterChange = (value: string) => {
+    setAssignedToId(value);
+    setPage(1);
+  };
 
-  const handlePriorityChange =
-    (
-      value:
-        | TaskPriority
-        | ""
-    ) => {
-      setPriority(
-        value
-      );
-      setPage(1);
-    };
+  const handlePriorityChange = (value: TaskPriority | "") => {
+    setPriority(value);
+    setPage(1);
+  };
 
-  const handleStatusChange =
-    (
-      value:
-        | TaskStatus
-        | ""
-    ) => {
-      setStatus(
-        value
-      );
-      setPage(1);
-    };
+  const handleStatusChange = (value: TaskStatus | "") => {
+    setStatus(value);
+    setPage(1);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Modal helpers                                                            */
   /* ------------------------------------------------------------------------ */
 
-  const openCreateModal =
-    () => {
-      setEditingTask(null);
-      setFormError(null);
-      setIsModalOpen(true);
-    };
+  const openCreateModal = () => {
+    setEditingTask(null);
+    setFormError(null);
+    setIsModalOpen(true);
+  };
 
-  const openEditModal =
-    (task: Task) => {
-      setEditingTask(
-        task
-      );
-      setFormError(null);
-      setIsModalOpen(true);
-    };
+  const openEditModal = (task: Task) => {
+    setEditingTask(task);
+    setFormError(null);
+    setIsModalOpen(true);
+  };
 
-  const closeModal =
-    () => {
-      if (
-        createTask.isPending ||
-        updateTask.isPending
-      ) {
-        return;
-      }
+  const closeModal = () => {
+    if (createTask.isPending || updateTask.isPending) {
+      return;
+    }
 
-      setIsModalOpen(
-        false
-      );
-      setEditingTask(
-        null
-      );
-      setFormError(null);
-    };
+    setIsModalOpen(false);
+    setEditingTask(null);
+    setFormError(null);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* View                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const handleView =
-    (task: Task) => {
-      setViewingTask(
-        task
-      );
-    };
+  const handleView = (task: Task) => {
+    setViewingTask(task);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Create                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate =
-    async (
-      payload: CreateTaskPayload
-    ) => {
-      setFormError(null);
+  const handleCreate = async (payload: CreateTaskPayload) => {
+    setFormError(null);
 
-      try {
-        const response =
-          await createTask.mutateAsync(
-            payload
-          );
+    try {
+      const response = await createTask.mutateAsync(payload);
 
-        toast.success(
-          response.message ||
-            "Task created successfully."
-        );
+      toast.success(response.message || "Task created successfully.");
 
-        setIsModalOpen(
-          false
-        );
+      setIsModalOpen(false);
 
-        setEditingTask(
-          null
-        );
+      setEditingTask(null);
 
-        setPage(1);
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data
-            ?.message ||
-          "Failed to create task. Please try again.";
+      setPage(1);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to create task. Please try again.";
 
-        setFormError(
-          message
-        );
+      setFormError(message);
 
-        toast.error(
-          message
-        );
+      toast.error(message);
 
-        throw error;
-      }
-    };
+      throw error;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Update                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate =
-    async (
-      payload: UpdateTaskPayload
-    ) => {
-      if (!editingTask) {
-        return;
-      }
+  const handleUpdate = async (payload: UpdateTaskPayload) => {
+    if (!editingTask) {
+      return;
+    }
 
-      setFormError(null);
+    setFormError(null);
 
-      try {
-        const response =
-          await updateTask.mutateAsync(
-            {
-              id: editingTask.id,
-              data: payload,
-            }
-          );
+    try {
+      const response = await updateTask.mutateAsync({
+        id: editingTask.id,
+        data: payload,
+      });
 
-        toast.success(
-          response.message ||
-            "Task updated successfully."
-        );
+      toast.success(response.message || "Task updated successfully.");
 
-        setIsModalOpen(
-          false
-        );
+      setIsModalOpen(false);
 
-        setEditingTask(
-          null
-        );
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data
-            ?.message ||
-          "Failed to update task. Please try again.";
+      setEditingTask(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to update task. Please try again.";
 
-        setFormError(
-          message
-        );
+      setFormError(message);
 
-        toast.error(
-          message
-        );
+      toast.error(message);
 
-        throw error;
-      }
-    };
+      throw error;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Change Status                                                            */
   /* ------------------------------------------------------------------------ */
 
-  const handleChangeStatus =
-    async (
-      nextStatus: TaskStatus
-    ) => {
-      if (!statusTask) {
-        return;
-      }
+  const handleChangeStatus = async (nextStatus: TaskStatus) => {
+    if (!statusTask) {
+      return;
+    }
 
-      try {
-        const response =
-          await updateTaskStatus.mutateAsync(
-            {
-              id: statusTask.id,
-              data: {
-                status:
-                  nextStatus,
-              },
-            }
-          );
+    try {
+      const response = await updateTaskStatus.mutateAsync({
+        id: statusTask.id,
+        data: {
+          status: nextStatus,
+        },
+      });
 
-        toast.success(
-          response.message ||
-            "Task status updated successfully."
-        );
+      toast.success(response.message || "Task status updated successfully.");
 
-        setStatusTask(
-          null
-        );
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data
-            ?.message ||
-          "Failed to update task status. Please try again.";
+      setStatusTask(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to update task status. Please try again.";
 
-        toast.error(
-          message
-        );
-      }
-    };
+      toast.error(message);
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Delete                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleDelete =
-    async () => {
-      if (!deleteTask) {
-        return;
+  const handleDelete = async () => {
+    if (!deleteTask) {
+      return;
+    }
+
+    try {
+      const response = await deleteTaskMutation.mutateAsync(deleteTask.id);
+
+      toast.success(response.message || "Task deleted successfully.");
+
+      setDeleteTask(null);
+
+      if (data?.data.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
       }
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to delete task. Please try again.";
 
-      try {
-        const response =
-          await deleteTaskMutation.mutateAsync(
-            deleteTask.id
-          );
+      toast.error(message);
 
-        toast.success(
-          response.message ||
-            "Task deleted successfully."
-        );
-
-        setDeleteTask(
-          null
-        );
-
-        if (
-          data?.data
-            .length ===
-            1 &&
-          page > 1
-        ) {
-          setPage(
-            (
-              previous
-            ) =>
-              previous - 1
-          );
-        }
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data
-            ?.message ||
-          "Failed to delete task. Please try again.";
-
-        toast.error(
-          message
-        );
-
-        setDeleteTask(
-          null
-        );
-      }
-    };
+      setDeleteTask(null);
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Initial mounting                                                         */
@@ -596,10 +413,7 @@ export default function TasksPage() {
   /* User loading                                                             */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isUserLoading ||
-    !user
-  ) {
+  if (isUserLoading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -615,18 +429,13 @@ export default function TasksPage() {
   /* ------------------------------------------------------------------------ */
 
   const canManageTasks =
-    user.role ===
-      "SUPER_ADMIN" ||
-    user.role ===
-      "PROJECT_MANAGER" ||
-    user.role ===
-      "EMPLOYEE";
+    user.role === "SUPER_ADMIN" ||
+    user.role === "PROJECT_MANAGER" ||
+    user.role === "EMPLOYEE";
 
   if (!canManageTasks) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -648,17 +457,11 @@ export default function TasksPage() {
   /* Tasks loading                                                            */
   /* ------------------------------------------------------------------------ */
 
-  const showInitialLoading =
-    isTasksLoading &&
-    !data;
+  const showInitialLoading = isTasksLoading && !data;
 
-  if (
-    showInitialLoading
-  ) {
+  if (showInitialLoading) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -673,14 +476,9 @@ export default function TasksPage() {
   /* Tasks error                                                              */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isTasksError ||
-    !data
-  ) {
+  if (isTasksError || !data) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -695,9 +493,7 @@ export default function TasksPage() {
 
             <button
               type="button"
-              onClick={() =>
-                refetch()
-              }
+              onClick={() => refetch()}
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -712,307 +508,144 @@ export default function TasksPage() {
   /* Data                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const tasks =
-    data.data;
+  const tasks = data.data;
 
-  const meta =
-    data.meta;
+  const meta = data.meta;
 
-  const projects =
-    projectsData?.data ??
-    [];
+  const projects = projectsData?.data ?? [];
 
-  const employees =
-    employeesData?.users ??
-    [];
+  const employees = employeesData?.users ?? [];
 
   /* ------------------------------------------------------------------------ */
   /* Role permissions                                                         */
   /* ------------------------------------------------------------------------ */
 
   const canCreateTask =
-    user.role ===
-      "SUPER_ADMIN" ||
-    user.role ===
-      "PROJECT_MANAGER";
+    user.role === "SUPER_ADMIN" || user.role === "PROJECT_MANAGER";
 
-  const canEditTask =
-    (
-      task: Task
-    ) =>
-      (
-        user.role ===
-          "SUPER_ADMIN" ||
-        (
-          user.role ===
-            "PROJECT_MANAGER" &&
-          task.project
-            .managerId ===
-            user.id
-        )
-      ) &&
-      task.status !==
-        "COMPLETED";
+  const canEditTask = (task: Task) =>
+    (user.role === "SUPER_ADMIN" ||
+      (user.role === "PROJECT_MANAGER" &&
+        task.project.managerId === user.id)) &&
+    task.status !== "COMPLETED";
 
-  const canDeleteTask =
-    (
-      task: Task
-    ) =>
-      (
-        user.role ===
-          "SUPER_ADMIN" ||
-        (
-          user.role ===
-            "PROJECT_MANAGER" &&
-          task.project
-            .managerId ===
-            user.id
-        )
-      ) &&
-      task.status !==
-        "COMPLETED";
+  const canDeleteTask = (task: Task) =>
+    (user.role === "SUPER_ADMIN" ||
+      (user.role === "PROJECT_MANAGER" &&
+        task.project.managerId === user.id)) &&
+    task.status !== "COMPLETED";
 
-  const canChangeTaskStatus =
-    (
-      task: Task
-    ) => {
-      if (
-        task.status ===
-        "COMPLETED"
-      ) {
-        return false;
-      }
-
-      if (
-        user.role ===
-          "SUPER_ADMIN"
-      ) {
-        return true;
-      }
-
-      if (
-        user.role ===
-        "PROJECT_MANAGER"
-      ) {
-        return (
-          task.project
-            .managerId ===
-          user.id
-        );
-      }
-
-      if (
-        user.role ===
-        "EMPLOYEE"
-      ) {
-        return (
-          task.assignedTo.id ===
-          user.id
-        );
-      }
-
+  const canChangeTaskStatus = (task: Task) => {
+    if (task.status === "COMPLETED") {
       return false;
-    };
+    }
 
-  const canCompleteTask =
-    Boolean(
-      statusTask &&
-        (
-          user.role ===
-            "SUPER_ADMIN" ||
-          (
-            user.role ===
-              "PROJECT_MANAGER" &&
-            statusTask.project
-              .managerId ===
-              user.id
-          )
-        )
-    );
+    if (user.role === "SUPER_ADMIN") {
+      return true;
+    }
+
+    if (user.role === "PROJECT_MANAGER") {
+      return task.project.managerId === user.id;
+    }
+
+    if (user.role === "EMPLOYEE") {
+      return task.assignedTo.id === user.id;
+    }
+
+    return false;
+  };
+
+  const canCompleteTask = Boolean(
+    statusTask &&
+    (user.role === "SUPER_ADMIN" ||
+      (user.role === "PROJECT_MANAGER" &&
+        statusTask.project.managerId === user.id)),
+  );
 
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
   /* ------------------------------------------------------------------------ */
 
   return (
-    <DashboardLayout
-      user={user}
-    >
+    <DashboardLayout user={user}>
       <div className="mx-auto max-w-7xl space-y-6">
         <TasksHeader
-          search={
-            searchInput
-          }
-          onSearchChange={
-            setSearchInput
-          }
-          onCreate={
-            openCreateModal
-          }
+          search={searchInput}
+          onSearchChange={setSearchInput}
+          onCreate={openCreateModal}
         />
 
         <TasksFilters
-          projects={
-            projects
-          }
-          users={
-            employees
-          }
-          projectId={
-            projectId
-          }
-          assignedToId={
-            assignedToId
-          }
-          priority={
-            priority
-          }
-          status={
-            status
-          }
-          onProjectChange={
-            handleProjectFilterChange
-          }
-          onAssigneeChange={
-            handleAssigneeFilterChange
-          }
-          onPriorityChange={
-            handlePriorityChange
-          }
-          onStatusChange={
-            handleStatusChange
-          }
-          onReset={
-            resetFilters
-          }
+          projects={projects}
+          users={employees}
+          projectId={projectId}
+          assignedToId={assignedToId}
+          priority={priority}
+          status={status}
+          onProjectChange={handleProjectFilterChange}
+          onAssigneeChange={handleAssigneeFilterChange}
+          onPriorityChange={handlePriorityChange}
+          onStatusChange={handleStatusChange}
+          onReset={resetFilters}
         />
 
         <TasksTable
           tasks={tasks}
           search={search}
-          isFetching={
-            isFetching
-          }
-          canEdit={
-            canEditTask
-          }
-          canDelete={
-            canDeleteTask
-          }
-          canChangeStatus={
-            canChangeTaskStatus
-          }
-          onView={
-            handleView
-          }
-          onEdit={
-            openEditModal
-          }
-          onDelete={
-            setDeleteTask
-          }
-          onChangeStatus={
-            setStatusTask
-          }
+          isFetching={isFetching}
+          canEdit={canEditTask}
+          canDelete={canDeleteTask}
+          canChangeStatus={canChangeTaskStatus}
+          onView={handleView}
+          onEdit={openEditModal}
+          onDelete={setDeleteTask}
+          onChangeStatus={setStatusTask}
         />
 
         <TasksPagination
-          page={
-            meta.page
-          }
-          totalPages={
-            meta.totalPages
-          }
-          isFetching={
-            isFetching
-          }
-          onPageChange={
-            setPage
-          }
+          page={meta.page}
+          totalPages={meta.totalPages}
+          isFetching={isFetching}
+          onPageChange={setPage}
         />
       </div>
 
       {/* Create / Edit */}
       {canCreateTask && (
         <TaskFormModal
-          open={
-            isModalOpen
-          }
-          task={
-            editingTask
-          }
-          projects={
-            projects
-          }
-          error={
-            formError
-          }
-          isSubmitting={
-            createTask.isPending ||
-            updateTask.isPending
-          }
-          onClose={
-            closeModal
-          }
-          onCreate={
-            handleCreate
-          }
-          onUpdate={
-            handleUpdate
-          }
+          open={isModalOpen}
+          task={editingTask}
+          projects={projects}
+          error={formError}
+          isSubmitting={createTask.isPending || updateTask.isPending}
+          onClose={closeModal}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
         />
       )}
 
       {/* Status */}
       <ChangeTaskStatusDialog
-        task={
-          statusTask
-        }
-        isUpdating={
-          updateTaskStatus.isPending
-        }
-        canComplete={
-          canCompleteTask
-        }
-        onCancel={() =>
-          setStatusTask(
-            null
-          )
-        }
-        onConfirm={
-          handleChangeStatus
-        }
+        task={statusTask}
+        isUpdating={updateTaskStatus.isPending}
+        canComplete={canCompleteTask}
+        onCancel={() => setStatusTask(null)}
+        onConfirm={handleChangeStatus}
       />
 
       {/* Delete */}
       <DeleteTaskDialog
-        task={
-          deleteTask
-        }
-        isDeleting={
-          deleteTaskMutation.isPending
-        }
-        onCancel={() =>
-          setDeleteTask(
-            null
-          )
-        }
-        onConfirm={
-          handleDelete
-        }
+        task={deleteTask}
+        isDeleting={deleteTaskMutation.isPending}
+        onCancel={() => setDeleteTask(null)}
+        onConfirm={handleDelete}
       />
 
       {/* Temporary view */}
       {viewingTask && (
         <TaskViewPlaceholder
-          task={
-            viewingTask
-          }
-          onClose={() =>
-            setViewingTask(
-              null
-            )
-          }
+          task={viewingTask}
+          onClose={() => setViewingTask(null)}
         />
       )}
     </DashboardLayout>
@@ -1039,16 +672,12 @@ function TaskViewPlaceholder({
               {task.title}
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Task details
-            </p>
+            <p className="mt-1 text-sm text-slate-500">Task details</p>
           </div>
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"
           >
             Close
@@ -1062,41 +691,24 @@ function TaskViewPlaceholder({
             </p>
 
             <p className="mt-1 text-sm text-slate-700">
-              {task.description ||
-                "No description provided."}
+              {task.description || "No description provided."}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-slate-200 p-3">
-              <p className="text-xs text-slate-400">
-                Project
-              </p>
+              <p className="text-xs text-slate-400">Project</p>
 
               <p className="mt-1 truncate text-sm font-medium text-slate-800">
-                {
-                  task.project
-                    .name
-                }
+                {task.project.name}
               </p>
             </div>
 
             <div className="rounded-lg border border-slate-200 p-3">
-              <p className="text-xs text-slate-400">
-                Assignee
-              </p>
+              <p className="text-xs text-slate-400">Assignee</p>
 
               <p className="mt-1 truncate text-sm font-medium text-slate-800">
-                {
-                  task
-                    .assignedTo
-                    .firstName
-                }{" "}
-                {
-                  task
-                    .assignedTo
-                    .lastName
-                }
+                {task.assignedTo.firstName} {task.assignedTo.lastName}
               </p>
             </div>
           </div>

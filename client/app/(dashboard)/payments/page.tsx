@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  AlertCircle,
-  ExternalLink,
-  Loader2,
-  X,
-} from "lucide-react";
+import { AlertCircle, ExternalLink, Loader2, X } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -64,16 +56,13 @@ const SEARCH_DEBOUNCE_MS = 400;
  * http://localhost:5000/uploads/...
  */
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 
 /* -------------------------------------------------------------------------- */
 /* Upload URL helper                                                          */
 /* -------------------------------------------------------------------------- */
 
-function getReceiptImageUrl(
-  receiptImage: string,
-) {
+function getReceiptImageUrl(receiptImage: string) {
   if (!receiptImage) {
     return "";
   }
@@ -83,12 +72,8 @@ function getReceiptImageUrl(
    * https://...
    */
   if (
-    receiptImage.startsWith(
-      "http://",
-    ) ||
-    receiptImage.startsWith(
-      "https://",
-    )
+    receiptImage.startsWith("http://") ||
+    receiptImage.startsWith("https://")
   ) {
     return receiptImage;
   }
@@ -102,16 +87,11 @@ function getReceiptImageUrl(
    *       ↓
    * http://localhost:5000
    */
-  const serverBaseUrl =
-    API_BASE_URL.replace(
-      /\/api\/?$/,
-      "",
-    );
+  const serverBaseUrl = API_BASE_URL.replace(/\/api\/?$/, "");
 
-  const normalizedPath =
-    receiptImage.startsWith("/")
-      ? receiptImage
-      : `/${receiptImage}`;
+  const normalizedPath = receiptImage.startsWith("/")
+    ? receiptImage
+    : `/${receiptImage}`;
 
   return `${serverBaseUrl}${normalizedPath}`;
 }
@@ -123,9 +103,7 @@ export default function PaymentsPage() {
   /* Supporting invoices                                                      */
   /* ------------------------------------------------------------------------ */
 
-  const {
-    data: invoicesData,
-  } = useInvoices({
+  const { data: invoicesData } = useInvoices({
     limit: 100,
     sortBy: "createdAt",
     sortOrder: "desc",
@@ -145,41 +123,29 @@ export default function PaymentsPage() {
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [invoiceId, setInvoiceId] =
-    useState("");
+  const [invoiceId, setInvoiceId] = useState("");
 
-  const [status, setStatus] =
-    useState<PaymentStatus | "">("");
+  const [status, setStatus] = useState<PaymentStatus | "">("");
 
-  const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod | "">("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
 
-  const [isFormOpen, setIsFormOpen] =
-    useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const [viewingPayment, setViewingPayment] =
-    useState<Payment | null>(null);
+  const [viewingPayment, setViewingPayment] = useState<Payment | null>(null);
 
-  const [verifyPayment, setVerifyPayment] =
-    useState<Payment | null>(null);
+  const [verifyPayment, setVerifyPayment] = useState<Payment | null>(null);
 
-  const [rejectPayment, setRejectPayment] =
-    useState<Payment | null>(null);
+  const [rejectPayment, setRejectPayment] = useState<Payment | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Payments                                                                 */
@@ -195,48 +161,35 @@ export default function PaymentsPage() {
     page,
     limit: PAGE_SIZE,
 
-    search:
-      search || undefined,
+    search: search || undefined,
 
-    invoiceId:
-      invoiceId || undefined,
+    invoiceId: invoiceId || undefined,
 
-    status:
-      status || undefined,
+    status: status || undefined,
 
-    paymentMethod:
-      paymentMethod || undefined,
+    paymentMethod: paymentMethod || undefined,
 
-    sortBy:
-      "createdAt",
+    sortBy: "createdAt",
 
-    sortOrder:
-      "desc",
+    sortOrder: "desc",
   });
 
   /* ------------------------------------------------------------------------ */
   /* Receiver details                                                         */
   /* ------------------------------------------------------------------------ */
 
-  const {
-    data: receiverData,
-    isLoading:
-      isReceiverLoading,
-  } =
+  const { data: receiverData, isLoading: isReceiverLoading } =
     usePaymentReceiverDetails();
 
   /* ------------------------------------------------------------------------ */
   /* Mutations                                                                */
   /* ------------------------------------------------------------------------ */
 
-  const createPayment =
-    useCreatePayment();
+  const createPayment = useCreatePayment();
 
-  const verifyPaymentMutation =
-    useVerifyPayment();
+  const verifyPaymentMutation = useVerifyPayment();
 
-  const rejectPaymentMutation =
-    useRejectPayment();
+  const rejectPaymentMutation = useRejectPayment();
 
   /* ------------------------------------------------------------------------ */
   /* Mount / auth                                                             */
@@ -254,69 +207,47 @@ export default function PaymentsPage() {
     if (!authStorage.getToken()) {
       router.replace("/login");
     }
-  }, [
-    mounted,
-    router,
-  ]);
+  }, [mounted, router]);
 
   useEffect(() => {
-    if (
-      !mounted ||
-      !isUserError
-    ) {
+    if (!mounted || !isUserError) {
       return;
     }
 
     authStorage.removeToken();
 
     router.replace("/login");
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    const timeout =
-      setTimeout(() => {
-        setSearch(
-          searchInput.trim(),
-        );
+    const timeout = setTimeout(() => {
+      setSearch(searchInput.trim());
 
-        setPage(1);
-      }, SEARCH_DEBOUNCE_MS);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
 
-    return () =>
-      clearTimeout(timeout);
-  }, [
-    searchInput,
-  ]);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
 
   /* ------------------------------------------------------------------------ */
   /* Filters                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const handleInvoiceChange = (
-    value: string,
-  ) => {
+  const handleInvoiceChange = (value: string) => {
     setInvoiceId(value);
     setPage(1);
   };
 
-  const handleStatusChange = (
-    value: PaymentStatus | "",
-  ) => {
+  const handleStatusChange = (value: PaymentStatus | "") => {
     setStatus(value);
     setPage(1);
   };
 
-  const handlePaymentMethodChange = (
-    value: PaymentMethod | "",
-  ) => {
+  const handlePaymentMethodChange = (value: PaymentMethod | "") => {
     setPaymentMethod(value);
     setPage(1);
   };
@@ -335,20 +266,13 @@ export default function PaymentsPage() {
   /* ------------------------------------------------------------------------ */
 
   const canAccessPayments =
-    user?.role ===
-      "SUPER_ADMIN" ||
-    user?.role ===
-      "PROJECT_MANAGER" ||
-    user?.role ===
-      "EMPLOYEE" ||
-    user?.role ===
-      "CLIENT";
+    user?.role === "SUPER_ADMIN" ||
+    user?.role === "PROJECT_MANAGER" ||
+    user?.role === "EMPLOYEE" ||
+    user?.role === "CLIENT";
 
   const canManagePayments =
-    user?.role ===
-      "SUPER_ADMIN" ||
-    user?.role ===
-      "PROJECT_MANAGER";
+    user?.role === "SUPER_ADMIN" || user?.role === "PROJECT_MANAGER";
 
   /*
    * Normal CRM workflow:
@@ -361,29 +285,17 @@ export default function PaymentsPage() {
    *   → review payment
    *   → verify or reject
    */
-  const canCreatePayment =
-    user?.role ===
-    "CLIENT";
+  const canCreatePayment = user?.role === "CLIENT";
 
-  const getPermissions = (
-    payment: Payment,
-  ): PaymentTablePermissions => {
+  const getPermissions = (payment: Payment): PaymentTablePermissions => {
     return {
-      canVerify:
-        canManagePayments &&
-        payment.status ===
-          "PENDING",
+      canVerify: canManagePayments && payment.status === "PENDING",
 
-      canReject:
-        canManagePayments &&
-        payment.status ===
-          "PENDING",
+      canReject: canManagePayments && payment.status === "PENDING",
 
-      canView:
-        canAccessPayments,
+      canView: canAccessPayments,
 
-      canCreate:
-        canCreatePayment,
+      canCreate: canCreatePayment,
     };
   };
 
@@ -397,9 +309,7 @@ export default function PaymentsPage() {
   };
 
   const closeForm = () => {
-    if (
-      createPayment.isPending
-    ) {
+    if (createPayment.isPending) {
       return;
     }
 
@@ -407,59 +317,38 @@ export default function PaymentsPage() {
     setFormError(null);
   };
 
-  const handleCreate = async (
-    payload: PaymentFormSubmitData,
-  ) => {
+  const handleCreate = async (payload: PaymentFormSubmitData) => {
     setFormError(null);
 
     try {
-      const response =
-        await createPayment.mutateAsync({
-          invoiceId:
-            payload.invoiceId,
+      const response = await createPayment.mutateAsync({
+        invoiceId: payload.invoiceId,
 
-          amount:
-            payload.amount,
+        amount: payload.amount,
 
-          paymentMethod:
-            payload.paymentMethod,
+        paymentMethod: payload.paymentMethod,
 
-          paymentDate:
-            payload.paymentDate,
+        paymentDate: payload.paymentDate,
 
-          accountTitle:
-            payload.accountTitle,
+        accountTitle: payload.accountTitle,
 
-          accountNumber:
-            payload.accountNumber,
+        accountNumber: payload.accountNumber,
 
-          referenceNumber:
-            payload.referenceNumber,
+        referenceNumber: payload.referenceNumber,
 
-          notes:
-            payload.notes,
+        notes: payload.notes,
 
-          receiptImage:
-            payload.receiptImage ??
-            undefined,
-        });
+        receiptImage: payload.receiptImage ?? undefined,
+      });
 
-      toast.success(
-        response.message ||
-          "Payment submitted successfully.",
-      );
+      toast.success(response.message || "Payment submitted successfully.");
 
       setIsFormOpen(false);
     } catch (error: any) {
-      console.error(
-        "PAYMENT CREATE ERROR:",
-        error?.response?.data,
-      );
+      console.error("PAYMENT CREATE ERROR:", error?.response?.data);
 
       const message =
-        error?.response?.data
-          ?.message ||
-        "Failed to submit payment.";
+        error?.response?.data?.message || "Failed to submit payment.";
 
       setFormError(message);
 
@@ -479,23 +368,17 @@ export default function PaymentsPage() {
     }
 
     try {
-      const response =
-        await verifyPaymentMutation.mutateAsync(
-          verifyPayment.id,
-        );
-
-      toast.success(
-        response.message ||
-          "Payment verified successfully.",
+      const response = await verifyPaymentMutation.mutateAsync(
+        verifyPayment.id,
       );
+
+      toast.success(response.message || "Payment verified successfully.");
 
       setVerifyPayment(null);
       setViewingPayment(null);
     } catch (error: any) {
       toast.error(
-        error?.response?.data
-          ?.message ||
-          "Failed to verify payment.",
+        error?.response?.data?.message || "Failed to verify payment.",
       );
     }
   };
@@ -510,23 +393,17 @@ export default function PaymentsPage() {
     }
 
     try {
-      const response =
-        await rejectPaymentMutation.mutateAsync(
-          rejectPayment.id,
-        );
-
-      toast.success(
-        response.message ||
-          "Payment rejected successfully.",
+      const response = await rejectPaymentMutation.mutateAsync(
+        rejectPayment.id,
       );
+
+      toast.success(response.message || "Payment rejected successfully.");
 
       setRejectPayment(null);
       setViewingPayment(null);
     } catch (error: any) {
       toast.error(
-        error?.response?.data
-          ?.message ||
-          "Failed to reject payment.",
+        error?.response?.data?.message || "Failed to reject payment.",
       );
     }
   };
@@ -535,78 +412,41 @@ export default function PaymentsPage() {
   /* Supporting invoice mapping                                              */
   /* ------------------------------------------------------------------------ */
 
-  const invoices =
-    invoicesData?.data ??
-    [];
+  const invoices = invoicesData?.data ?? [];
 
-  const paymentFilterInvoices: PaymentInvoice[] =
-    invoices.map(
-      (invoice) => ({
-        id:
-          invoice.id,
+  const paymentFilterInvoices: PaymentInvoice[] = invoices.map((invoice) => ({
+    id: invoice.id,
 
-        invoiceNumber:
-          invoice.invoiceNumber,
+    invoiceNumber: invoice.invoiceNumber,
 
-        totalAmount:
-          invoice.totalAmount,
+    totalAmount: invoice.totalAmount,
 
-        amountPaid:
-          invoice.amountPaid,
+    amountPaid: invoice.amountPaid,
 
-        balanceDue:
-          invoice.balanceDue,
+    balanceDue: invoice.balanceDue,
 
-        status:
-          invoice.status,
+    status: invoice.status,
 
-        quotation: {
-          id:
-            invoice
-              .quotation.id,
+    quotation: {
+      id: invoice.quotation.id,
 
-          quotationNumber:
-            invoice
-              .quotation
-              .quotationNumber,
+      quotationNumber: invoice.quotation.quotationNumber,
 
-          client: {
-            id:
-              invoice
-                .quotation
-                .client
-                ?.id ??
-              "",
+      client: {
+        id: invoice.quotation.client?.id ?? "",
 
-            companyName:
-              invoice
-                .quotation
-                .client
-                ?.companyName ??
-              "Unknown client",
-          },
+        companyName: invoice.quotation.client?.companyName ?? "Unknown client",
+      },
 
-          project:
-            invoice
-              .quotation
-              .project
-              ? {
-                  id:
-                    invoice
-                      .quotation
-                      .project
-                      .id,
+      project: invoice.quotation.project
+        ? {
+            id: invoice.quotation.project.id,
 
-                  name:
-                    invoice
-                      .quotation
-                      .project
-                      .name,
-                }
-              : null,
-        },
-      }),
-    );
+            name: invoice.quotation.project.name,
+          }
+        : null,
+    },
+  }));
 
   /* ------------------------------------------------------------------------ */
   /* Initial loading                                                          */
@@ -623,10 +463,7 @@ export default function PaymentsPage() {
     );
   }
 
-  if (
-    isUserLoading ||
-    !user
-  ) {
+  if (isUserLoading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -641,13 +478,9 @@ export default function PaymentsPage() {
   /* Authorization                                                            */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    !canAccessPayments
-  ) {
+  if (!canAccessPayments) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -669,14 +502,9 @@ export default function PaymentsPage() {
   /* Loading                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isPaymentsLoading &&
-    !data
-  ) {
+  if (isPaymentsLoading && !data) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -691,14 +519,9 @@ export default function PaymentsPage() {
   /* Error                                                                    */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isPaymentsError ||
-    !data
-  ) {
+  if (isPaymentsError || !data) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -713,9 +536,7 @@ export default function PaymentsPage() {
 
             <button
               type="button"
-              onClick={() =>
-                refetch()
-              }
+              onClick={() => refetch()}
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -730,11 +551,9 @@ export default function PaymentsPage() {
   /* Data                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const payments =
-    data.data;
+  const payments = data.data;
 
-  const meta =
-    data.meta;
+  const meta = data.meta;
 
   /*
    * Only invoices with an outstanding balance
@@ -742,86 +561,51 @@ export default function PaymentsPage() {
    *
    * Backend still enforces client ownership.
    */
-  const invoiceOptions: PaymentInvoiceOption[] =
-    invoices
-      .filter(
-        (invoice) =>
-          invoice.status !==
-            "DRAFT" &&
-          invoice.status !==
-            "PAID" &&
-          Number(
-            invoice.balanceDue,
-          ) > 0,
-      )
-      .map(
-        (invoice) => ({
-          id:
-            invoice.id,
+  const invoiceOptions: PaymentInvoiceOption[] = invoices
+    .filter(
+      (invoice) =>
+        invoice.status !== "DRAFT" &&
+        invoice.status !== "PAID" &&
+        Number(invoice.balanceDue) > 0,
+    )
+    .map((invoice) => ({
+      id: invoice.id,
 
-          invoiceNumber:
-            invoice.invoiceNumber,
+      invoiceNumber: invoice.invoiceNumber,
 
-          totalAmount:
-            invoice.totalAmount,
+      totalAmount: invoice.totalAmount,
 
-          amountPaid:
-            invoice.amountPaid,
+      amountPaid: invoice.amountPaid,
 
-          balanceDue:
-            invoice.balanceDue,
+      balanceDue: invoice.balanceDue,
 
-          status:
-            invoice.status,
+      status: invoice.status,
 
-          quotation: {
-            client:
-              invoice
-                .quotation
-                ?.client
-                ? {
-                    id:
-                      invoice
-                        .quotation
-                        .client
-                        .id,
+      quotation: {
+        client: invoice.quotation?.client
+          ? {
+              id: invoice.quotation.client.id,
 
-                    companyName:
-                      invoice
-                        .quotation
-                        .client
-                        .companyName,
-                  }
-                : undefined,
-          },
-        }),
-      );
+              companyName: invoice.quotation.client.companyName,
+            }
+          : undefined,
+      },
+    }));
 
-  const receiverDetails =
-    receiverData?.data;
+  const receiverDetails = receiverData?.data;
 
   return (
-    <DashboardLayout
-      user={user}
-    >
+    <DashboardLayout user={user}>
       <div className="mx-auto max-w-7xl space-y-6">
         {/* ---------------------------------------------------------------- */}
         {/* Header                                                            */}
         {/* ---------------------------------------------------------------- */}
 
         <PaymentsHeader
-          search={
-            searchInput
-          }
-          onSearchChange={
-            setSearchInput
-          }
-          onCreate={
-            openCreateForm
-          }
-          canCreate={
-            canCreatePayment
-          }
+          search={searchInput}
+          onSearchChange={setSearchInput}
+          onCreate={openCreateForm}
+          canCreate={canCreatePayment}
         />
 
         {/* ---------------------------------------------------------------- */}
@@ -829,30 +613,14 @@ export default function PaymentsPage() {
         {/* ---------------------------------------------------------------- */}
 
         <PaymentsFilters
-          invoices={
-            paymentFilterInvoices
-          }
-          invoiceId={
-            invoiceId
-          }
-          status={
-            status
-          }
-          paymentMethod={
-            paymentMethod
-          }
-          onInvoiceChange={
-            handleInvoiceChange
-          }
-          onStatusChange={
-            handleStatusChange
-          }
-          onPaymentMethodChange={
-            handlePaymentMethodChange
-          }
-          onReset={
-            resetFilters
-          }
+          invoices={paymentFilterInvoices}
+          invoiceId={invoiceId}
+          status={status}
+          paymentMethod={paymentMethod}
+          onInvoiceChange={handleInvoiceChange}
+          onStatusChange={handleStatusChange}
+          onPaymentMethodChange={handlePaymentMethodChange}
+          onReset={resetFilters}
         />
 
         {/* ---------------------------------------------------------------- */}
@@ -860,27 +628,13 @@ export default function PaymentsPage() {
         {/* ---------------------------------------------------------------- */}
 
         <PaymentsTable
-          payments={
-            payments
-          }
-          search={
-            search
-          }
-          isFetching={
-            isFetching
-          }
-          getPermissions={
-            getPermissions
-          }
-          onView={
-            setViewingPayment
-          }
-          onVerify={
-            setVerifyPayment
-          }
-          onReject={
-            setRejectPayment
-          }
+          payments={payments}
+          search={search}
+          isFetching={isFetching}
+          getPermissions={getPermissions}
+          onView={setViewingPayment}
+          onVerify={setVerifyPayment}
+          onReject={setRejectPayment}
         />
 
         {/* ---------------------------------------------------------------- */}
@@ -888,18 +642,10 @@ export default function PaymentsPage() {
         {/* ---------------------------------------------------------------- */}
 
         <PaymentsPagination
-          page={
-            meta.page
-          }
-          totalPages={
-            meta.totalPages
-          }
-          isFetching={
-            isFetching
-          }
-          onPageChange={
-            setPage
-          }
+          page={meta.page}
+          totalPages={meta.totalPages}
+          isFetching={isFetching}
+          onPageChange={setPage}
         />
       </div>
 
@@ -909,33 +655,15 @@ export default function PaymentsPage() {
 
       {canCreatePayment && (
         <PaymentFormModal
-          open={
-            isFormOpen
-          }
-          invoices={
-            invoiceOptions
-          }
-          receiverDetails={
-            receiverDetails
-          }
-          isLoadingInvoices={
-            !invoicesData
-          }
-          isLoadingReceiverDetails={
-            isReceiverLoading
-          }
-          isSubmitting={
-            createPayment.isPending
-          }
-          error={
-            formError
-          }
-          onClose={
-            closeForm
-          }
-          onCreate={
-            handleCreate
-          }
+          open={isFormOpen}
+          invoices={invoiceOptions}
+          receiverDetails={receiverDetails}
+          isLoadingInvoices={!invoicesData}
+          isLoadingReceiverDetails={isReceiverLoading}
+          isSubmitting={createPayment.isPending}
+          error={formError}
+          onClose={closeForm}
+          onCreate={handleCreate}
         />
       )}
 
@@ -945,34 +673,12 @@ export default function PaymentsPage() {
 
       {viewingPayment && (
         <PaymentView
-          payment={
-            viewingPayment
-          }
-          canVerify={
-            getPermissions(
-              viewingPayment,
-            ).canVerify
-          }
-          canReject={
-            getPermissions(
-              viewingPayment,
-            ).canReject
-          }
-          onClose={() =>
-            setViewingPayment(
-              null,
-            )
-          }
-          onVerify={() =>
-            setVerifyPayment(
-              viewingPayment,
-            )
-          }
-          onReject={() =>
-            setRejectPayment(
-              viewingPayment,
-            )
-          }
+          payment={viewingPayment}
+          canVerify={getPermissions(viewingPayment).canVerify}
+          canReject={getPermissions(viewingPayment).canReject}
+          onClose={() => setViewingPayment(null)}
+          onVerify={() => setVerifyPayment(viewingPayment)}
+          onReject={() => setRejectPayment(viewingPayment)}
         />
       )}
 
@@ -983,24 +689,13 @@ export default function PaymentsPage() {
       {verifyPayment && (
         <ConfirmDialog
           title="Verify payment?"
-          description={`Verify ${formatCurrency(
-            verifyPayment.amount,
-          )} for ${
-            verifyPayment.invoice
-              .invoiceNumber
+          description={`Verify ${formatCurrency(verifyPayment.amount)} for ${
+            verifyPayment.invoice.invoiceNumber
           }? This payment will affect the invoice financials.`}
           confirmLabel="Verify Payment"
-          processing={
-            verifyPaymentMutation.isPending
-          }
-          onCancel={() =>
-            setVerifyPayment(
-              null,
-            )
-          }
-          onConfirm={
-            handleVerify
-          }
+          processing={verifyPaymentMutation.isPending}
+          onCancel={() => setVerifyPayment(null)}
+          onConfirm={handleVerify}
         />
       )}
 
@@ -1012,22 +707,13 @@ export default function PaymentsPage() {
         <ConfirmDialog
           title="Reject payment?"
           description={`Mark the payment for ${
-            rejectPayment.invoice
-              .invoiceNumber
+            rejectPayment.invoice.invoiceNumber
           } as failed? It will not affect the invoice balance.`}
           confirmLabel="Reject Payment"
           danger
-          processing={
-            rejectPaymentMutation.isPending
-          }
-          onCancel={() =>
-            setRejectPayment(
-              null,
-            )
-          }
-          onConfirm={
-            handleReject
-          }
+          processing={rejectPaymentMutation.isPending}
+          onCancel={() => setRejectPayment(null)}
+          onConfirm={handleReject}
         />
       )}
     </DashboardLayout>
@@ -1053,12 +739,9 @@ function PaymentView({
   onVerify: () => void;
   onReject: () => void;
 }) {
-  const receiptImageUrl =
-    payment.receiptImage
-      ? getReceiptImageUrl(
-          payment.receiptImage,
-        )
-      : "";
+  const receiptImageUrl = payment.receiptImage
+    ? getReceiptImageUrl(payment.receiptImage)
+    : "";
 
   return (
     <div className="fixed inset-0 z-[110] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
@@ -1072,18 +755,13 @@ function PaymentView({
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              {
-                payment.invoice
-                  .invoiceNumber
-              }
+              {payment.invoice.invoiceNumber}
             </p>
           </div>
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             aria-label="Close payment details"
           >
@@ -1095,84 +773,48 @@ function PaymentView({
 
         <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <DetailCard
-              label="Invoice"
-              value={
-                payment.invoice
-                  .invoiceNumber
-              }
-            />
+            <DetailCard label="Invoice" value={payment.invoice.invoiceNumber} />
 
             <DetailCard
               label="Client"
-              value={
-                payment.invoice
-                  .quotation
-                  .client
-                  .companyName
-              }
+              value={payment.invoice.quotation.client.companyName}
             />
 
-            <DetailCard
-              label="Amount"
-              value={formatCurrency(
-                payment.amount,
-              )}
-            />
+            <DetailCard label="Amount" value={formatCurrency(payment.amount)} />
 
             <DetailCard
               label="Method"
-              value={formatPaymentMethod(
-                payment.paymentMethod,
-              )}
+              value={formatPaymentMethod(payment.paymentMethod)}
             />
 
             <DetailCard
               label="Payment Date"
-              value={formatDate(
-                payment.paymentDate ??
-                  payment.createdAt,
-              )}
+              value={formatDate(payment.paymentDate ?? payment.createdAt)}
             />
 
             <DetailCard
               label="Status"
-              value={formatPaymentStatus(
-                payment.status,
-              )}
+              value={formatPaymentStatus(payment.status)}
             />
 
             <DetailCard
               label="Reference"
-              value={
-                payment.referenceNumber ??
-                "No reference"
-              }
+              value={payment.referenceNumber ?? "No reference"}
             />
 
             <DetailCard
               label="Invoice Balance"
-              value={formatCurrency(
-                payment.invoice
-                  .balanceDue,
-              )}
+              value={formatCurrency(payment.invoice.balanceDue)}
             />
 
             {payment.accountTitle && (
-              <DetailCard
-                label="Sender Account"
-                value={
-                  payment.accountTitle
-                }
-              />
+              <DetailCard label="Sender Account" value={payment.accountTitle} />
             )}
 
             {payment.accountNumber && (
               <DetailCard
                 label="Sender Account Number"
-                value={
-                  payment.accountNumber
-                }
+                value={payment.accountNumber}
               />
             )}
           </div>
@@ -1195,9 +837,7 @@ function PaymentView({
                 </div>
 
                 <a
-                  href={
-                    receiptImageUrl
-                  }
+                  href={receiptImageUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
@@ -1209,14 +849,11 @@ function PaymentView({
 
               <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
                 <img
-                  src={
-                    receiptImageUrl
-                  }
+                  src={receiptImageUrl}
                   alt="Payment receipt"
                   className="max-h-[420px] w-full object-contain"
                   onError={(event) => {
-                    event.currentTarget.style.display =
-                      "none";
+                    event.currentTarget.style.display = "none";
                   }}
                 />
               </div>
@@ -1258,32 +895,16 @@ function PaymentView({
               </p>
 
               <p className="mt-1 text-sm font-medium text-slate-800">
-                {
-                  payment
-                    .verifiedBy
-                    .firstName
-                }{" "}
-                {
-                  payment
-                    .verifiedBy
-                    .lastName
-                }
+                {payment.verifiedBy.firstName} {payment.verifiedBy.lastName}
               </p>
 
               <p className="mt-0.5 text-xs text-slate-500">
-                {
-                  payment
-                    .verifiedBy
-                    .email
-                }
+                {payment.verifiedBy.email}
               </p>
 
               {payment.verifiedAt && (
                 <p className="mt-2 text-xs text-slate-400">
-                  Verified on{" "}
-                  {formatDate(
-                    payment.verifiedAt,
-                  )}
+                  Verified on {formatDate(payment.verifiedAt)}
                 </p>
               )}
             </div>
@@ -1293,39 +914,29 @@ function PaymentView({
         {/* Footer */}
 
         <div className="flex shrink-0 flex-wrap justify-end gap-3 border-t border-slate-200 px-6 py-4">
-          {canVerify &&
-            payment.status ===
-              "PENDING" && (
-              <button
-                type="button"
-                onClick={
-                  onVerify
-                }
-                className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
-              >
-                Verify Payment
-              </button>
-            )}
+          {canVerify && payment.status === "PENDING" && (
+            <button
+              type="button"
+              onClick={onVerify}
+              className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
+            >
+              Verify Payment
+            </button>
+          )}
 
-          {canReject &&
-            payment.status ===
-              "PENDING" && (
-              <button
-                type="button"
-                onClick={
-                  onReject
-                }
-                className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700"
-              >
-                Reject Payment
-              </button>
-            )}
+          {canReject && payment.status === "PENDING" && (
+            <button
+              type="button"
+              onClick={onReject}
+              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700"
+            >
+              Reject Payment
+            </button>
+          )}
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
           >
             Close
@@ -1362,9 +973,7 @@ function ConfirmDialog({
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">
-              {title}
-            </h3>
+            <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
               {description}
@@ -1373,12 +982,8 @@ function ConfirmDialog({
 
           <button
             type="button"
-            onClick={
-              onCancel
-            }
-            disabled={
-              processing
-            }
+            onClick={onCancel}
+            disabled={processing}
             className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
             aria-label="Close dialog"
           >
@@ -1389,12 +994,8 @@ function ConfirmDialog({
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"
-            onClick={
-              onCancel
-            }
-            disabled={
-              processing
-            }
+            onClick={onCancel}
+            disabled={processing}
             className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
             Cancel
@@ -1402,21 +1003,15 @@ function ConfirmDialog({
 
           <button
             type="button"
-            onClick={
-              onConfirm
-            }
-            disabled={
-              processing
-            }
+            onClick={onConfirm}
+            disabled={processing}
             className={`rounded-lg px-4 py-2.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 ${
               danger
                 ? "bg-red-600 hover:bg-red-700"
                 : "bg-slate-900 hover:bg-slate-800"
             }`}
           >
-            {processing
-              ? "Processing..."
-              : confirmLabel}
+            {processing ? "Processing..." : confirmLabel}
           </button>
         </div>
       </div>
@@ -1428,9 +1023,7 @@ function ConfirmDialog({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function formatPaymentMethod(
-  method: PaymentMethod,
-) {
+function formatPaymentMethod(method: PaymentMethod) {
   switch (method) {
     case "BANK_TRANSFER":
       return "Bank Transfer";
@@ -1449,9 +1042,7 @@ function formatPaymentMethod(
   }
 }
 
-function formatPaymentStatus(
-  status: PaymentStatus,
-) {
+function formatPaymentStatus(status: PaymentStatus) {
   switch (status) {
     case "PENDING":
       return "Pending";
@@ -1470,62 +1061,36 @@ function formatPaymentStatus(
   }
 }
 
-function formatDate(
-  value: string,
-) {
-  const date =
-    new Date(value);
+function formatDate(value: string) {
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "N/A";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    },
-  ).format(date);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }
 
-function formatCurrency(
-  value: string | number,
-) {
-  const amount =
-    Number(value);
+function formatCurrency(value: string | number) {
+  const amount = Number(value);
 
-  if (
-    !Number.isFinite(
-      amount,
-    )
-  ) {
+  if (!Number.isFinite(amount)) {
     return "PKR 0.00";
   }
 
-  return new Intl.NumberFormat(
-    "en-PK",
-    {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-  ).format(amount);
+  return new Intl.NumberFormat("en-PK", {
+    style: "currency",
+    currency: "PKR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
-function DetailCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function DetailCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-200 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">

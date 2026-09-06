@@ -62,9 +62,7 @@ import type { Meeting } from "@/features/meetings/types/meeting.types";
 
 import type { QuotationStatus } from "@/features/quotations/types/quotation.types";
 
-import type {
-  Project,
-} from "@/features/projects/types/project.types";
+import type { Project } from "@/features/projects/types/project.types";
 
 import type {
   Task,
@@ -1005,11 +1003,7 @@ function FinancialChart({
 /* Recent Projects                                                            */
 /* -------------------------------------------------------------------------- */
 
-function RecentProjectsCard({
-  projects,
-}: {
-  projects: Project[];
-}) {
+function RecentProjectsCard({ projects }: { projects: Project[] }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
       <SectionHeader
@@ -1094,11 +1088,7 @@ function UpcomingMeetingsCard({ meetings }: { meetings: Meeting[] }) {
 /* Recent Payments                                                            */
 /* -------------------------------------------------------------------------- */
 
-function RecentPaymentsCard({
-  payments,
-}: {
-  payments: Payment[];
-}) {
+function RecentPaymentsCard({ payments }: { payments: Payment[] }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
       <SectionHeader
@@ -1145,11 +1135,7 @@ function RecentPaymentsCard({
 /* Recent Tasks                                                               */
 /* -------------------------------------------------------------------------- */
 
-function RecentTasksCard({
-  tasks,
-}: {
-  tasks: Task[];
-}) {
+function RecentTasksCard({ tasks }: { tasks: Task[] }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
       <SectionHeader
@@ -1194,11 +1180,7 @@ function RecentTasksCard({
 /* Recent Invoices                                                            */
 /* -------------------------------------------------------------------------- */
 
-function RecentInvoicesCard({
-  invoices,
-}: {
-  invoices: Invoice[];
-}) {
+function RecentInvoicesCard({ invoices }: { invoices: Invoice[] }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
       <SectionHeader

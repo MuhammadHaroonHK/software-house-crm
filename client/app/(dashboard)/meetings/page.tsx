@@ -1,20 +1,10 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  AlertCircle,
-  Loader2,
-  UserRound,
-  Users,
-} from "lucide-react";
+import { AlertCircle, Loader2, UserRound, Users } from "lucide-react";
 
-import {
-  useRouter,
-} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
 
@@ -25,26 +15,18 @@ import DeleteMeetingDialog from "@/components/meetings/DeleteMeetingDialog";
 import MeetingFormModal from "@/components/meetings/MeetingFormModal";
 import MeetingParticipantsModal from "@/components/meetings/MeetingParticipantsModal";
 
-import {
-  useProjects,
-} from "@/features/projects/hooks/useProjects";
+import { useProjects } from "@/features/projects/hooks/useProjects";
 
-import {
-  useUsers,
-} from "@/features/users/hooks/useUsers";
+import { useUsers } from "@/features/users/hooks/useUsers";
 
 import MeetingsFilters from "@/features/meetings/components/MeetingsFilters";
 import MeetingsHeader from "@/features/meetings/components/MeetingsHeader";
 import MeetingsPagination from "@/features/meetings/components/MeetingsPagination";
 import MeetingsTable from "@/features/meetings/components/MeetingsTable";
 
-import {
-  useCurrentUser,
-} from "@/features/auth/hooks/useAuth";
+import { useCurrentUser } from "@/features/auth/hooks/useAuth";
 
-import {
-  authStorage,
-} from "@/features/auth/services/auth-storage";
+import { authStorage } from "@/features/auth/services/auth-storage";
 
 import {
   useChangeMeetingStatus,
@@ -77,17 +59,13 @@ export default function MeetingsPage() {
   /* Supporting data                                                          */
   /* ------------------------------------------------------------------------ */
 
-  const {
-    data: projectsData,
-  } = useProjects({
+  const { data: projectsData } = useProjects({
     limit: 100,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
 
-  const {
-    data: usersData,
-  } = useUsers({
+  const { data: usersData } = useUsers({
     limit: 100,
     role: "PROJECT_MANAGER",
   });
@@ -96,50 +74,38 @@ export default function MeetingsPage() {
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [projectId, setProjectId] =
-    useState("");
+  const [projectId, setProjectId] = useState("");
 
-  const [organizerId, setOrganizerId] =
-    useState("");
+  const [organizerId, setOrganizerId] = useState("");
 
-  const [status, setStatus] =
-    useState<MeetingStatus | "">("");
+  const [status, setStatus] = useState<MeetingStatus | "">("");
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [editingMeeting, setEditingMeeting] =
-    useState<Meeting | null>(null);
+  const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
 
-  const [viewingMeeting, setViewingMeeting] =
-    useState<Meeting | null>(null);
+  const [viewingMeeting, setViewingMeeting] = useState<Meeting | null>(null);
 
-  const [deleteMeeting, setDeleteMeeting] =
-    useState<Meeting | null>(null);
+  const [deleteMeeting, setDeleteMeeting] = useState<Meeting | null>(null);
 
-  const [statusMeeting, setStatusMeeting] =
-    useState<Meeting | null>(null);
+  const [statusMeeting, setStatusMeeting] = useState<Meeting | null>(null);
 
   const [participantsMeeting, setParticipantsMeeting] =
     useState<Meeting | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const [participantsError, setParticipantsError] =
-    useState<string | null>(null);
+  const [participantsError, setParticipantsError] = useState<string | null>(
+    null,
+  );
 
   /* ------------------------------------------------------------------------ */
   /* Auth                                                                     */
@@ -180,9 +146,7 @@ export default function MeetingsPage() {
     data: participantsData,
     isLoading: isParticipantsLoading,
     isError: isParticipantsError,
-  } = useMeetingParticipants(
-    participantsMeeting?.id
-  );
+  } = useMeetingParticipants(participantsMeeting?.id);
 
   /* ------------------------------------------------------------------------ */
   /* Participants - View modal                                                */
@@ -198,31 +162,23 @@ export default function MeetingsPage() {
     data: viewingParticipantsData,
     isLoading: isViewingParticipantsLoading,
     isError: isViewingParticipantsError,
-  } = useMeetingParticipants(
-    viewingMeeting?.id
-  );
+  } = useMeetingParticipants(viewingMeeting?.id);
 
-  const addParticipant =
-    useAddMeetingParticipant();
+  const addParticipant = useAddMeetingParticipant();
 
-  const removeParticipant =
-    useRemoveMeetingParticipant();
+  const removeParticipant = useRemoveMeetingParticipant();
 
   /* ------------------------------------------------------------------------ */
   /* Meeting mutations                                                        */
   /* ------------------------------------------------------------------------ */
 
-  const createMeeting =
-    useCreateMeeting();
+  const createMeeting = useCreateMeeting();
 
-  const updateMeeting =
-    useUpdateMeeting();
+  const updateMeeting = useUpdateMeeting();
 
-  const deleteMeetingMutation =
-    useDeleteMeeting();
+  const deleteMeetingMutation = useDeleteMeeting();
 
-  const changeMeetingStatus =
-    useChangeMeetingStatus();
+  const changeMeetingStatus = useChangeMeetingStatus();
 
   /* ------------------------------------------------------------------------ */
   /* Mount                                                                    */
@@ -279,23 +235,17 @@ export default function MeetingsPage() {
     setPage(1);
   };
 
-  const handleProjectChange = (
-    value: string
-  ) => {
+  const handleProjectChange = (value: string) => {
     setProjectId(value);
     setPage(1);
   };
 
-  const handleOrganizerChange = (
-    value: string
-  ) => {
+  const handleOrganizerChange = (value: string) => {
     setOrganizerId(value);
     setPage(1);
   };
 
-  const handleStatusFilterChange = (
-    value: MeetingStatus | ""
-  ) => {
+  const handleStatusFilterChange = (value: MeetingStatus | "") => {
     setStatus(value);
     setPage(1);
   };
@@ -310,19 +260,14 @@ export default function MeetingsPage() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (
-    meeting: Meeting
-  ) => {
+  const openEditModal = (meeting: Meeting) => {
     setEditingMeeting(meeting);
     setFormError(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    if (
-      createMeeting.isPending ||
-      updateMeeting.isPending
-    ) {
+    if (createMeeting.isPending || updateMeeting.isPending) {
       return;
     }
 
@@ -335,9 +280,7 @@ export default function MeetingsPage() {
   /* View                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const handleView = (
-    meeting: Meeting
-  ) => {
+  const handleView = (meeting: Meeting) => {
     setViewingMeeting(meeting);
   };
 
@@ -345,21 +288,13 @@ export default function MeetingsPage() {
   /* Create                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate = async (
-    payload: CreateMeetingPayload
-  ) => {
+  const handleCreate = async (payload: CreateMeetingPayload) => {
     setFormError(null);
 
     try {
-      const response =
-        await createMeeting.mutateAsync(
-          payload
-        );
+      const response = await createMeeting.mutateAsync(payload);
 
-      toast.success(
-        response.message ||
-          "Meeting created successfully."
-      );
+      toast.success(response.message || "Meeting created successfully.");
 
       setIsModalOpen(false);
       setEditingMeeting(null);
@@ -380,9 +315,7 @@ export default function MeetingsPage() {
   /* Update                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate = async (
-    payload: UpdateMeetingPayload
-  ) => {
+  const handleUpdate = async (payload: UpdateMeetingPayload) => {
     if (!editingMeeting) {
       return;
     }
@@ -390,16 +323,12 @@ export default function MeetingsPage() {
     setFormError(null);
 
     try {
-      const response =
-        await updateMeeting.mutateAsync({
-          id: editingMeeting.id,
-          data: payload,
-        });
+      const response = await updateMeeting.mutateAsync({
+        id: editingMeeting.id,
+        data: payload,
+      });
 
-      toast.success(
-        response.message ||
-          "Meeting updated successfully."
-      );
+      toast.success(response.message || "Meeting updated successfully.");
 
       setIsModalOpen(false);
       setEditingMeeting(null);
@@ -419,26 +348,20 @@ export default function MeetingsPage() {
   /* Change status                                                            */
   /* ------------------------------------------------------------------------ */
 
-  const handleChangeStatus = async (
-    newStatus: MeetingStatus
-  ) => {
+  const handleChangeStatus = async (newStatus: MeetingStatus) => {
     if (!statusMeeting) {
       return;
     }
 
     try {
-      const response =
-        await changeMeetingStatus.mutateAsync({
-          id: statusMeeting.id,
-          data: {
-            status: newStatus,
-          },
-        });
+      const response = await changeMeetingStatus.mutateAsync({
+        id: statusMeeting.id,
+        data: {
+          status: newStatus,
+        },
+      });
 
-      toast.success(
-        response.message ||
-          "Meeting status updated successfully."
-      );
+      toast.success(response.message || "Meeting status updated successfully.");
 
       setStatusMeeting(null);
     } catch (error: any) {
@@ -460,26 +383,16 @@ export default function MeetingsPage() {
     }
 
     try {
-      const response =
-        await deleteMeetingMutation.mutateAsync(
-          deleteMeeting.id
-        );
-
-      toast.success(
-        response.message ||
-          "Meeting deleted successfully."
+      const response = await deleteMeetingMutation.mutateAsync(
+        deleteMeeting.id,
       );
+
+      toast.success(response.message || "Meeting deleted successfully.");
 
       setDeleteMeeting(null);
 
-      if (
-        data?.data.length === 1 &&
-        page > 1
-      ) {
-        setPage(
-          (previous) =>
-            previous - 1
-        );
+      if (data?.data.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
       }
     } catch (error: any) {
       const message =
@@ -495,18 +408,13 @@ export default function MeetingsPage() {
   /* Participants - Management                                               */
   /* ------------------------------------------------------------------------ */
 
-  const openParticipantsModal = (
-    meeting: Meeting
-  ) => {
+  const openParticipantsModal = (meeting: Meeting) => {
     setParticipantsError(null);
     setParticipantsMeeting(meeting);
   };
 
   const closeParticipantsModal = () => {
-    if (
-      addParticipant.isPending ||
-      removeParticipant.isPending
-    ) {
+    if (addParticipant.isPending || removeParticipant.isPending) {
       return;
     }
 
@@ -514,9 +422,7 @@ export default function MeetingsPage() {
     setParticipantsError(null);
   };
 
-  const handleAddParticipant = async (
-    userId: string
-  ) => {
+  const handleAddParticipant = async (userId: string) => {
     if (!participantsMeeting) {
       return;
     }
@@ -524,19 +430,14 @@ export default function MeetingsPage() {
     setParticipantsError(null);
 
     try {
-      const response =
-        await addParticipant.mutateAsync({
-          meetingId:
-            participantsMeeting.id,
-          data: {
-            userId,
-          },
-        });
+      const response = await addParticipant.mutateAsync({
+        meetingId: participantsMeeting.id,
+        data: {
+          userId,
+        },
+      });
 
-      toast.success(
-        response.message ||
-          "Participant added successfully."
-      );
+      toast.success(response.message || "Participant added successfully.");
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
@@ -549,39 +450,31 @@ export default function MeetingsPage() {
     }
   };
 
-  const handleRemoveParticipant =
-    async (
-      userId: string
-    ) => {
-      if (!participantsMeeting) {
-        return;
-      }
+  const handleRemoveParticipant = async (userId: string) => {
+    if (!participantsMeeting) {
+      return;
+    }
 
-      setParticipantsError(null);
+    setParticipantsError(null);
 
-      try {
-        const response =
-          await removeParticipant.mutateAsync({
-            meetingId:
-              participantsMeeting.id,
-            userId,
-          });
+    try {
+      const response = await removeParticipant.mutateAsync({
+        meetingId: participantsMeeting.id,
+        userId,
+      });
 
-        toast.success(
-          response.message ||
-            "Participant removed successfully."
-        );
-      } catch (error: any) {
-        const message =
-          error?.response?.data?.message ||
-          "Failed to remove participant. Please try again.";
+      toast.success(response.message || "Participant removed successfully.");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to remove participant. Please try again.";
 
-        setParticipantsError(message);
-        toast.error(message);
+      setParticipantsError(message);
+      toast.error(message);
 
-        throw error;
-      }
-    };
+      throw error;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Initial mounting                                                         */
@@ -602,10 +495,7 @@ export default function MeetingsPage() {
   /* User loading                                                             */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isUserLoading ||
-    !user
-  ) {
+  if (isUserLoading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -627,9 +517,7 @@ export default function MeetingsPage() {
 
   if (!canAccessMeetings) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -651,14 +539,9 @@ export default function MeetingsPage() {
   /* Meetings loading                                                         */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isMeetingsLoading &&
-    !data
-  ) {
+  if (isMeetingsLoading && !data) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -673,14 +556,9 @@ export default function MeetingsPage() {
   /* Meetings error                                                           */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isMeetingsError ||
-    !data
-  ) {
+  if (isMeetingsError || !data) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -695,9 +573,7 @@ export default function MeetingsPage() {
 
             <button
               type="button"
-              onClick={() =>
-                refetch()
-              }
+              onClick={() => refetch()}
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -712,354 +588,175 @@ export default function MeetingsPage() {
   /* Data                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const meetings =
-    data.data;
+  const meetings = data.data;
 
-  const meta =
-    data.meta;
+  const meta = data.meta;
 
-  const projects =
-    projectsData?.data ??
-    [];
+  const projects = projectsData?.data ?? [];
 
-  const organizers =
-    usersData?.users ??
-    [];
+  const organizers = usersData?.users ?? [];
 
-  const participants =
-    participantsData?.data ??
-    [];
+  const participants = participantsData?.data ?? [];
 
-  const viewingParticipants =
-    viewingParticipantsData?.data ??
-    [];
+  const viewingParticipants = viewingParticipantsData?.data ?? [];
 
   /* ------------------------------------------------------------------------ */
   /* Permissions                                                              */
   /* ------------------------------------------------------------------------ */
 
   const canManageMeetings =
-    user.role === "SUPER_ADMIN" ||
-    user.role === "PROJECT_MANAGER";
+    user.role === "SUPER_ADMIN" || user.role === "PROJECT_MANAGER";
 
-  const canCreateMeeting =
-    canManageMeetings;
+  const canCreateMeeting = canManageMeetings;
 
-  const canEditMeeting = (
-    meeting: Meeting
-  ) =>
+  const canEditMeeting = (meeting: Meeting) =>
     canManageMeetings &&
     meeting.status !== "COMPLETED" &&
     meeting.status !== "CANCELLED" &&
-    (
-      user.role === "SUPER_ADMIN" ||
-      (
-        meeting.project.status !==
-          "COMPLETED" &&
-        meeting.project.status !==
-          "CANCELLED"
-      )
-    );
+    (user.role === "SUPER_ADMIN" ||
+      (meeting.project.status !== "COMPLETED" &&
+        meeting.project.status !== "CANCELLED"));
 
-  const canDeleteMeeting = (
-    meeting: Meeting
-  ) =>
+  const canDeleteMeeting = (meeting: Meeting) =>
     canManageMeetings &&
     meeting.status !== "COMPLETED" &&
     meeting.status !== "CANCELLED" &&
-    (
-      user.role === "SUPER_ADMIN" ||
-      (
-        meeting.project.status !==
-          "COMPLETED" &&
-        meeting.project.status !==
-          "CANCELLED"
-      )
-    );
+    (user.role === "SUPER_ADMIN" ||
+      (meeting.project.status !== "COMPLETED" &&
+        meeting.project.status !== "CANCELLED"));
 
-  const canManageParticipants = (
-    meeting: Meeting
-  ) =>
+  const canManageParticipants = (meeting: Meeting) =>
     canManageMeetings &&
     meeting.status !== "COMPLETED" &&
     meeting.status !== "CANCELLED" &&
-    (
-      user.role === "SUPER_ADMIN" ||
-      (
-        meeting.project.status !==
-          "COMPLETED" &&
-        meeting.project.status !==
-          "CANCELLED"
-      )
-    );
+    (user.role === "SUPER_ADMIN" ||
+      (meeting.project.status !== "COMPLETED" &&
+        meeting.project.status !== "CANCELLED"));
 
-  const canChangeMeetingStatus = (
-    meeting: Meeting
-  ) =>
+  const canChangeMeetingStatus = (meeting: Meeting) =>
     canManageMeetings &&
     meeting.status === "SCHEDULED" &&
-    (
-      user.role === "SUPER_ADMIN" ||
-      (
-        meeting.project.status !==
-          "COMPLETED" &&
-        meeting.project.status !==
-          "CANCELLED"
-      )
-    );
+    (user.role === "SUPER_ADMIN" ||
+      (meeting.project.status !== "COMPLETED" &&
+        meeting.project.status !== "CANCELLED"));
 
-  const canManageSelectedParticipants =
-    Boolean(
-      participantsMeeting &&
-        canManageMeetings
-    );
+  const canManageSelectedParticipants = Boolean(
+    participantsMeeting && canManageMeetings,
+  );
 
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
   /* ------------------------------------------------------------------------ */
 
   return (
-    <DashboardLayout
-      user={user}
-    >
+    <DashboardLayout user={user}>
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
         <MeetingsHeader
-          search={
-            searchInput
-          }
-          onSearchChange={
-            setSearchInput
-          }
-          onCreate={
-            openCreateModal
-          }
-          canCreate={
-            canCreateMeeting
-          }
+          search={searchInput}
+          onSearchChange={setSearchInput}
+          onCreate={openCreateModal}
+          canCreate={canCreateMeeting}
         />
 
         {/* Filters */}
         <MeetingsFilters
-          projects={
-            projects
-          }
-          organizers={
-            organizers
-          }
-          projectId={
-            projectId
-          }
-          organizerId={
-            organizerId
-          }
-          status={
-            status
-          }
-          onProjectChange={
-            handleProjectChange
-          }
-          onOrganizerChange={
-            handleOrganizerChange
-          }
-          onStatusChange={
-            handleStatusFilterChange
-          }
-          onReset={
-            resetFilters
-          }
+          projects={projects}
+          organizers={organizers}
+          projectId={projectId}
+          organizerId={organizerId}
+          status={status}
+          onProjectChange={handleProjectChange}
+          onOrganizerChange={handleOrganizerChange}
+          onStatusChange={handleStatusFilterChange}
+          onReset={resetFilters}
         />
 
         {/* Table */}
         <MeetingsTable
-          meetings={
-            meetings
-          }
-          search={
-            search
-          }
-          isFetching={
-            isFetching
-          }
-          canEdit={
-            canEditMeeting
-          }
-          canDelete={
-            canDeleteMeeting
-          }
-          canManageParticipants={
-            canManageParticipants
-          }
-          canChangeStatus={
-            canChangeMeetingStatus
-          }
-          onView={
-            handleView
-          }
-          onEdit={
-            openEditModal
-          }
-          onDelete={
-            setDeleteMeeting
-          }
-          onManageParticipants={
-            openParticipantsModal
-          }
-          onChangeStatus={
-            setStatusMeeting
-          }
+          meetings={meetings}
+          search={search}
+          isFetching={isFetching}
+          canEdit={canEditMeeting}
+          canDelete={canDeleteMeeting}
+          canManageParticipants={canManageParticipants}
+          canChangeStatus={canChangeMeetingStatus}
+          onView={handleView}
+          onEdit={openEditModal}
+          onDelete={setDeleteMeeting}
+          onManageParticipants={openParticipantsModal}
+          onChangeStatus={setStatusMeeting}
         />
 
         {/* Pagination */}
         <MeetingsPagination
-          page={
-            meta.page
-          }
-          totalPages={
-            meta.totalPages
-          }
-          isFetching={
-            isFetching
-          }
-          onPageChange={
-            setPage
-          }
+          page={meta.page}
+          totalPages={meta.totalPages}
+          isFetching={isFetching}
+          onPageChange={setPage}
         />
       </div>
 
       {/* Create / Edit */}
       {canCreateMeeting && (
         <MeetingFormModal
-          open={
-            isModalOpen
-          }
-          meeting={
-            editingMeeting
-          }
-          projects={
-            projects
-          }
-          error={
-            formError
-          }
-          isSubmitting={
-            createMeeting.isPending ||
-            updateMeeting.isPending
-          }
-          onClose={
-            closeModal
-          }
-          onCreate={
-            handleCreate
-          }
-          onUpdate={
-            handleUpdate
-          }
+          open={isModalOpen}
+          meeting={editingMeeting}
+          projects={projects}
+          error={formError}
+          isSubmitting={createMeeting.isPending || updateMeeting.isPending}
+          onClose={closeModal}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
         />
       )}
 
       {/* Delete */}
       <DeleteMeetingDialog
-        meeting={
-          deleteMeeting
-        }
-        isDeleting={
-          deleteMeetingMutation.isPending
-        }
-        onCancel={() =>
-          setDeleteMeeting(
-            null
-          )
-        }
-        onConfirm={
-          handleDelete
-        }
+        meeting={deleteMeeting}
+        isDeleting={deleteMeetingMutation.isPending}
+        onCancel={() => setDeleteMeeting(null)}
+        onConfirm={handleDelete}
       />
 
       {/* Change Status */}
       <ChangeMeetingStatusDialog
-        meeting={
-          statusMeeting
-        }
-        isUpdating={
-          changeMeetingStatus.isPending
-        }
-        onCancel={() =>
-          setStatusMeeting(
-            null
-          )
-        }
-        onConfirm={
-          handleChangeStatus
-        }
+        meeting={statusMeeting}
+        isUpdating={changeMeetingStatus.isPending}
+        onCancel={() => setStatusMeeting(null)}
+        onConfirm={handleChangeStatus}
       />
 
       {/* Participant Management */}
       <MeetingParticipantsModal
-        meeting={
-          participantsMeeting
-        }
-        participants={
-          participants
-        }
-        isLoading={
-          isParticipantsLoading
-        }
-        isParticipantsError={
-          isParticipantsError
-        }
-        isAdding={
-          addParticipant.isPending
-        }
+        meeting={participantsMeeting}
+        participants={participants}
+        isLoading={isParticipantsLoading}
+        isParticipantsError={isParticipantsError}
+        isAdding={addParticipant.isPending}
         removingUserId={
           removeParticipant.isPending
-            ? removeParticipant.variables
-                ?.userId ??
-              null
+            ? (removeParticipant.variables?.userId ?? null)
             : null
         }
-        canManage={
-          canManageSelectedParticipants
-        }
+        canManage={canManageSelectedParticipants}
         error={
           participantsError ??
-          (
-            isParticipantsError
-              ? "Unable to load meeting participants."
-              : null
-          )
+          (isParticipantsError ? "Unable to load meeting participants." : null)
         }
-        onClose={
-          closeParticipantsModal
-        }
-        onAddParticipant={
-          handleAddParticipant
-        }
-        onRemoveParticipant={
-          handleRemoveParticipant
-        }
+        onClose={closeParticipantsModal}
+        onAddParticipant={handleAddParticipant}
+        onRemoveParticipant={handleRemoveParticipant}
       />
 
       {/* Meeting View */}
       {viewingMeeting && (
         <MeetingViewPlaceholder
-          meeting={
-            viewingMeeting
-          }
-          participants={
-            viewingParticipants
-          }
-          isParticipantsLoading={
-            isViewingParticipantsLoading
-          }
-          isParticipantsError={
-            isViewingParticipantsError
-          }
-          onClose={() =>
-            setViewingMeeting(
-              null
-            )
-          }
+          meeting={viewingMeeting}
+          participants={viewingParticipants}
+          isParticipantsLoading={isViewingParticipantsLoading}
+          isParticipantsError={isViewingParticipantsError}
+          onClose={() => setViewingMeeting(null)}
         />
       )}
     </DashboardLayout>
@@ -1115,9 +812,7 @@ function MeetingViewPlaceholder({
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg px-3 py-2 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
           >
             Close
@@ -1128,12 +823,7 @@ function MeetingViewPlaceholder({
         <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6">
           {/* Meeting information */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <DetailCard
-              label="Project"
-              value={
-                meeting.project.name
-              }
-            />
+            <DetailCard label="Project" value={meeting.project.name} />
 
             <DetailCard
               label="Organizer"
@@ -1142,24 +832,17 @@ function MeetingViewPlaceholder({
 
             <DetailCard
               label="Date & Time"
-              value={formatDateTime(
-                meeting.meetingDate
-              )}
+              value={formatDateTime(meeting.meetingDate)}
             />
 
             <DetailCard
               label="Status"
-              value={formatMeetingStatus(
-                meeting.status
-              )}
+              value={formatMeetingStatus(meeting.status)}
             />
 
             <DetailCard
               label="Location"
-              value={
-                meeting.location ||
-                "No location"
-              }
+              value={meeting.location || "No location"}
             />
           </div>
 
@@ -1170,8 +853,7 @@ function MeetingViewPlaceholder({
             </p>
 
             <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
-              {meeting.agenda ||
-                "No agenda provided."}
+              {meeting.agenda || "No agenda provided."}
             </p>
           </div>
 
@@ -1182,8 +864,7 @@ function MeetingViewPlaceholder({
             </p>
 
             <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
-              {meeting.notes ||
-                "No notes provided."}
+              {meeting.notes || "No notes provided."}
             </p>
           </div>
 
@@ -1197,9 +878,7 @@ function MeetingViewPlaceholder({
 
                 <p className="mt-1 text-xs text-slate-500">
                   {participants.length}{" "}
-                  {participants.length === 1
-                    ? "participant"
-                    : "participants"}
+                  {participants.length === 1 ? "participant" : "participants"}
                 </p>
               </div>
 
@@ -1236,49 +915,32 @@ function MeetingViewPlaceholder({
             ) : (
               <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
                 <div className="divide-y divide-slate-100">
-                  {participants.map(
-                    (
-                      participant
-                    ) => (
-                      <div
-                        key={
-                          participant.id
-                        }
-                        className="flex items-center gap-3 px-4 py-4"
-                      >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                          <UserRound className="h-5 w-5 text-slate-500" />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-slate-900">
-                            {
-                              participant.firstName
-                            }{" "}
-                            {
-                              participant.lastName
-                            }
-                          </p>
-
-                          <p className="mt-0.5 truncate text-xs text-slate-500">
-                            {
-                              participant.email
-                            }
-                          </p>
-                        </div>
-
-                        <div className="hidden shrink-0 sm:block">
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                            {formatUserRole(
-                              participant
-                                .role
-                                .name
-                            )}
-                          </span>
-                        </div>
+                  {participants.map((participant) => (
+                    <div
+                      key={participant.id}
+                      className="flex items-center gap-3 px-4 py-4"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                        <UserRound className="h-5 w-5 text-slate-500" />
                       </div>
-                    )
-                  )}
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-slate-900">
+                          {participant.firstName} {participant.lastName}
+                        </p>
+
+                        <p className="mt-0.5 truncate text-xs text-slate-500">
+                          {participant.email}
+                        </p>
+                      </div>
+
+                      <div className="hidden shrink-0 sm:block">
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                          {formatUserRole(participant.role.name)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -1289,9 +951,7 @@ function MeetingViewPlaceholder({
         <div className="flex shrink-0 justify-end border-t border-slate-200 px-6 py-4">
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
             Close
@@ -1306,13 +966,7 @@ function MeetingViewPlaceholder({
 /* Detail Card                                                                */
 /* -------------------------------------------------------------------------- */
 
-function DetailCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function DetailCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-200 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -1330,35 +984,23 @@ function DetailCard({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function formatDateTime(
-  value: string
-): string {
-  const date =
-    new Date(value);
+function formatDateTime(value: string): string {
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "N/A";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    }
-  ).format(date);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }
 
-function formatMeetingStatus(
-  status: MeetingStatus
-): string {
+function formatMeetingStatus(status: MeetingStatus): string {
   switch (status) {
     case "SCHEDULED":
       return "Scheduled";
@@ -1371,18 +1013,9 @@ function formatMeetingStatus(
   }
 }
 
-function formatUserRole(
-  role: string
-): string {
+function formatUserRole(role: string): string {
   return role
     .toLowerCase()
-    .replace(
-      /_/g,
-      " "
-    )
-    .replace(
-      /\b\w/g,
-      (character) =>
-        character.toUpperCase()
-    );
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }

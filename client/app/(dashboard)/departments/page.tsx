@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 
@@ -57,29 +51,25 @@ export default function DepartmentsPage() {
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [editingDepartment, setEditingDepartment] =
-    useState<Department | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(
+    null,
+  );
 
-  const [deleteDepartment, setDeleteDepartment] =
-    useState<Department | null>(null);
+  const [deleteDepartment, setDeleteDepartment] = useState<Department | null>(
+    null,
+  );
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication                                                           */
@@ -109,14 +99,11 @@ export default function DepartmentsPage() {
     sortOrder: "desc",
   });
 
-  const createDepartment =
-    useCreateDepartment();
+  const createDepartment = useCreateDepartment();
 
-  const updateDepartment =
-    useUpdateDepartment();
+  const updateDepartment = useUpdateDepartment();
 
-  const deleteDepartmentMutation =
-    useDeleteDepartment();
+  const deleteDepartmentMutation = useDeleteDepartment();
 
   /* ------------------------------------------------------------------------ */
   /* Mount                                                                    */
@@ -152,11 +139,7 @@ export default function DepartmentsPage() {
     authStorage.removeToken();
 
     router.replace("/login");
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
@@ -164,8 +147,7 @@ export default function DepartmentsPage() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      const trimmedSearch =
-        searchInput.trim();
+      const trimmedSearch = searchInput.trim();
 
       setSearch(trimmedSearch);
       setPage(1);
@@ -186,19 +168,14 @@ export default function DepartmentsPage() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (
-    department: Department
-  ) => {
+  const openEditModal = (department: Department) => {
     setEditingDepartment(department);
     setFormError(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    if (
-      createDepartment.isPending ||
-      updateDepartment.isPending
-    ) {
+    if (createDepartment.isPending || updateDepartment.isPending) {
       return;
     }
 
@@ -211,21 +188,13 @@ export default function DepartmentsPage() {
   /* Create Department                                                        */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate = async (
-    payload: CreateDepartmentPayload
-  ) => {
+  const handleCreate = async (payload: CreateDepartmentPayload) => {
     setFormError(null);
 
     try {
-      const response =
-        await createDepartment.mutateAsync(
-          payload
-        );
+      const response = await createDepartment.mutateAsync(payload);
 
-      toast.success(
-        response.message ||
-          "Department created successfully."
-      );
+      toast.success(response.message || "Department created successfully.");
 
       setIsModalOpen(false);
       setEditingDepartment(null);
@@ -248,9 +217,7 @@ export default function DepartmentsPage() {
   /* Update Department                                                        */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate = async (
-    payload: UpdateDepartmentPayload
-  ) => {
+  const handleUpdate = async (payload: UpdateDepartmentPayload) => {
     if (!editingDepartment) {
       return;
     }
@@ -258,16 +225,12 @@ export default function DepartmentsPage() {
     setFormError(null);
 
     try {
-      const response =
-        await updateDepartment.mutateAsync({
-          id: editingDepartment.id,
-          data: payload,
-        });
+      const response = await updateDepartment.mutateAsync({
+        id: editingDepartment.id,
+        data: payload,
+      });
 
-      toast.success(
-        response.message ||
-          "Department updated successfully."
-      );
+      toast.success(response.message || "Department updated successfully.");
 
       setIsModalOpen(false);
       setEditingDepartment(null);
@@ -294,15 +257,11 @@ export default function DepartmentsPage() {
     }
 
     try {
-      const response =
-        await deleteDepartmentMutation.mutateAsync(
-          deleteDepartment.id
-        );
-
-      toast.success(
-        response.message ||
-          "Department deleted successfully."
+      const response = await deleteDepartmentMutation.mutateAsync(
+        deleteDepartment.id,
       );
+
+      toast.success(response.message || "Department deleted successfully.");
 
       setDeleteDepartment(null);
 
@@ -310,13 +269,8 @@ export default function DepartmentsPage() {
        * If the deleted department was the last
        * item on the current page, move back one page.
        */
-      if (
-        data?.data.length === 1 &&
-        page > 1
-      ) {
-        setPage((previous) =>
-          previous - 1
-        );
+      if (data?.data.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
       }
     } catch (error: any) {
       const message =
@@ -348,10 +302,7 @@ export default function DepartmentsPage() {
   /* User loading                                                             */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isUserLoading ||
-    !user
-  ) {
+  if (isUserLoading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -378,8 +329,7 @@ export default function DepartmentsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              You do not have permission to
-              manage departments.
+              You do not have permission to manage departments.
             </p>
           </div>
         </div>
@@ -391,8 +341,7 @@ export default function DepartmentsPage() {
   /* Departments loading                                                      */
   /* ------------------------------------------------------------------------ */
 
-  const showInitialLoading =
-    isDepartmentsLoading && !data;
+  const showInitialLoading = isDepartmentsLoading && !data;
 
   if (showInitialLoading) {
     return (
@@ -411,10 +360,7 @@ export default function DepartmentsPage() {
   /* Departments error                                                        */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isDepartmentsError ||
-    !data
-  ) {
+  if (isDepartmentsError || !data) {
     return (
       <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -426,8 +372,7 @@ export default function DepartmentsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              Something went wrong while
-              loading departments.
+              Something went wrong while loading departments.
             </p>
 
             <button
@@ -447,11 +392,9 @@ export default function DepartmentsPage() {
   /* Data                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const departments =
-    data.data;
+  const departments = data.data;
 
-  const meta =
-    data.meta;
+  const meta = data.meta;
 
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
@@ -460,7 +403,6 @@ export default function DepartmentsPage() {
   return (
     <DashboardLayout user={user}>
       <div className="mx-auto max-w-6xl space-y-6">
-
         {/* Header + Search */}
         <DepartmentsHeader
           search={searchInput}
@@ -491,10 +433,7 @@ export default function DepartmentsPage() {
         open={isModalOpen}
         department={editingDepartment}
         error={formError}
-        isSubmitting={
-          createDepartment.isPending ||
-          updateDepartment.isPending
-        }
+        isSubmitting={createDepartment.isPending || updateDepartment.isPending}
         onClose={closeModal}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
@@ -503,12 +442,8 @@ export default function DepartmentsPage() {
       {/* Delete dialog */}
       <DeleteDepartmentDialog
         department={deleteDepartment}
-        isDeleting={
-          deleteDepartmentMutation.isPending
-        }
-        onCancel={() =>
-          setDeleteDepartment(null)
-        }
+        isDeleting={deleteDepartmentMutation.isPending}
+        onCancel={() => setDeleteDepartment(null)}
         onConfirm={handleDelete}
       />
     </DashboardLayout>

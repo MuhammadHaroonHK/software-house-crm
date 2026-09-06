@@ -1,18 +1,10 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
-import {
-  useRouter,
-} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
 
@@ -51,13 +43,9 @@ import {
   useUpdateQuotation,
 } from "@/features/quotations/hooks/useQuotations";
 
-import {
-  useCurrentUser,
-} from "@/features/auth/hooks/useAuth";
+import { useCurrentUser } from "@/features/auth/hooks/useAuth";
 
-import {
-  authStorage,
-} from "@/features/auth/services/auth-storage";
+import { authStorage } from "@/features/auth/services/auth-storage";
 
 import type {
   CreateQuotationPayload,
@@ -91,15 +79,11 @@ export default function QuotationsPage() {
   /* ------------------------------------------------------------------------ */
 
   const isInternalUser =
-    user?.role === "SUPER_ADMIN" ||
-    user?.role === "PROJECT_MANAGER";
+    user?.role === "SUPER_ADMIN" || user?.role === "PROJECT_MANAGER";
 
-  const isClientUser =
-    user?.role === "CLIENT";
+  const isClientUser = user?.role === "CLIENT";
 
-  const canAccessQuotations =
-    isInternalUser ||
-    isClientUser;
+  const canAccessQuotations = isInternalUser || isClientUser;
 
   /* ------------------------------------------------------------------------ */
   /* Supporting data                                                          */
@@ -110,9 +94,7 @@ export default function QuotationsPage() {
    * users cannot create/edit quotations and cannot access these internal
    * management endpoints.
    */
-  const {
-    data: clientsData,
-  } = useClients(
+  const { data: clientsData } = useClients(
     {
       limit: 100,
       sortBy: "createdAt",
@@ -120,12 +102,10 @@ export default function QuotationsPage() {
     },
     {
       enabled: isInternalUser,
-    }
+    },
   );
 
-  const {
-    data: projectsData,
-  } = useProjects(
+  const { data: projectsData } = useProjects(
     {
       limit: 100,
       sortBy: "createdAt",
@@ -133,66 +113,46 @@ export default function QuotationsPage() {
     },
     {
       enabled: isInternalUser,
-    }
+    },
   );
 
   /* ------------------------------------------------------------------------ */
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [clientId, setClientId] =
-    useState("");
+  const [clientId, setClientId] = useState("");
 
-  const [projectId, setProjectId] =
-    useState("");
+  const [projectId, setProjectId] = useState("");
 
-  const [status, setStatus] =
-    useState<QuotationStatus | "">(
-      ""
-    );
+  const [status, setStatus] = useState<QuotationStatus | "">("");
 
-  const [isFormOpen, setIsFormOpen] =
-    useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const [editingQuotation, setEditingQuotation] =
-    useState<Quotation | null>(null);
+  const [editingQuotation, setEditingQuotation] = useState<Quotation | null>(
+    null,
+  );
 
-  const [itemsQuotation, setItemsQuotation] =
-    useState<Quotation | null>(
-      null
-    );
+  const [itemsQuotation, setItemsQuotation] = useState<Quotation | null>(null);
 
-  const [viewingQuotation, setViewingQuotation] =
-    useState<Quotation | null>(
-      null
-    );
+  const [viewingQuotation, setViewingQuotation] = useState<Quotation | null>(
+    null,
+  );
 
-  const [actionQuotation, setActionQuotation] =
-    useState<Quotation | null>(
-      null
-    );
+  const [actionQuotation, setActionQuotation] = useState<Quotation | null>(
+    null,
+  );
 
-  const [action, setAction] =
-    useState<QuotationAction | null>(
-      null
-    );
+  const [action, setAction] = useState<QuotationAction | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(
-      null
-    );
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Quotations                                                               */
@@ -200,57 +160,38 @@ export default function QuotationsPage() {
 
   const {
     data,
-    isLoading:
-      isQuotationsLoading,
+    isLoading: isQuotationsLoading,
     isFetching,
-    isError:
-      isQuotationsError,
+    isError: isQuotationsError,
     refetch,
   } = useQuotations({
     page,
     limit: PAGE_SIZE,
-    search:
-      search ||
-      undefined,
-    clientId:
-      clientId ||
-      undefined,
-    projectId:
-      projectId ||
-      undefined,
-    status:
-      status ||
-      undefined,
-    sortBy:
-      "createdAt",
-    sortOrder:
-      "desc",
+    search: search || undefined,
+    clientId: clientId || undefined,
+    projectId: projectId || undefined,
+    status: status || undefined,
+    sortBy: "createdAt",
+    sortOrder: "desc",
   });
 
   /* ------------------------------------------------------------------------ */
   /* Mutations                                                                */
   /* ------------------------------------------------------------------------ */
 
-  const createQuotation =
-    useCreateQuotation();
+  const createQuotation = useCreateQuotation();
 
-  const updateQuotation =
-    useUpdateQuotation();
+  const updateQuotation = useUpdateQuotation();
 
-  const sendQuotation =
-    useSendQuotation();
+  const sendQuotation = useSendQuotation();
 
-  const acceptQuotation =
-    useAcceptQuotation();
+  const acceptQuotation = useAcceptQuotation();
 
-  const rejectQuotation =
-    useRejectQuotation();
+  const rejectQuotation = useRejectQuotation();
 
-  const expireQuotation =
-    useExpireQuotation();
+  const expireQuotation = useExpireQuotation();
 
-  const deleteQuotation =
-    useDeleteQuotation();
+  const deleteQuotation = useDeleteQuotation();
 
   /* ------------------------------------------------------------------------ */
   /* Mount                                                                    */
@@ -272,566 +213,341 @@ export default function QuotationsPage() {
     if (!authStorage.getToken()) {
       router.replace("/login");
     }
-  }, [
-    mounted,
-    router,
-  ]);
+  }, [mounted, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication error                                                     */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    if (
-      !mounted ||
-      !isUserError
-    ) {
+    if (!mounted || !isUserError) {
       return;
     }
 
     authStorage.removeToken();
 
     router.replace("/login");
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    const timeout =
-      setTimeout(
-        () => {
-          setSearch(
-            searchInput.trim()
-          );
+    const timeout = setTimeout(() => {
+      setSearch(searchInput.trim());
 
-          setPage(1);
-        },
-        SEARCH_DEBOUNCE_MS
-      );
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
 
-    return () =>
-      clearTimeout(
-        timeout
-      );
-  }, [
-    searchInput,
-  ]);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
 
   /* ------------------------------------------------------------------------ */
   /* Filters                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const handleClientChange =
-    (
-      value: string
-    ) => {
-      setClientId(
-        value
-      );
+  const handleClientChange = (value: string) => {
+    setClientId(value);
 
-      setProjectId(
-        ""
-      );
+    setProjectId("");
 
-      setPage(1);
-    };
+    setPage(1);
+  };
 
-  const handleProjectChange =
-    (
-      value: string
-    ) => {
-      setProjectId(
-        value
-      );
+  const handleProjectChange = (value: string) => {
+    setProjectId(value);
 
-      setPage(1);
-    };
+    setPage(1);
+  };
 
-  const handleStatusChange =
-    (
-      value:
-        | QuotationStatus
-        | ""
-    ) => {
-      setStatus(
-        value
-      );
+  const handleStatusChange = (value: QuotationStatus | "") => {
+    setStatus(value);
 
-      setPage(1);
-    };
+    setPage(1);
+  };
 
-  const resetFilters =
-    () => {
-      setClientId("");
-      setProjectId("");
-      setStatus("");
-      setSearchInput("");
-      setSearch("");
-      setPage(1);
-    };
+  const resetFilters = () => {
+    setClientId("");
+    setProjectId("");
+    setStatus("");
+    setSearchInput("");
+    setSearch("");
+    setPage(1);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Form helpers                                                             */
   /* ------------------------------------------------------------------------ */
 
-  const openCreateForm =
-    () => {
-      if (!isInternalUser) {
-        return;
-      }
+  const openCreateForm = () => {
+    if (!isInternalUser) {
+      return;
+    }
 
-      setEditingQuotation(
-        null
-      );
+    setEditingQuotation(null);
 
-      setFormError(
-        null
-      );
+    setFormError(null);
 
-      setIsFormOpen(
-        true
-      );
-    };
+    setIsFormOpen(true);
+  };
 
-  const openEditForm =
-    (
-      quotation: Quotation
-    ) => {
-      if (!isInternalUser) {
-        return;
-      }
+  const openEditForm = (quotation: Quotation) => {
+    if (!isInternalUser) {
+      return;
+    }
 
-      if (
-        quotation.status !==
-        "DRAFT"
-      ) {
-        return;
-      }
+    if (quotation.status !== "DRAFT") {
+      return;
+    }
 
-      setEditingQuotation(
-        quotation
-      );
+    setEditingQuotation(quotation);
 
-      setFormError(
-        null
-      );
+    setFormError(null);
 
-      setIsFormOpen(
-        true
-      );
-    };
+    setIsFormOpen(true);
+  };
 
-  const closeForm =
-    () => {
-      if (
-        createQuotation.isPending ||
-        updateQuotation.isPending
-      ) {
-        return;
-      }
+  const closeForm = () => {
+    if (createQuotation.isPending || updateQuotation.isPending) {
+      return;
+    }
 
-      setIsFormOpen(
-        false
-      );
+    setIsFormOpen(false);
 
-      setEditingQuotation(
-        null
-      );
+    setEditingQuotation(null);
 
-      setFormError(
-        null
-      );
-    };
+    setFormError(null);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Create                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate =
-    async (
-      payload: CreateQuotationPayload
-    ) => {
-      if (!isInternalUser) {
-        return;
+  const handleCreate = async (payload: CreateQuotationPayload) => {
+    if (!isInternalUser) {
+      return;
+    }
+
+    setFormError(null);
+
+    try {
+      const response = await createQuotation.mutateAsync(payload);
+
+      toast.success(response.message || "Quotation created successfully.");
+
+      setIsFormOpen(false);
+
+      setEditingQuotation(null);
+
+      /*
+       * New quotations start as DRAFT.
+       *
+       * Open the item editor immediately so the
+       * user can build the actual quotation.
+       */
+      if (response.data) {
+        setItemsQuotation(response.data);
       }
 
-      setFormError(
-        null
-      );
+      setPage(1);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to create quotation. Please try again.";
 
-      try {
-        const response =
-          await createQuotation.mutateAsync(
-            payload
-          );
+      setFormError(message);
 
-        toast.success(
-          response.message ||
-            "Quotation created successfully."
-        );
+      toast.error(message);
 
-        setIsFormOpen(
-          false
-        );
-
-        setEditingQuotation(
-          null
-        );
-
-        /*
-         * New quotations start as DRAFT.
-         *
-         * Open the item editor immediately so the
-         * user can build the actual quotation.
-         */
-        if (
-          response.data
-        ) {
-          setItemsQuotation(
-            response.data
-          );
-        }
-
-        setPage(1);
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data?.message ||
-          "Failed to create quotation. Please try again.";
-
-        setFormError(
-          message
-        );
-
-        toast.error(
-          message
-        );
-
-        throw error;
-      }
-    };
+      throw error;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Update                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate =
-    async (
-      payload: UpdateQuotationPayload
-    ) => {
-      if (
-        !editingQuotation ||
-        !isInternalUser
-      ) {
-        return;
-      }
+  const handleUpdate = async (payload: UpdateQuotationPayload) => {
+    if (!editingQuotation || !isInternalUser) {
+      return;
+    }
 
-      setFormError(
-        null
-      );
+    setFormError(null);
 
-      try {
-        const response =
-          await updateQuotation.mutateAsync(
-            {
-              id:
-                editingQuotation.id,
-              data:
-                payload,
-            }
-          );
+    try {
+      const response = await updateQuotation.mutateAsync({
+        id: editingQuotation.id,
+        data: payload,
+      });
 
-        toast.success(
-          response.message ||
-            "Quotation updated successfully."
-        );
+      toast.success(response.message || "Quotation updated successfully.");
 
-        setIsFormOpen(
-          false
-        );
+      setIsFormOpen(false);
 
-        setEditingQuotation(
-          null
-        );
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data?.message ||
-          "Failed to update quotation. Please try again.";
+      setEditingQuotation(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to update quotation. Please try again.";
 
-        setFormError(
-          message
-        );
+      setFormError(message);
 
-        toast.error(
-          message
-        );
+      toast.error(message);
 
-        throw error;
-      }
-    };
+      throw error;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Actions                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const openAction =
-    (
-      quotation: Quotation,
-      nextAction: QuotationAction
-    ) => {
-      /*
-       * CLIENT:
-       *   ACCEPT / REJECT only
-       *
-       * INTERNAL:
-       *   SEND / EXPIRE / DELETE only
-       */
-      const clientAllowed =
-        isClientUser &&
-        (
-          nextAction === "ACCEPT" ||
-          nextAction === "REJECT"
-        );
+  const openAction = (quotation: Quotation, nextAction: QuotationAction) => {
+    /*
+     * CLIENT:
+     *   ACCEPT / REJECT only
+     *
+     * INTERNAL:
+     *   SEND / EXPIRE / DELETE only
+     */
+    const clientAllowed =
+      isClientUser && (nextAction === "ACCEPT" || nextAction === "REJECT");
 
-      const internalAllowed =
-        isInternalUser &&
-        (
-          nextAction === "SEND" ||
-          nextAction === "EXPIRE" ||
-          nextAction === "DELETE"
-        );
+    const internalAllowed =
+      isInternalUser &&
+      (nextAction === "SEND" ||
+        nextAction === "EXPIRE" ||
+        nextAction === "DELETE");
 
-      if (
-        !clientAllowed &&
-        !internalAllowed
-      ) {
-        return;
+    if (!clientAllowed && !internalAllowed) {
+      return;
+    }
+
+    setActionQuotation(quotation);
+
+    setAction(nextAction);
+  };
+
+  const isActionPending = () =>
+    sendQuotation.isPending ||
+    acceptQuotation.isPending ||
+    rejectQuotation.isPending ||
+    expireQuotation.isPending ||
+    deleteQuotation.isPending;
+
+  const closeAction = () => {
+    if (isActionPending()) {
+      return;
+    }
+
+    setActionQuotation(null);
+
+    setAction(null);
+  };
+
+  const handleAction = async () => {
+    if (!actionQuotation || !action) {
+      return;
+    }
+
+    /*
+     * Extra frontend permission guard.
+     * Backend remains the final authority.
+     */
+    const allowed =
+      (isClientUser && (action === "ACCEPT" || action === "REJECT")) ||
+      (isInternalUser &&
+        (action === "SEND" || action === "EXPIRE" || action === "DELETE"));
+
+    if (!allowed) {
+      toast.error("You are not authorized to perform this action.");
+
+      closeAction();
+      return;
+    }
+
+    const id = actionQuotation.id;
+
+    try {
+      let response:
+        | {
+            message?: string;
+          }
+        | undefined;
+
+      switch (action) {
+        case "SEND":
+          response = await sendQuotation.mutateAsync(id);
+          break;
+
+        case "ACCEPT":
+          response = await acceptQuotation.mutateAsync(id);
+          break;
+
+        case "REJECT":
+          response = await rejectQuotation.mutateAsync(id);
+          break;
+
+        case "EXPIRE":
+          response = await expireQuotation.mutateAsync(id);
+          break;
+
+        case "DELETE":
+          response = await deleteQuotation.mutateAsync(id);
+          break;
       }
 
-      setActionQuotation(
-        quotation
-      );
+      toast.success(response?.message || "Quotation updated successfully.");
 
-      setAction(
-        nextAction
-      );
-    };
+      const wasDelete = action === "DELETE";
 
-  const isActionPending =
-    () =>
-      sendQuotation.isPending ||
-      acceptQuotation.isPending ||
-      rejectQuotation.isPending ||
-      expireQuotation.isPending ||
-      deleteQuotation.isPending;
+      closeAction();
 
-  const closeAction =
-    () => {
-      if (
-        isActionPending()
-      ) {
-        return;
+      if (wasDelete && data?.data.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
       }
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "The quotation action could not be completed.";
 
-      setActionQuotation(
-        null
-      );
-
-      setAction(
-        null
-      );
-    };
-
-  const handleAction =
-    async () => {
-      if (
-        !actionQuotation ||
-        !action
-      ) {
-        return;
-      }
-
-      /*
-       * Extra frontend permission guard.
-       * Backend remains the final authority.
-       */
-      const allowed =
-        (
-          isClientUser &&
-          (
-            action ===
-              "ACCEPT" ||
-            action ===
-              "REJECT"
-          )
-        ) ||
-        (
-          isInternalUser &&
-          (
-            action ===
-              "SEND" ||
-            action ===
-              "EXPIRE" ||
-            action ===
-              "DELETE"
-          )
-        );
-
-      if (!allowed) {
-        toast.error(
-          "You are not authorized to perform this action."
-        );
-
-        closeAction();
-        return;
-      }
-
-      const id =
-        actionQuotation.id;
-
-      try {
-        let response:
-          | {
-              message?: string;
-            }
-          | undefined;
-
-        switch (
-          action
-        ) {
-          case "SEND":
-            response =
-              await sendQuotation.mutateAsync(
-                id
-              );
-            break;
-
-          case "ACCEPT":
-            response =
-              await acceptQuotation.mutateAsync(
-                id
-              );
-            break;
-
-          case "REJECT":
-            response =
-              await rejectQuotation.mutateAsync(
-                id
-              );
-            break;
-
-          case "EXPIRE":
-            response =
-              await expireQuotation.mutateAsync(
-                id
-              );
-            break;
-
-          case "DELETE":
-            response =
-              await deleteQuotation.mutateAsync(
-                id
-              );
-            break;
-        }
-
-        toast.success(
-          response?.message ||
-            "Quotation updated successfully."
-        );
-
-        const wasDelete =
-          action ===
-          "DELETE";
-
-        closeAction();
-
-        if (
-          wasDelete &&
-          data?.data.length ===
-            1 &&
-          page > 1
-        ) {
-          setPage(
-            (
-              previous
-            ) =>
-              previous - 1
-          );
-        }
-      } catch (
-        error: any
-      ) {
-        const message =
-          error?.response
-            ?.data?.message ||
-          "The quotation action could not be completed.";
-
-        toast.error(
-          message
-        );
-      }
-    };
+      toast.error(message);
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* View                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const openView =
-    (
-      quotation: Quotation
-    ) => {
-      setViewingQuotation(
-        quotation
-      );
-    };
+  const openView = (quotation: Quotation) => {
+    setViewingQuotation(quotation);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Permissions                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const getPermissions = (
-    quotation: Quotation
-  ): QuotationTablePermissions => {
+  const getPermissions = (quotation: Quotation): QuotationTablePermissions => {
     /* ---------------------------------------------------------------------- */
     /* CLIENT                                                                  */
     /* ---------------------------------------------------------------------- */
 
     if (isClientUser) {
       return {
-        canEdit:
-          false,
+        canEdit: false,
 
-        canSend:
-          false,
+        canSend: false,
 
-        canAccept:
-          quotation.status ===
-          "SENT",
+        canAccept: quotation.status === "SENT",
 
-        canReject:
-          quotation.status ===
-          "SENT",
+        canReject: quotation.status === "SENT",
 
-        canExpire:
-          false,
+        canExpire: false,
 
-        canDelete:
-          false,
+        canDelete: false,
 
-        canManageItems:
-          false,
+        canManageItems: false,
       };
     }
 
@@ -839,45 +555,29 @@ export default function QuotationsPage() {
     /* INTERNAL USER                                                           */
     /* ---------------------------------------------------------------------- */
 
-    const isDraft =
-      quotation.status ===
-      "DRAFT";
+    const isDraft = quotation.status === "DRAFT";
 
-    const isSent =
-      quotation.status ===
-      "SENT";
+    const isSent = quotation.status === "SENT";
 
-    const expiryReached =
-      Boolean(
-        quotation.expiryDate &&
-          new Date(
-            quotation.expiryDate
-          ).getTime() <=
-            Date.now()
-      );
+    const expiryReached = Boolean(
+      quotation.expiryDate &&
+      new Date(quotation.expiryDate).getTime() <= Date.now(),
+    );
 
     return {
-      canEdit:
-        isDraft,
+      canEdit: isDraft,
 
-      canSend:
-        isDraft,
+      canSend: isDraft,
 
-      canAccept:
-        false,
+      canAccept: false,
 
-      canReject:
-        false,
+      canReject: false,
 
-      canExpire:
-        isSent &&
-        expiryReached,
+      canExpire: isSent && expiryReached,
 
-      canDelete:
-        isDraft,
+      canDelete: isDraft,
 
-      canManageItems:
-        isDraft,
+      canManageItems: isDraft,
     };
   };
 
@@ -900,10 +600,7 @@ export default function QuotationsPage() {
   /* User loading                                                             */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isUserLoading ||
-    !user
-  ) {
+  if (isUserLoading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -918,13 +615,9 @@ export default function QuotationsPage() {
   /* Authorization                                                            */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    !canAccessQuotations
-  ) {
+  if (!canAccessQuotations) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -946,14 +639,9 @@ export default function QuotationsPage() {
   /* Loading                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isQuotationsLoading &&
-    !data
-  ) {
+  if (isQuotationsLoading && !data) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -968,14 +656,9 @@ export default function QuotationsPage() {
   /* Error                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isQuotationsError ||
-    !data
-  ) {
+  if (isQuotationsError || !data) {
     return (
-      <DashboardLayout
-        user={user}
-      >
+      <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
@@ -990,9 +673,7 @@ export default function QuotationsPage() {
 
             <button
               type="button"
-              onClick={() =>
-                refetch()
-              }
+              onClick={() => refetch()}
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
             >
               Try Again
@@ -1007,134 +688,71 @@ export default function QuotationsPage() {
   /* Data                                                                      */
   /* ------------------------------------------------------------------------ */
 
-  const quotations =
-    data.data;
+  const quotations = data.data;
 
-  const meta =
-    data.meta;
+  const meta = data.meta;
 
-  const clients =
-    clientsData?.data ??
-    [];
+  const clients = clientsData?.data ?? [];
 
   /*
    * Project data is only loaded for internal users.
    */
-  const projects =
-    (projectsData?.data ??
-      []).map(
-      (project) => ({
-        id:
-          project.id,
+  const projects = (projectsData?.data ?? []).map((project) => ({
+    id: project.id,
 
-        name:
-          project.name,
+    name: project.name,
 
-        clientId:
-          project.clientId,
-      })
-    );
+    clientId: project.clientId,
+  }));
 
   /* ------------------------------------------------------------------------ */
   /* Render                                                                    */
   /* ------------------------------------------------------------------------ */
 
   return (
-    <DashboardLayout
-      user={user}
-    >
+    <DashboardLayout user={user}>
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
         <QuotationsHeader
-          search={
-            searchInput
-          }
-          onSearchChange={
-            setSearchInput
-          }
-          onCreate={
-            openCreateForm
-          }
-          canCreate={
-            isInternalUser
-          }
+          search={searchInput}
+          onSearchChange={setSearchInput}
+          onCreate={openCreateForm}
+          canCreate={isInternalUser}
         />
 
         {/* Internal filters only */}
         {isInternalUser && (
           <QuotationsFilters
-            clients={
-              clients
-            }
-            projects={
-              projects
-            }
-            clientId={
-              clientId
-            }
-            projectId={
-              projectId
-            }
-            status={
-              status
-            }
-            onClientChange={
-              handleClientChange
-            }
-            onProjectChange={
-              handleProjectChange
-            }
-            onStatusChange={
-              handleStatusChange
-            }
-            onReset={
-              resetFilters
-            }
+            clients={clients}
+            projects={projects}
+            clientId={clientId}
+            projectId={projectId}
+            status={status}
+            onClientChange={handleClientChange}
+            onProjectChange={handleProjectChange}
+            onStatusChange={handleStatusChange}
+            onReset={resetFilters}
           />
         )}
 
         {/* Table */}
         <QuotationsTable
-          quotations={
-            quotations
-          }
-          search={
-            search
-          }
-          isFetching={
-            isFetching
-          }
-          getPermissions={
-            getPermissions
-          }
-          onView={
-            openView
-          }
-          onEdit={
-            openEditForm
-          }
-          onManageItems={
-            setItemsQuotation
-          }
-          onAction={
-            openAction
-          }
+          quotations={quotations}
+          search={search}
+          isFetching={isFetching}
+          getPermissions={getPermissions}
+          onView={openView}
+          onEdit={openEditForm}
+          onManageItems={setItemsQuotation}
+          onAction={openAction}
         />
 
         {/* Pagination */}
         <QuotationsPagination
-          page={
-            meta.page
-          }
-          totalPages={
-            meta.totalPages
-          }
-          isFetching={
-            isFetching
-          }
-          onPageChange={
-            setPage
-          }
+          page={meta.page}
+          totalPages={meta.totalPages}
+          isFetching={isFetching}
+          onPageChange={setPage}
         />
       </div>
 
@@ -1144,37 +762,16 @@ export default function QuotationsPage() {
 
       {isInternalUser && (
         <QuotationFormModal
-          open={
-            isFormOpen
-          }
-          quotation={
-            editingQuotation
-          }
-          clients={
-            clients
-          }
-          projects={
-            projects
-          }
-          error={
-            formError
-          }
-          isSubmitting={
-            createQuotation.isPending ||
-            updateQuotation.isPending
-          }
-          onClose={
-            closeForm
-          }
-          onCreate={
-            handleCreate
-          }
-          onUpdate={
-            handleUpdate
-          }
-          onContinue={
-            setItemsQuotation
-          }
+          open={isFormOpen}
+          quotation={editingQuotation}
+          clients={clients}
+          projects={projects}
+          error={formError}
+          isSubmitting={createQuotation.isPending || updateQuotation.isPending}
+          onClose={closeForm}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onContinue={setItemsQuotation}
         />
       )}
 
@@ -1184,14 +781,8 @@ export default function QuotationsPage() {
 
       {isInternalUser && (
         <QuotationItemsEditor
-          quotation={
-            itemsQuotation
-          }
-          onClose={() =>
-            setItemsQuotation(
-              null
-            )
-          }
+          quotation={itemsQuotation}
+          onClose={() => setItemsQuotation(null)}
         />
       )}
 
@@ -1200,21 +791,11 @@ export default function QuotationsPage() {
       {/* -------------------------------------------------------------------- */}
 
       <QuotationActionDialog
-        quotation={
-          actionQuotation
-        }
-        action={
-          action
-        }
-        isProcessing={
-          isActionPending()
-        }
-        onCancel={
-          closeAction
-        }
-        onConfirm={
-          handleAction
-        }
+        quotation={actionQuotation}
+        action={action}
+        isProcessing={isActionPending()}
+        onCancel={closeAction}
+        onConfirm={handleAction}
       />
 
       {/* -------------------------------------------------------------------- */}
@@ -1223,27 +804,13 @@ export default function QuotationsPage() {
 
       {viewingQuotation && (
         <QuotationView
-          quotation={
-            viewingQuotation
-          }
-          canManageItems={
-            isInternalUser &&
-            viewingQuotation.status ===
-              "DRAFT"
-          }
-          onClose={() =>
-            setViewingQuotation(
-              null
-            )
-          }
+          quotation={viewingQuotation}
+          canManageItems={isInternalUser && viewingQuotation.status === "DRAFT"}
+          onClose={() => setViewingQuotation(null)}
           onManageItems={() => {
-            setViewingQuotation(
-              null
-            );
+            setViewingQuotation(null);
 
-            setItemsQuotation(
-              viewingQuotation
-            );
+            setItemsQuotation(viewingQuotation);
           }}
         />
       )}
@@ -1273,21 +840,15 @@ function QuotationView({
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {
-                quotation.quotationNumber
-              }
+              {quotation.quotationNumber}
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Quotation details
-            </p>
+            <p className="mt-1 text-sm text-slate-500">Quotation details</p>
           </div>
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"
           >
             Close
@@ -1299,52 +860,33 @@ function QuotationView({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DetailCard
               label="Client"
-              value={
-                quotation.client
-                  ?.companyName ??
-                "No client"
-              }
+              value={quotation.client?.companyName ?? "No client"}
             />
 
             <DetailCard
               label="Project"
-              value={
-                quotation.project
-                  ?.name ??
-                "No project"
-              }
+              value={quotation.project?.name ?? "No project"}
             />
 
             <DetailCard
               label="Issue Date"
-              value={formatDate(
-                quotation.issueDate
-              )}
+              value={formatDate(quotation.issueDate)}
             />
 
             <DetailCard
               label="Expiry Date"
               value={
                 quotation.expiryDate
-                  ? formatDate(
-                      quotation.expiryDate
-                    )
+                  ? formatDate(quotation.expiryDate)
                   : "No expiry"
               }
             />
 
-            <DetailCard
-              label="Status"
-              value={formatStatus(
-                quotation.status
-              )}
-            />
+            <DetailCard label="Status" value={formatStatus(quotation.status)} />
 
             <DetailCard
               label="Total"
-              value={formatCurrency(
-                quotation.totalAmount
-              )}
+              value={formatCurrency(quotation.totalAmount)}
             />
           </div>
 
@@ -1353,31 +895,20 @@ function QuotationView({
             <div className="space-y-3">
               <SummaryRow
                 label="Subtotal"
-                value={formatCurrency(
-                  quotation.subtotal
-                )}
+                value={formatCurrency(quotation.subtotal)}
               />
 
               <SummaryRow
                 label="Discount"
-                value={`- ${formatCurrency(
-                  quotation.discount
-                )}`}
+                value={`- ${formatCurrency(quotation.discount)}`}
               />
 
-              <SummaryRow
-                label="Tax"
-                value={formatCurrency(
-                  quotation.tax
-                )}
-              />
+              <SummaryRow label="Tax" value={formatCurrency(quotation.tax)} />
 
               <div className="border-t border-slate-200 pt-3">
                 <SummaryRow
                   label="Total"
-                  value={formatCurrency(
-                    quotation.totalAmount
-                  )}
+                  value={formatCurrency(quotation.totalAmount)}
                   strong
                 />
               </div>
@@ -1391,8 +922,7 @@ function QuotationView({
             </p>
 
             <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
-              {quotation.notes ||
-                "No notes provided."}
+              {quotation.notes || "No notes provided."}
             </p>
           </div>
         </div>
@@ -1402,9 +932,7 @@ function QuotationView({
           {canManageItems && (
             <button
               type="button"
-              onClick={
-                onManageItems
-              }
+              onClick={onManageItems}
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Manage Items
@@ -1413,9 +941,7 @@ function QuotationView({
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
           >
             Close
@@ -1430,13 +956,7 @@ function QuotationView({
 /* Detail Card                                                                */
 /* -------------------------------------------------------------------------- */
 
-function DetailCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function DetailCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-200 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -1492,66 +1012,44 @@ function SummaryRow({
 /* Date                                                                       */
 /* -------------------------------------------------------------------------- */
 
-function formatDate(
-  value: string
-) {
-  const date =
-    new Date(value);
+function formatDate(value: string) {
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "N/A";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }
-  ).format(date);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }
 
 /* -------------------------------------------------------------------------- */
 /* Currency                                                                   */
 /* -------------------------------------------------------------------------- */
 
-function formatCurrency(
-  value: string | number
-) {
-  const amount =
-    Number(value);
+function formatCurrency(value: string | number) {
+  const amount = Number(value);
 
-  if (
-    !Number.isFinite(
-      amount
-    )
-  ) {
+  if (!Number.isFinite(amount)) {
     return "PKR 0.00";
   }
 
-  return new Intl.NumberFormat(
-    "en-PK",
-    {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }
-  ).format(amount);
+  return new Intl.NumberFormat("en-PK", {
+    style: "currency",
+    currency: "PKR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
 /* -------------------------------------------------------------------------- */
 /* Status                                                                     */
 /* -------------------------------------------------------------------------- */
 
-function formatStatus(
-  status: QuotationStatus
-) {
+function formatStatus(status: QuotationStatus) {
   switch (status) {
     case "DRAFT":
       return "Draft";

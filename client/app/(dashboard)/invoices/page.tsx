@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  AlertCircle,
-  Loader2,
-  X,
-} from "lucide-react";
+import { AlertCircle, Loader2, X } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -58,9 +50,7 @@ export default function InvoicesPage() {
   /* Supporting quotations                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const {
-    data: quotationsData,
-  } = useQuotations({
+  const { data: quotationsData } = useQuotations({
     limit: 100,
     status: "ACCEPTED",
     sortBy: "createdAt",
@@ -71,47 +61,33 @@ export default function InvoicesPage() {
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [quotationId, setQuotationId] =
-    useState("");
+  const [quotationId, setQuotationId] = useState("");
 
-  const [status, setStatus] =
-    useState<InvoiceStatus | "">("");
+  const [status, setStatus] = useState<InvoiceStatus | "">("");
 
-  const [isFormOpen, setIsFormOpen] =
-    useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const [editingInvoice, setEditingInvoice] =
-    useState<Invoice | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
-  const [itemsInvoice, setItemsInvoice] =
-    useState<Invoice | null>(null);
+  const [itemsInvoice, setItemsInvoice] = useState<Invoice | null>(null);
 
-  const [viewingInvoice, setViewingInvoice] =
-    useState<Invoice | null>(null);
+  const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
 
-  const [deleteInvoice, setDeleteInvoice] =
-    useState<Invoice | null>(null);
+  const [deleteInvoice, setDeleteInvoice] = useState<Invoice | null>(null);
 
-  const [sendInvoice, setSendInvoice] =
-    useState<Invoice | null>(null);
+  const [sendInvoice, setSendInvoice] = useState<Invoice | null>(null);
 
-  const [paymentInvoice, setPaymentInvoice] =
-    useState<Invoice | null>(null);
+  const [paymentInvoice, setPaymentInvoice] = useState<Invoice | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Auth                                                                     */
@@ -136,12 +112,9 @@ export default function InvoicesPage() {
   } = useInvoices({
     page,
     limit: PAGE_SIZE,
-    search:
-      search || undefined,
-    quotationId:
-      quotationId || undefined,
-    status:
-      status || undefined,
+    search: search || undefined,
+    quotationId: quotationId || undefined,
+    status: status || undefined,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
@@ -150,17 +123,13 @@ export default function InvoicesPage() {
   /* Mutations                                                                */
   /* ------------------------------------------------------------------------ */
 
-  const createInvoice =
-    useCreateInvoice();
+  const createInvoice = useCreateInvoice();
 
-  const updateInvoice =
-    useUpdateInvoice();
+  const updateInvoice = useUpdateInvoice();
 
-  const sendInvoiceMutation =
-    useSendInvoice();
+  const sendInvoiceMutation = useSendInvoice();
 
-  const deleteInvoiceMutation =
-    useDeleteInvoice();
+  const deleteInvoiceMutation = useDeleteInvoice();
 
   /* ------------------------------------------------------------------------ */
   /* Mount / auth                                                             */
@@ -187,11 +156,7 @@ export default function InvoicesPage() {
 
     authStorage.removeToken();
     router.replace("/login");
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
@@ -199,31 +164,24 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setSearch(
-        searchInput.trim(),
-      );
+      setSearch(searchInput.trim());
 
       setPage(1);
     }, SEARCH_DEBOUNCE_MS);
 
-    return () =>
-      clearTimeout(timeout);
+    return () => clearTimeout(timeout);
   }, [searchInput]);
 
   /* ------------------------------------------------------------------------ */
   /* Filters                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const handleQuotationChange = (
-    value: string,
-  ) => {
+  const handleQuotationChange = (value: string) => {
     setQuotationId(value);
     setPage(1);
   };
 
-  const handleStatusChange = (
-    value: InvoiceStatus | "",
-  ) => {
+  const handleStatusChange = (value: InvoiceStatus | "") => {
     setStatus(value);
     setPage(1);
   };
@@ -246,19 +204,14 @@ export default function InvoicesPage() {
     setIsFormOpen(true);
   };
 
-  const openEditForm = (
-    invoice: Invoice,
-  ) => {
+  const openEditForm = (invoice: Invoice) => {
     setEditingInvoice(invoice);
     setFormError(null);
     setIsFormOpen(true);
   };
 
   const closeForm = () => {
-    if (
-      createInvoice.isPending ||
-      updateInvoice.isPending
-    ) {
+    if (createInvoice.isPending || updateInvoice.isPending) {
       return;
     }
 
@@ -267,29 +220,20 @@ export default function InvoicesPage() {
     setFormError(null);
   };
 
-  const handleCreate = async (
-    payload: CreateInvoicePayload,
-  ) => {
+  const handleCreate = async (payload: CreateInvoicePayload) => {
     setFormError(null);
 
     try {
-      const response =
-        await createInvoice.mutateAsync(
-          payload,
-        );
+      const response = await createInvoice.mutateAsync(payload);
 
-      toast.success(
-        response.message ||
-          "Invoice created successfully.",
-      );
+      toast.success(response.message || "Invoice created successfully.");
 
       setIsFormOpen(false);
       setEditingInvoice(null);
       setPage(1);
     } catch (error: any) {
       const message =
-        error?.response?.data?.message ||
-        "Failed to create invoice.";
+        error?.response?.data?.message || "Failed to create invoice.";
 
       setFormError(message);
       toast.error(message);
@@ -298,9 +242,7 @@ export default function InvoicesPage() {
     }
   };
 
-  const handleUpdate = async (
-    payload: UpdateInvoicePayload,
-  ) => {
+  const handleUpdate = async (payload: UpdateInvoicePayload) => {
     if (!editingInvoice) {
       return;
     }
@@ -308,23 +250,18 @@ export default function InvoicesPage() {
     setFormError(null);
 
     try {
-      const response =
-        await updateInvoice.mutateAsync({
-          id: editingInvoice.id,
-          data: payload,
-        });
+      const response = await updateInvoice.mutateAsync({
+        id: editingInvoice.id,
+        data: payload,
+      });
 
-      toast.success(
-        response.message ||
-          "Invoice updated successfully.",
-      );
+      toast.success(response.message || "Invoice updated successfully.");
 
       setIsFormOpen(false);
       setEditingInvoice(null);
     } catch (error: any) {
       const message =
-        error?.response?.data?.message ||
-        "Failed to update invoice.";
+        error?.response?.data?.message || "Failed to update invoice.";
 
       setFormError(message);
       toast.error(message);
@@ -343,21 +280,14 @@ export default function InvoicesPage() {
     }
 
     try {
-      const response =
-        await sendInvoiceMutation.mutateAsync(
-          sendInvoice.id,
-        );
+      const response = await sendInvoiceMutation.mutateAsync(sendInvoice.id);
 
-      toast.success(
-        response.message ||
-          "Invoice sent successfully.",
-      );
+      toast.success(response.message || "Invoice sent successfully.");
 
       setSendInvoice(null);
     } catch (error: any) {
       const message =
-        error?.response?.data?.message ||
-        "Failed to send invoice.";
+        error?.response?.data?.message || "Failed to send invoice.";
 
       toast.error(message);
     }
@@ -373,134 +303,108 @@ export default function InvoicesPage() {
     }
 
     try {
-      const response =
-        await deleteInvoiceMutation.mutateAsync(
-          deleteInvoice.id,
-        );
-
-      toast.success(
-        response.message ||
-          "Invoice deleted successfully.",
+      const response = await deleteInvoiceMutation.mutateAsync(
+        deleteInvoice.id,
       );
+
+      toast.success(response.message || "Invoice deleted successfully.");
 
       setDeleteInvoice(null);
 
-      if (
-        data?.data.length === 1 &&
-        page > 1
-      ) {
-        setPage(
-          (previous) =>
-            previous - 1,
-        );
+      if (data?.data.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
       }
     } catch (error: any) {
       const message =
-        error?.response?.data?.message ||
-        "Failed to delete invoice.";
+        error?.response?.data?.message || "Failed to delete invoice.";
 
       toast.error(message);
     }
   };
 
-/* ------------------------------------------------------------------------ */
-/* Permissions                                                              */
-/* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------ */
+  /* Permissions                                                              */
+  /* ------------------------------------------------------------------------ */
 
-const canAccessInvoices =
-  user?.role === "SUPER_ADMIN" ||
-  user?.role === "PROJECT_MANAGER" ||
-  user?.role === "CLIENT";
+  const canAccessInvoices =
+    user?.role === "SUPER_ADMIN" ||
+    user?.role === "PROJECT_MANAGER" ||
+    user?.role === "CLIENT";
 
-const canManageInvoices =
-  user?.role === "SUPER_ADMIN" ||
-  user?.role === "PROJECT_MANAGER";
+  const canManageInvoices =
+    user?.role === "SUPER_ADMIN" || user?.role === "PROJECT_MANAGER";
 
-const canCreateInvoice =
-  canManageInvoices;
+  const canCreateInvoice = canManageInvoices;
 
-const getPermissions = (
-  invoice: Invoice,
-): InvoiceTablePermissions => {
-  /*
-   * CLIENT:
-   * Can view invoices and payment-related information,
-   * but cannot modify invoice records.
-   */
-  if (user?.role === "CLIENT") {
+  const getPermissions = (invoice: Invoice): InvoiceTablePermissions => {
+    /*
+     * CLIENT:
+     * Can view invoices and payment-related information,
+     * but cannot modify invoice records.
+     */
+    if (user?.role === "CLIENT") {
+      return {
+        canEdit: false,
+        canManageItems: false,
+        canSend: false,
+        canDelete: false,
+        canManagePayments: false,
+      };
+    }
+
+    /*
+     * Internal users:
+     * SUPER_ADMIN / PROJECT_MANAGER can manage invoices
+     * according to the invoice status workflow.
+     */
+    if (!canManageInvoices) {
+      return {
+        canEdit: false,
+        canManageItems: false,
+        canSend: false,
+        canDelete: false,
+        canManagePayments: false,
+      };
+    }
+
+    const isDraft = invoice.status === "DRAFT";
+
+    const canManagePayments = invoice.status !== "DRAFT";
+
     return {
-      canEdit: false,
-      canManageItems: false,
-      canSend: false,
-      canDelete: false,
-      canManagePayments: false,
+      canEdit: isDraft,
+      canManageItems: isDraft,
+      canSend: isDraft,
+      canDelete: isDraft,
+      canManagePayments,
     };
-  }
-
-  /*
-   * Internal users:
-   * SUPER_ADMIN / PROJECT_MANAGER can manage invoices
-   * according to the invoice status workflow.
-   */
-  if (!canManageInvoices) {
-    return {
-      canEdit: false,
-      canManageItems: false,
-      canSend: false,
-      canDelete: false,
-      canManagePayments: false,
-    };
-  }
-
-  const isDraft =
-    invoice.status === "DRAFT";
-
-  const canManagePayments =
-    invoice.status !== "DRAFT";
-
-  return {
-    canEdit: isDraft,
-    canManageItems: isDraft,
-    canSend: isDraft,
-    canDelete: isDraft,
-    canManagePayments,
   };
-};
 
   /* ------------------------------------------------------------------------ */
   /* Next invoice number                                                      */
   /* ------------------------------------------------------------------------ */
 
-  const nextInvoiceNumber =
-    useMemo(() => {
-      const currentInvoices =
-        data?.data ?? [];
+  const nextInvoiceNumber = useMemo(() => {
+    const currentInvoices = data?.data ?? [];
 
-      let maxNumber = 999;
+    let maxNumber = 999;
 
-      for (const invoice of currentInvoices) {
-        const match =
-          /^INV-(\d+)$/.exec(
-            invoice.invoiceNumber,
-          );
+    for (const invoice of currentInvoices) {
+      const match = /^INV-(\d+)$/.exec(invoice.invoiceNumber);
 
-        if (!match) {
-          continue;
-        }
-
-        const number =
-          Number(match[1]);
-
-        if (
-          Number.isFinite(number) &&
-          number > maxNumber
-        ) {
-          maxNumber = number;
-        }
+      if (!match) {
+        continue;
       }
 
-      return `INV-${maxNumber + 1}`;
-    }, [data?.data]);
+      const number = Number(match[1]);
+
+      if (Number.isFinite(number) && number > maxNumber) {
+        maxNumber = number;
+      }
+    }
+
+    return `INV-${maxNumber + 1}`;
+  }, [data?.data]);
 
   /* ------------------------------------------------------------------------ */
   /* Initial loading                                                          */
@@ -556,10 +460,7 @@ const getPermissions = (
   /* Loading / error                                                          */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isInvoicesLoading &&
-    !data
-  ) {
+  if (isInvoicesLoading && !data) {
     return (
       <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -572,10 +473,7 @@ const getPermissions = (
     );
   }
 
-  if (
-    isInvoicesError ||
-    !data
-  ) {
+  if (isInvoicesError || !data) {
     return (
       <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -592,9 +490,7 @@ const getPermissions = (
 
             <button
               type="button"
-              onClick={() =>
-                refetch()
-              }
+              onClick={() => refetch()}
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -609,86 +505,49 @@ const getPermissions = (
   /* Data                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const invoices =
-    data.data;
+  const invoices = data.data;
 
-  const meta =
-    data.meta;
+  const meta = data.meta;
 
-  const acceptedQuotations =
-    quotationsData?.data ?? [];
+  const acceptedQuotations = quotationsData?.data ?? [];
 
   return (
     <DashboardLayout user={user}>
       <div className="mx-auto max-w-7xl space-y-6">
         <InvoicesHeader
           search={searchInput}
-          onSearchChange={
-            setSearchInput
-          }
-          onCreate={
-            openCreateForm
-          }
-          canCreate={
-            canCreateInvoice
-          }
+          onSearchChange={setSearchInput}
+          onCreate={openCreateForm}
+          canCreate={canCreateInvoice}
         />
 
         <InvoicesFilters
           quotations={acceptedQuotations}
-          quotationId={
-            quotationId
-          }
+          quotationId={quotationId}
           status={status}
-          onQuotationChange={
-            handleQuotationChange
-          }
-          onStatusChange={
-            handleStatusChange
-          }
-          onReset={
-            resetFilters
-          }
+          onQuotationChange={handleQuotationChange}
+          onStatusChange={handleStatusChange}
+          onReset={resetFilters}
         />
 
         <InvoicesTable
           invoices={invoices}
           search={search}
           isFetching={isFetching}
-          getPermissions={
-            getPermissions
-          }
-          onView={
-            setViewingInvoice
-          }
-          onEdit={
-            openEditForm
-          }
-          onManageItems={
-            setItemsInvoice
-          }
-          onSend={
-            setSendInvoice
-          }
-          onDelete={
-            setDeleteInvoice
-          }
-          onManagePayments={
-            setPaymentInvoice
-          }
+          getPermissions={getPermissions}
+          onView={setViewingInvoice}
+          onEdit={openEditForm}
+          onManageItems={setItemsInvoice}
+          onSend={setSendInvoice}
+          onDelete={setDeleteInvoice}
+          onManagePayments={setPaymentInvoice}
         />
 
         <InvoicesPagination
           page={meta.page}
-          totalPages={
-            meta.totalPages
-          }
-          isFetching={
-            isFetching
-          }
-          onPageChange={
-            setPage
-          }
+          totalPages={meta.totalPages}
+          isFetching={isFetching}
+          onPageChange={setPage}
         />
       </div>
 
@@ -698,31 +557,14 @@ const getPermissions = (
 
       <InvoiceFormModal
         open={isFormOpen}
-        invoice={
-          editingInvoice
-        }
-        quotations={
-          acceptedQuotations
-        }
-        nextInvoiceNumber={
-          nextInvoiceNumber
-        }
-        isSubmitting={
-          createInvoice.isPending ||
-          updateInvoice.isPending
-        }
-        error={
-          formError
-        }
-        onClose={
-          closeForm
-        }
-        onCreate={
-          handleCreate
-        }
-        onUpdate={
-          handleUpdate
-        }
+        invoice={editingInvoice}
+        quotations={acceptedQuotations}
+        nextInvoiceNumber={nextInvoiceNumber}
+        isSubmitting={createInvoice.isPending || updateInvoice.isPending}
+        error={formError}
+        onClose={closeForm}
+        onCreate={handleCreate}
+        onUpdate={handleUpdate}
       />
 
       {/* ------------------------------------------------------------------ */}
@@ -731,9 +573,7 @@ const getPermissions = (
 
       <InvoiceItemsEditor
         invoice={itemsInvoice}
-        onClose={() =>
-          setItemsInvoice(null)
-        }
+        onClose={() => setItemsInvoice(null)}
       />
 
       {/* ------------------------------------------------------------------ */}
@@ -742,36 +582,19 @@ const getPermissions = (
 
       {viewingInvoice && (
         <InvoiceView
-          invoice={
-            viewingInvoice
-          }
-          onClose={() =>
-            setViewingInvoice(
-              null,
-            )
-          }
+          invoice={viewingInvoice}
+          onClose={() => setViewingInvoice(null)}
           onManageItems={() => {
-            setViewingInvoice(
-              null,
-            );
+            setViewingInvoice(null);
 
-            if (
-              viewingInvoice.status ===
-              "DRAFT"
-            ) {
-              setItemsInvoice(
-                viewingInvoice,
-              );
+            if (viewingInvoice.status === "DRAFT") {
+              setItemsInvoice(viewingInvoice);
             }
           }}
           onManagePayments={() => {
-            setViewingInvoice(
-              null,
-            );
+            setViewingInvoice(null);
 
-            setPaymentInvoice(
-              viewingInvoice,
-            );
+            setPaymentInvoice(viewingInvoice);
           }}
         />
       )}
@@ -785,15 +608,9 @@ const getPermissions = (
           title="Send invoice?"
           description={`Send ${sendInvoice.invoiceNumber} to the client? Only a complete draft invoice should be sent.`}
           confirmLabel="Send Invoice"
-          processing={
-            sendInvoiceMutation.isPending
-          }
-          onCancel={() =>
-            setSendInvoice(null)
-          }
-          onConfirm={
-            handleSend
-          }
+          processing={sendInvoiceMutation.isPending}
+          onCancel={() => setSendInvoice(null)}
+          onConfirm={handleSend}
         />
       )}
 
@@ -807,15 +624,9 @@ const getPermissions = (
           description={`Delete ${deleteInvoice.invoiceNumber}? Only draft invoices can be deleted.`}
           confirmLabel="Delete Invoice"
           danger
-          processing={
-            deleteInvoiceMutation.isPending
-          }
-          onCancel={() =>
-            setDeleteInvoice(null)
-          }
-          onConfirm={
-            handleDelete
-          }
+          processing={deleteInvoiceMutation.isPending}
+          onCancel={() => setDeleteInvoice(null)}
+          onConfirm={handleDelete}
         />
       )}
 
@@ -825,12 +636,8 @@ const getPermissions = (
 
       {paymentInvoice && (
         <PaymentWorkflowPlaceholder
-          invoice={
-            paymentInvoice
-          }
-          onClose={() =>
-            setPaymentInvoice(null)
-          }
+          invoice={paymentInvoice}
+          onClose={() => setPaymentInvoice(null)}
         />
       )}
     </DashboardLayout>
@@ -852,8 +659,7 @@ function InvoiceView({
   onManageItems: () => void;
   onManagePayments: () => void;
 }) {
-  const isDraft =
-    invoice.status === "DRAFT";
+  const isDraft = invoice.status === "DRAFT";
 
   return (
     <div className="fixed inset-0 z-[110] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
@@ -864,16 +670,12 @@ function InvoiceView({
               {invoice.invoiceNumber}
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Invoice details
-            </p>
+            <p className="mt-1 text-sm text-slate-500">Invoice details</p>
           </div>
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg px-3 py-2 text-sm text-slate-500 transition hover:bg-slate-100"
           >
             Close
@@ -884,100 +686,59 @@ function InvoiceView({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DetailCard
               label="Client"
-              value={
-                invoice.quotation
-                  ?.client
-                  ?.companyName ??
-                "Unknown client"
-              }
+              value={invoice.quotation?.client?.companyName ?? "Unknown client"}
             />
 
             <DetailCard
               label="Quotation"
-              value={
-                invoice.quotation
-                  ?.quotationNumber ??
-                "N/A"
-              }
+              value={invoice.quotation?.quotationNumber ?? "N/A"}
             />
 
             <DetailCard
               label="Project"
-              value={
-                invoice.quotation
-                  ?.project
-                  ?.name ??
-                "No project"
-              }
+              value={invoice.quotation?.project?.name ?? "No project"}
             />
 
-            <DetailCard
-              label="Status"
-              value={formatStatus(
-                invoice.status,
-              )}
-            />
+            <DetailCard label="Status" value={formatStatus(invoice.status)} />
 
             <DetailCard
               label="Issue Date"
-              value={formatDate(
-                invoice.issueDate,
-              )}
+              value={formatDate(invoice.issueDate)}
             />
 
-            <DetailCard
-              label="Due Date"
-              value={formatDate(
-                invoice.dueDate,
-              )}
-            />
+            <DetailCard label="Due Date" value={formatDate(invoice.dueDate)} />
           </div>
 
           <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="space-y-3">
               <SummaryRow
                 label="Subtotal"
-                value={formatCurrency(
-                  invoice.subtotal,
-                )}
+                value={formatCurrency(invoice.subtotal)}
               />
 
               <SummaryRow
                 label="Discount"
-                value={`- ${formatCurrency(
-                  invoice.discount,
-                )}`}
+                value={`- ${formatCurrency(invoice.discount)}`}
               />
 
-              <SummaryRow
-                label="Tax"
-                value={formatCurrency(
-                  invoice.tax,
-                )}
-              />
+              <SummaryRow label="Tax" value={formatCurrency(invoice.tax)} />
 
               <div className="border-t border-slate-200 pt-3">
                 <SummaryRow
                   label="Total"
-                  value={formatCurrency(
-                    invoice.totalAmount,
-                  )}
+                  value={formatCurrency(invoice.totalAmount)}
                   strong
                 />
               </div>
 
               <SummaryRow
                 label="Amount Paid"
-                value={formatCurrency(
-                  invoice.amountPaid,
-                )}
+                value={formatCurrency(invoice.amountPaid)}
               />
 
               <SummaryRow
                 label="Balance Due"
-                value={formatCurrency(
-                  invoice.balanceDue,
-                )}
+                value={formatCurrency(invoice.balanceDue)}
               />
             </div>
           </div>
@@ -988,8 +749,7 @@ function InvoiceView({
             </p>
 
             <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
-              {invoice.notes ||
-                "No notes provided."}
+              {invoice.notes || "No notes provided."}
             </p>
           </div>
         </div>
@@ -998,9 +758,7 @@ function InvoiceView({
           {isDraft && (
             <button
               type="button"
-              onClick={
-                onManageItems
-              }
+              onClick={onManageItems}
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
             >
               Manage Items
@@ -1010,9 +768,7 @@ function InvoiceView({
           {!isDraft && (
             <button
               type="button"
-              onClick={
-                onManagePayments
-              }
+              onClick={onManagePayments}
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
             >
               Payments
@@ -1021,9 +777,7 @@ function InvoiceView({
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
           >
             Close
@@ -1060,9 +814,7 @@ function ConfirmDialog({
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">
-              {title}
-            </h3>
+            <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
               {description}
@@ -1071,9 +823,7 @@ function ConfirmDialog({
 
           <button
             type="button"
-            onClick={
-              onCancel
-            }
+            onClick={onCancel}
             disabled={processing}
             className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
             aria-label="Close dialog"
@@ -1085,9 +835,7 @@ function ConfirmDialog({
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"
-            onClick={
-              onCancel
-            }
+            onClick={onCancel}
             disabled={processing}
             className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
           >
@@ -1096,9 +844,7 @@ function ConfirmDialog({
 
           <button
             type="button"
-            onClick={
-              onConfirm
-            }
+            onClick={onConfirm}
             disabled={processing}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
               danger
@@ -1106,9 +852,7 @@ function ConfirmDialog({
                 : "bg-slate-900 hover:bg-slate-800"
             }`}
           >
-            {processing && (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )}
+            {processing && <Loader2 className="h-4 w-4 animate-spin" />}
 
             {confirmLabel}
           </button>
@@ -1148,23 +892,17 @@ function PaymentWorkflowPlaceholder({
           <div className="space-y-2">
             <SummaryRow
               label="Invoice Total"
-              value={formatCurrency(
-                invoice.totalAmount,
-              )}
+              value={formatCurrency(invoice.totalAmount)}
             />
 
             <SummaryRow
               label="Amount Paid"
-              value={formatCurrency(
-                invoice.amountPaid,
-              )}
+              value={formatCurrency(invoice.amountPaid)}
             />
 
             <SummaryRow
               label="Balance Due"
-              value={formatCurrency(
-                invoice.balanceDue,
-              )}
+              value={formatCurrency(invoice.balanceDue)}
               strong
             />
           </div>
@@ -1173,9 +911,7 @@ function PaymentWorkflowPlaceholder({
         <div className="mt-6 flex justify-end">
           <button
             type="button"
-            onClick={
-              onClose
-            }
+            onClick={onClose}
             className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
           >
             Close
@@ -1190,13 +926,7 @@ function PaymentWorkflowPlaceholder({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function DetailCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function DetailCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-200 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -1244,58 +974,36 @@ function SummaryRow({
   );
 }
 
-function formatDate(
-  value: string,
-) {
-  const date =
-    new Date(value);
+function formatDate(value: string) {
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "N/A";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    },
-  ).format(date);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }
 
-function formatCurrency(
-  value: string | number,
-) {
-  const amount =
-    Number(value);
+function formatCurrency(value: string | number) {
+  const amount = Number(value);
 
-  if (
-    !Number.isFinite(
-      amount,
-    )
-  ) {
+  if (!Number.isFinite(amount)) {
     return "PKR 0.00";
   }
 
-  return new Intl.NumberFormat(
-    "en-PK",
-    {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-  ).format(amount);
+  return new Intl.NumberFormat("en-PK", {
+    style: "currency",
+    currency: "PKR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
-function formatStatus(
-  status: InvoiceStatus,
-) {
+function formatStatus(status: InvoiceStatus) {
   switch (status) {
     case "DRAFT":
       return "Draft";

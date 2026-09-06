@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 
@@ -59,33 +53,23 @@ export default function ContactPersonsPage() {
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [
-    editingContactPerson,
-    setEditingContactPerson,
-  ] = useState<ContactPerson | null>(null);
+  const [editingContactPerson, setEditingContactPerson] =
+    useState<ContactPerson | null>(null);
 
-  const [
-    deleteContactPerson,
-    setDeleteContactPerson,
-  ] = useState<ContactPerson | null>(null);
+  const [deleteContactPerson, setDeleteContactPerson] =
+    useState<ContactPerson | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication                                                            */
@@ -110,8 +94,7 @@ export default function ContactPersonsPage() {
   } = useContactPersons({
     page,
     limit: PAGE_SIZE,
-    search:
-      search || undefined,
+    search: search || undefined,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
@@ -135,14 +118,11 @@ export default function ContactPersonsPage() {
   /* Mutations                                                                */
   /* ------------------------------------------------------------------------ */
 
-  const createContactPerson =
-    useCreateContactPerson();
+  const createContactPerson = useCreateContactPerson();
 
-  const updateContactPerson =
-    useUpdateContactPerson();
+  const updateContactPerson = useUpdateContactPerson();
 
-  const deleteContactPersonMutation =
-    useDeleteContactPerson();
+  const deleteContactPersonMutation = useDeleteContactPerson();
 
   /* ------------------------------------------------------------------------ */
   /* Mount                                                                    */
@@ -171,35 +151,26 @@ export default function ContactPersonsPage() {
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    if (
-      !mounted ||
-      !isUserError
-    ) {
+    if (!mounted || !isUserError) {
       return;
     }
 
     authStorage.removeToken();
 
     router.replace("/login");
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    const timeout =
-      setTimeout(() => {
-        const trimmedSearch =
-          searchInput.trim();
+    const timeout = setTimeout(() => {
+      const trimmedSearch = searchInput.trim();
 
-        setSearch(trimmedSearch);
-        setPage(1);
-      }, SEARCH_DEBOUNCE_MS);
+      setSearch(trimmedSearch);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
 
     return () => {
       clearTimeout(timeout);
@@ -216,22 +187,15 @@ export default function ContactPersonsPage() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (
-    contactPerson: ContactPerson
-  ) => {
-    setEditingContactPerson(
-      contactPerson
-    );
+  const openEditModal = (contactPerson: ContactPerson) => {
+    setEditingContactPerson(contactPerson);
 
     setFormError(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    if (
-      createContactPerson.isPending ||
-      updateContactPerson.isPending
-    ) {
+    if (createContactPerson.isPending || updateContactPerson.isPending) {
       return;
     }
 
@@ -244,21 +208,13 @@ export default function ContactPersonsPage() {
   /* Create Contact Person                                                    */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate = async (
-    payload: CreateContactPersonPayload
-  ) => {
+  const handleCreate = async (payload: CreateContactPersonPayload) => {
     setFormError(null);
 
     try {
-      const response =
-        await createContactPerson.mutateAsync(
-          payload
-        );
+      const response = await createContactPerson.mutateAsync(payload);
 
-      toast.success(
-        response.message ||
-          "Contact person created successfully."
-      );
+      toast.success(response.message || "Contact person created successfully.");
 
       setIsModalOpen(false);
       setEditingContactPerson(null);
@@ -281,9 +237,7 @@ export default function ContactPersonsPage() {
   /* Update Contact Person                                                    */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate = async (
-    payload: UpdateContactPersonPayload
-  ) => {
+  const handleUpdate = async (payload: UpdateContactPersonPayload) => {
     if (!editingContactPerson) {
       return;
     }
@@ -291,16 +245,12 @@ export default function ContactPersonsPage() {
     setFormError(null);
 
     try {
-      const response =
-        await updateContactPerson.mutateAsync({
-          id: editingContactPerson.id,
-          data: payload,
-        });
+      const response = await updateContactPerson.mutateAsync({
+        id: editingContactPerson.id,
+        data: payload,
+      });
 
-      toast.success(
-        response.message ||
-          "Contact person updated successfully."
-      );
+      toast.success(response.message || "Contact person updated successfully.");
 
       setIsModalOpen(false);
       setEditingContactPerson(null);
@@ -327,15 +277,11 @@ export default function ContactPersonsPage() {
     }
 
     try {
-      const response =
-        await deleteContactPersonMutation.mutateAsync(
-          deleteContactPerson.id
-        );
-
-      toast.success(
-        response.message ||
-          "Contact person deleted successfully."
+      const response = await deleteContactPersonMutation.mutateAsync(
+        deleteContactPerson.id,
       );
+
+      toast.success(response.message || "Contact person deleted successfully.");
 
       setDeleteContactPerson(null);
 
@@ -344,14 +290,8 @@ export default function ContactPersonsPage() {
        * the last item on the current page,
        * move back one page.
        */
-      if (
-        data?.data.length === 1 &&
-        page > 1
-      ) {
-        setPage(
-          (previous) =>
-            previous - 1
-        );
+      if (data?.data.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
       }
     } catch (error: any) {
       const message =
@@ -383,10 +323,7 @@ export default function ContactPersonsPage() {
   /* User loading                                                             */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isUserLoading ||
-    !user
-  ) {
+  if (isUserLoading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -402,8 +339,7 @@ export default function ContactPersonsPage() {
   /* ------------------------------------------------------------------------ */
 
   const canManageContactPersons =
-    user.role === "SUPER_ADMIN" ||
-    user.role === "PROJECT_MANAGER";
+    user.role === "SUPER_ADMIN" || user.role === "PROJECT_MANAGER";
 
   if (!canManageContactPersons) {
     return (
@@ -417,8 +353,7 @@ export default function ContactPersonsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              You do not have permission
-              to manage contact persons.
+              You do not have permission to manage contact persons.
             </p>
           </div>
         </div>
@@ -430,9 +365,7 @@ export default function ContactPersonsPage() {
   /* Contact Persons loading                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const showInitialLoading =
-    isContactPersonsLoading &&
-    !data;
+  const showInitialLoading = isContactPersonsLoading && !data;
 
   if (showInitialLoading) {
     return (
@@ -451,10 +384,7 @@ export default function ContactPersonsPage() {
   /* Contact Persons error                                                    */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isContactPersonsError ||
-    !data
-  ) {
+  if (isContactPersonsError || !data) {
     return (
       <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -466,15 +396,12 @@ export default function ContactPersonsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              Something went wrong while
-              loading contact persons.
+              Something went wrong while loading contact persons.
             </p>
 
             <button
               type="button"
-              onClick={() =>
-                refetch()
-              }
+              onClick={() => refetch()}
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -489,13 +416,11 @@ export default function ContactPersonsPage() {
   /* Data                                                                     */
   /* ------------------------------------------------------------------------ */
 
-  const contactPersons =
-    data.data;
+  const contactPersons = data.data;
 
   const meta = data.meta;
 
-  const clients =
-    clientsData?.data ?? [];
+  const clients = clientsData?.data ?? [];
 
   /* ------------------------------------------------------------------------ */
   /* Render                                                                   */
@@ -504,43 +429,27 @@ export default function ContactPersonsPage() {
   return (
     <DashboardLayout user={user}>
       <div className="mx-auto max-w-6xl space-y-6">
-
         {/* Header */}
         <ContactPersonsHeader
           search={searchInput}
-          onSearchChange={
-            setSearchInput
-          }
-          onCreate={
-            openCreateModal
-          }
+          onSearchChange={setSearchInput}
+          onCreate={openCreateModal}
         />
 
         {/* Table */}
         <ContactPersonsTable
-          contactPersons={
-            contactPersons
-          }
+          contactPersons={contactPersons}
           search={search}
           isFetching={isFetching}
-          canDelete={
-            user.role ===
-            "SUPER_ADMIN"
-          }
-          onEdit={
-            openEditModal
-          }
-          onDelete={
-            setDeleteContactPerson
-          }
+          canDelete={user.role === "SUPER_ADMIN"}
+          onEdit={openEditModal}
+          onDelete={setDeleteContactPerson}
         />
 
         {/* Pagination */}
         <ContactPersonsPagination
           page={meta.page}
-          totalPages={
-            meta.totalPages
-          }
+          totalPages={meta.totalPages}
           isFetching={isFetching}
           onPageChange={setPage}
         />
@@ -552,14 +461,11 @@ export default function ContactPersonsPage() {
 
       <ContactPersonFormModal
         open={isModalOpen}
-        contactPerson={
-          editingContactPerson
-        }
+        contactPerson={editingContactPerson}
         clients={clients}
         error={formError}
         isSubmitting={
-          createContactPerson.isPending ||
-          updateContactPerson.isPending
+          createContactPerson.isPending || updateContactPerson.isPending
         }
         onClose={closeModal}
         onCreate={handleCreate}
@@ -571,15 +477,9 @@ export default function ContactPersonsPage() {
       {/* -------------------------------------------------------------------- */}
 
       <DeleteContactPersonDialog
-        contactPerson={
-          deleteContactPerson
-        }
-        isDeleting={
-          deleteContactPersonMutation.isPending
-        }
-        onCancel={() =>
-          setDeleteContactPerson(null)
-        }
+        contactPerson={deleteContactPerson}
+        isDeleting={deleteContactPersonMutation.isPending}
+        onCancel={() => setDeleteContactPerson(null)}
         onConfirm={handleDelete}
       />
     </DashboardLayout>

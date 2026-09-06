@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 
@@ -57,29 +51,21 @@ export default function ClientsPage() {
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [editingClient, setEditingClient] =
-    useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
 
-  const [deleteClient, setDeleteClient] =
-    useState<Client | null>(null);
+  const [deleteClient, setDeleteClient] = useState<Client | null>(null);
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------ */
   /* Authentication                                                           */
@@ -104,20 +90,16 @@ export default function ClientsPage() {
   } = useClients({
     page,
     limit: PAGE_SIZE,
-    search:
-      search || undefined,
+    search: search || undefined,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
 
-  const createClient =
-    useCreateClient();
+  const createClient = useCreateClient();
 
-  const updateClient =
-    useUpdateClient();
+  const updateClient = useUpdateClient();
 
-  const deleteClientMutation =
-    useDeleteClient();
+  const deleteClientMutation = useDeleteClient();
 
   /* ------------------------------------------------------------------------ */
   /* Mount                                                                    */
@@ -146,35 +128,26 @@ export default function ClientsPage() {
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    if (
-      !mounted ||
-      !isUserError
-    ) {
+    if (!mounted || !isUserError) {
       return;
     }
 
     authStorage.removeToken();
 
     router.replace("/login");
-  }, [
-    mounted,
-    isUserError,
-    router,
-  ]);
+  }, [mounted, isUserError, router]);
 
   /* ------------------------------------------------------------------------ */
   /* Search debounce                                                          */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    const timeout =
-      setTimeout(() => {
-        const trimmedSearch =
-          searchInput.trim();
+    const timeout = setTimeout(() => {
+      const trimmedSearch = searchInput.trim();
 
-        setSearch(trimmedSearch);
-        setPage(1);
-      }, SEARCH_DEBOUNCE_MS);
+      setSearch(trimmedSearch);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
 
     return () => {
       clearTimeout(timeout);
@@ -191,19 +164,14 @@ export default function ClientsPage() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (
-    client: Client
-  ) => {
+  const openEditModal = (client: Client) => {
     setEditingClient(client);
     setFormError(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    if (
-      createClient.isPending ||
-      updateClient.isPending
-    ) {
+    if (createClient.isPending || updateClient.isPending) {
       return;
     }
 
@@ -216,21 +184,13 @@ export default function ClientsPage() {
   /* Create Client                                                            */
   /* ------------------------------------------------------------------------ */
 
-  const handleCreate = async (
-    payload: CreateClientPayload
-  ) => {
+  const handleCreate = async (payload: CreateClientPayload) => {
     setFormError(null);
 
     try {
-      const response =
-        await createClient.mutateAsync(
-          payload
-        );
+      const response = await createClient.mutateAsync(payload);
 
-      toast.success(
-        response.message ||
-          "Client created successfully."
-      );
+      toast.success(response.message || "Client created successfully.");
 
       setIsModalOpen(false);
       setEditingClient(null);
@@ -253,9 +213,7 @@ export default function ClientsPage() {
   /* Update Client                                                            */
   /* ------------------------------------------------------------------------ */
 
-  const handleUpdate = async (
-    payload: UpdateClientPayload
-  ) => {
+  const handleUpdate = async (payload: UpdateClientPayload) => {
     if (!editingClient) {
       return;
     }
@@ -263,16 +221,12 @@ export default function ClientsPage() {
     setFormError(null);
 
     try {
-      const response =
-        await updateClient.mutateAsync({
-          id: editingClient.id,
-          data: payload,
-        });
+      const response = await updateClient.mutateAsync({
+        id: editingClient.id,
+        data: payload,
+      });
 
-      toast.success(
-        response.message ||
-          "Client updated successfully."
-      );
+      toast.success(response.message || "Client updated successfully.");
 
       setIsModalOpen(false);
       setEditingClient(null);
@@ -299,15 +253,9 @@ export default function ClientsPage() {
     }
 
     try {
-      const response =
-        await deleteClientMutation.mutateAsync(
-          deleteClient.id
-        );
+      const response = await deleteClientMutation.mutateAsync(deleteClient.id);
 
-      toast.success(
-        response.message ||
-          "Client deleted successfully."
-      );
+      toast.success(response.message || "Client deleted successfully.");
 
       setDeleteClient(null);
 
@@ -315,14 +263,8 @@ export default function ClientsPage() {
        * If the deleted client was the last
        * item on the current page, move back one page.
        */
-      if (
-        data?.data.length === 1 &&
-        page > 1
-      ) {
-        setPage(
-          (previous) =>
-            previous - 1
-        );
+      if (data?.data.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
       }
     } catch (error: any) {
       const message =
@@ -354,10 +296,7 @@ export default function ClientsPage() {
   /* User loading                                                             */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isUserLoading ||
-    !user
-  ) {
+  if (isUserLoading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -373,8 +312,7 @@ export default function ClientsPage() {
   /* ------------------------------------------------------------------------ */
 
   const canManageClients =
-    user.role === "SUPER_ADMIN" ||
-    user.role === "PROJECT_MANAGER";
+    user.role === "SUPER_ADMIN" || user.role === "PROJECT_MANAGER";
 
   if (!canManageClients) {
     return (
@@ -388,8 +326,7 @@ export default function ClientsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              You do not have permission
-              to manage clients.
+              You do not have permission to manage clients.
             </p>
           </div>
         </div>
@@ -401,9 +338,7 @@ export default function ClientsPage() {
   /* Clients loading                                                          */
   /* ------------------------------------------------------------------------ */
 
-  const showInitialLoading =
-    isClientsLoading &&
-    !data;
+  const showInitialLoading = isClientsLoading && !data;
 
   if (showInitialLoading) {
     return (
@@ -422,10 +357,7 @@ export default function ClientsPage() {
   /* Clients error                                                            */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    isClientsError ||
-    !data
-  ) {
+  if (isClientsError || !data) {
     return (
       <DashboardLayout user={user}>
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -437,15 +369,12 @@ export default function ClientsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-red-600">
-              Something went wrong while
-              loading clients.
+              Something went wrong while loading clients.
             </p>
 
             <button
               type="button"
-              onClick={() =>
-                refetch()
-              }
+              onClick={() => refetch()}
               className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
             >
               Try Again
@@ -473,12 +402,8 @@ export default function ClientsPage() {
         {/* Header + Search */}
         <ClientsHeader
           search={searchInput}
-          onSearchChange={
-            setSearchInput
-          }
-          onCreate={
-            openCreateModal
-          }
+          onSearchChange={setSearchInput}
+          onCreate={openCreateModal}
         />
 
         {/* Clients table */}
@@ -486,10 +411,7 @@ export default function ClientsPage() {
           clients={clients}
           search={search}
           isFetching={isFetching}
-          canDelete={
-            user.role ===
-            "SUPER_ADMIN"
-          }
+          canDelete={user.role === "SUPER_ADMIN"}
           onEdit={openEditModal}
           onDelete={setDeleteClient}
         />
@@ -497,9 +419,7 @@ export default function ClientsPage() {
         {/* Pagination */}
         <ClientsPagination
           page={meta.page}
-          totalPages={
-            meta.totalPages
-          }
+          totalPages={meta.totalPages}
           isFetching={isFetching}
           onPageChange={setPage}
         />
@@ -510,10 +430,7 @@ export default function ClientsPage() {
         open={isModalOpen}
         client={editingClient}
         error={formError}
-        isSubmitting={
-          createClient.isPending ||
-          updateClient.isPending
-        }
+        isSubmitting={createClient.isPending || updateClient.isPending}
         onClose={closeModal}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
@@ -522,12 +439,8 @@ export default function ClientsPage() {
       {/* Delete dialog */}
       <DeleteClientDialog
         client={deleteClient}
-        isDeleting={
-          deleteClientMutation.isPending
-        }
-        onCancel={() =>
-          setDeleteClient(null)
-        }
+        isDeleting={deleteClientMutation.isPending}
+        onCancel={() => setDeleteClient(null)}
         onConfirm={handleDelete}
       />
     </DashboardLayout>

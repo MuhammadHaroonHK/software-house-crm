@@ -28,10 +28,7 @@ import CompanyBankingForm from "@/components/company/CompanyBankingForm";
 import CompanyPreferencesForm from "@/components/company/CompanyPreferencesForm";
 
 export default function CompanySettingsPage() {
-  const {
-    data: currentUser,
-    isLoading: currentUserLoading,
-  } = useCurrentUser();
+  const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
 
   const {
     data: company,
@@ -42,17 +39,14 @@ export default function CompanySettingsPage() {
 
   const updateMutation = useUpdateCompany();
 
-  const [form, setForm] =
-    useState<Company | null>(null);
+  const [form, setForm] = useState<Company | null>(null);
 
   const [validationErrors, setValidationErrors] =
-  useState<CompanyValidationErrors>({});
+    useState<CompanyValidationErrors>({});
 
-const [saveError, setSaveError] =
-  useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const [successMessage, setSuccessMessage] =
-    useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   /*
    * Keep local form state synchronized
@@ -67,45 +61,37 @@ const [saveError, setSaveError] =
   /*
    * Update only the changed fields.
    */
-  const handleChange = (
-  changes: Partial<UpdateCompanyPayload>
-) => {
-  setForm((current) => {
-    if (!current) {
-      return current;
-    }
+  const handleChange = (changes: Partial<UpdateCompanyPayload>) => {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
 
-    return {
-      ...current,
-      ...changes,
-    };
-  });
-
-  setSaveError(null);
-
-  setValidationErrors((current) => {
-    const next = { ...current };
-
-    Object.keys(changes).forEach((field) => {
-      delete next[field];
+      return {
+        ...current,
+        ...changes,
+      };
     });
 
-    return next;
-  });
-};
+    setSaveError(null);
+
+    setValidationErrors((current) => {
+      const next = { ...current };
+
+      Object.keys(changes).forEach((field) => {
+        delete next[field];
+      });
+
+      return next;
+    });
+  };
 
   /*
    * Extract a useful error message from
    * the Axios/backend response.
    */
-  const getErrorMessage = (
-    error: unknown
-  ): string => {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "response" in error
-    ) {
+  const getErrorMessage = (error: unknown): string => {
+    if (typeof error === "object" && error !== null && "response" in error) {
       const response = (
         error as {
           response?: {
@@ -132,94 +118,72 @@ const [saveError, setSaveError] =
    * Save company settings.
    */
   const handleSave = async () => {
-  if (!form) {
-    return;
-  }
-
-  setSaveError(null);
-
-  const errors =
-    validateCompany(form);
-
-  if (Object.keys(errors).length > 0) {
-    setValidationErrors(errors);
-
-    toast.error(
-      "Please fix the highlighted fields."
-    );
-
-    return;
-  }
-
-  setValidationErrors({});
-
-  const payload: UpdateCompanyPayload = {
-    companyName:
-      form.companyName.trim(),
-
-    companyEmail:
-      form.companyEmail.trim(),
-
-    companyPhone:
-      form.companyPhone?.trim() || undefined,
-
-    companyAddress:
-      form.companyAddress?.trim() || undefined,
-
-    website:
-      form.website?.trim() || undefined,
-
-    logo:
-      form.logo?.trim() || undefined,
-
-    bankName:
-      form.bankName?.trim() || undefined,
-
-    accountTitle:
-      form.accountTitle?.trim() || undefined,
-
-    accountNumber:
-      form.accountNumber?.trim() || undefined,
-
-    iban:
-      form.iban?.trim() || undefined,
-
-    easyPaisaNumber:
-      form.easyPaisaNumber?.trim() || undefined,
-
-    jazzCashNumber:
-      form.jazzCashNumber?.trim() || undefined,
-
-    currency:
-      form.currency.trim(),
-
-    timezone:
-      form.timezone.trim(),
-  };
-
-  try {
-    const response =
-      await updateMutation.mutateAsync(
-        payload
-      );
-
-    if (response.data) {
-      setForm(response.data);
+    if (!form) {
+      return;
     }
 
-    toast.success(
-      response.message ||
-        "Company settings updated successfully."
-    );
-  } catch (error) {
-    const message =
-      getErrorMessage(error);
+    setSaveError(null);
 
-    setSaveError(message);
+    const errors = validateCompany(form);
 
-    toast.error(message);
-  }
-};
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+
+      toast.error("Please fix the highlighted fields.");
+
+      return;
+    }
+
+    setValidationErrors({});
+
+    const payload: UpdateCompanyPayload = {
+      companyName: form.companyName.trim(),
+
+      companyEmail: form.companyEmail.trim(),
+
+      companyPhone: form.companyPhone?.trim() || undefined,
+
+      companyAddress: form.companyAddress?.trim() || undefined,
+
+      website: form.website?.trim() || undefined,
+
+      logo: form.logo?.trim() || undefined,
+
+      bankName: form.bankName?.trim() || undefined,
+
+      accountTitle: form.accountTitle?.trim() || undefined,
+
+      accountNumber: form.accountNumber?.trim() || undefined,
+
+      iban: form.iban?.trim() || undefined,
+
+      easyPaisaNumber: form.easyPaisaNumber?.trim() || undefined,
+
+      jazzCashNumber: form.jazzCashNumber?.trim() || undefined,
+
+      currency: form.currency.trim(),
+
+      timezone: form.timezone.trim(),
+    };
+
+    try {
+      const response = await updateMutation.mutateAsync(payload);
+
+      if (response.data) {
+        setForm(response.data);
+      }
+
+      toast.success(
+        response.message || "Company settings updated successfully.",
+      );
+    } catch (error) {
+      const message = getErrorMessage(error);
+
+      setSaveError(message);
+
+      toast.error(message);
+    }
+  };
 
   /*
    * Current user loading.
@@ -227,9 +191,7 @@ const [saveError, setSaveError] =
   if (currentUserLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="text-sm text-slate-500">
-          Loading...
-        </div>
+        <div className="text-sm text-slate-500">Loading...</div>
       </main>
     );
   }
@@ -268,17 +230,14 @@ const [saveError, setSaveError] =
           </h2>
 
           <p className="mt-1 text-sm text-red-600">
-            {getErrorMessage(
-              companyQueryError
-            )}
+            {getErrorMessage(companyQueryError)}
           </p>
         </div>
       </DashboardLayout>
     );
   }
 
-  const isSaving =
-    updateMutation.isPending;
+  const isSaving = updateMutation.isPending;
 
   return (
     <DashboardLayout user={currentUser}>
@@ -290,8 +249,7 @@ const [saveError, setSaveError] =
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">
-            Manage your company information,
-            banking details, and preferences.
+            Manage your company information, banking details, and preferences.
           </p>
         </div>
 
@@ -302,9 +260,7 @@ const [saveError, setSaveError] =
               Unable to save changes
             </p>
 
-            <p className="mt-1 text-sm text-red-600">
-              {saveError}
-            </p>
+            <p className="mt-1 text-sm text-red-600">{saveError}</p>
           </div>
         )}
 
@@ -349,9 +305,7 @@ const [saveError, setSaveError] =
             disabled={isSaving}
             className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSaving
-              ? "Saving..."
-              : "Save Changes"}
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>
