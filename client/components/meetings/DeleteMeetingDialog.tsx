@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Loader2,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Loader2, Trash2, X } from "lucide-react";
 
 import type { Meeting } from "@/features/meetings/types/meeting.types";
 
@@ -39,10 +35,8 @@ export default function DeleteMeetingDialog({
 
         <p className="mt-2 text-sm leading-6 text-slate-500">
           Are you sure you want to delete{" "}
-          <span className="font-medium text-slate-700">
-            {meeting.title}
-          </span>
-          ? This action cannot be undone.
+          <span className="font-medium text-slate-700">{meeting.title}</span>?
+          This action cannot be undone.
         </p>
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

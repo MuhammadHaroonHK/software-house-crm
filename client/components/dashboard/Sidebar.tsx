@@ -50,7 +50,6 @@ const navigationItems: NavigationItem[] = [
     roles: ["SUPER_ADMIN"],
   },
 
-  
   {
     label: "Departments",
     href: "/departments",
@@ -134,7 +133,6 @@ const navigationItems: NavigationItem[] = [
   //   icon: File,
   //   roles: ["SUPER_ADMIN", "PROJECT_MANAGER", "EMPLOYEE", "CLIENT"],
   // },
-
 
   {
     label: "Settings",

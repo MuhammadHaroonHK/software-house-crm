@@ -9,23 +9,13 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import type {
-  Project,
-} from "@/features/projects/types/project.types";
+import type { Project } from "@/features/projects/types/project.types";
 
-import {
-  useProjectMembers,
-} from "@/features/projects/hooks/useProjectMembers";
+import { useProjectMembers } from "@/features/projects/hooks/useProjectMembers";
 
-import type {
-  ProjectMember,
-} from "@/features/projects/types/projectMember.types";
+import type { ProjectMember } from "@/features/projects/types/projectMember.types";
 
 import type {
   CreateTaskPayload,
@@ -45,13 +35,9 @@ interface TaskFormModalProps {
 
   onClose: () => void;
 
-  onCreate: (
-    data: CreateTaskPayload
-  ) => void;
+  onCreate: (data: CreateTaskPayload) => void;
 
-  onUpdate: (
-    data: UpdateTaskPayload
-  ) => void;
+  onUpdate: (data: UpdateTaskPayload) => void;
 }
 
 interface FormState {
@@ -113,16 +99,11 @@ export default function TaskFormModal({
   onCreate,
   onUpdate,
 }: TaskFormModalProps) {
-  const isEdit =
-    Boolean(task);
+  const isEdit = Boolean(task);
 
-  const [form, setForm] =
-    useState<FormState>(
-      emptyForm
-    );
+  const [form, setForm] = useState<FormState>(emptyForm);
 
-  const [errors, setErrors] =
-    useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   /*
    * Load project members whenever
@@ -132,9 +113,7 @@ export default function TaskFormModal({
     data: membersData,
     isLoading: isMembersLoading,
     isError: isMembersError,
-  } = useProjectMembers(
-    form.projectId || undefined
-  );
+  } = useProjectMembers(form.projectId || undefined);
 
   useEffect(() => {
     if (!open) {
@@ -143,30 +122,20 @@ export default function TaskFormModal({
 
     if (task) {
       setForm({
-        projectId:
-          task.projectId,
+        projectId: task.projectId,
 
-        assignedToId:
-          task.assignedToId,
+        assignedToId: task.assignedToId,
 
-        title:
-          task.title,
+        title: task.title,
 
-        description:
-          task.description ?? "",
+        description: task.description ?? "",
 
-        priority:
-          task.priority,
+        priority: task.priority,
 
-        dueDate:
-          toDateInputValue(
-            task.dueDate
-          ),
+        dueDate: toDateInputValue(task.dueDate),
       });
     } else {
-      setForm(
-        emptyForm
-      );
+      setForm(emptyForm);
     }
 
     setErrors({});
@@ -178,31 +147,18 @@ export default function TaskFormModal({
    *
    * The backend enforces the same rule.
    */
-  const employeeMembers =
-    useMemo(() => {
-      const members =
-        membersData?.data ??
-        [];
+  const employeeMembers = useMemo(() => {
+    const members = membersData?.data ?? [];
 
-      return members.filter(
-        (
-          member: ProjectMember
-        ) =>
-          member.user.status ===
-            "ACTIVE" &&
-          member.user.role.name ===
-            "EMPLOYEE"
-      );
-    }, [
-      membersData,
-    ]);
-
-  const selectedProject =
-    projects.find(
-      (project) =>
-        project.id ===
-        form.projectId
+    return members.filter(
+      (member: ProjectMember) =>
+        member.user.status === "ACTIVE" && member.user.role.name === "EMPLOYEE",
     );
+  }, [membersData]);
+
+  const selectedProject = projects.find(
+    (project) => project.id === form.projectId,
+  );
 
   useEffect(() => {
     /*
@@ -214,233 +170,146 @@ export default function TaskFormModal({
      * During edit this also protects
      * against stale membership data.
      */
-    if (
-      !form.assignedToId ||
-      employeeMembers.length ===
-        0
-    ) {
+    if (!form.assignedToId || employeeMembers.length === 0) {
       return;
     }
 
-    const exists =
-      employeeMembers.some(
-        (member) =>
-          member.userId ===
-          form.assignedToId
-      );
+    const exists = employeeMembers.some(
+      (member) => member.userId === form.assignedToId,
+    );
 
     if (!exists) {
-      setForm(
-        (previous) => ({
-          ...previous,
-          assignedToId: "",
-        })
-      );
+      setForm((previous) => ({
+        ...previous,
+        assignedToId: "",
+      }));
     }
-  }, [
-    employeeMembers,
-    form.assignedToId,
-  ]);
+  }, [employeeMembers, form.assignedToId]);
 
   if (!open) {
     return null;
   }
 
-  const updateField = (
-    field: keyof FormState,
-    value: string
-  ) => {
-    setForm(
-      (previous) => ({
-        ...previous,
-        [field]: value,
-      })
-    );
+  const updateField = (field: keyof FormState, value: string) => {
+    setForm((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
 
-    setErrors(
-      (previous) => ({
-        ...previous,
-        [field]:
-          undefined,
-      })
-    );
+    setErrors((previous) => ({
+      ...previous,
+      [field]: undefined,
+    }));
   };
 
-  const validate =
-    (): boolean => {
-      const nextErrors: FormErrors =
-        {};
+  const validate = (): boolean => {
+    const nextErrors: FormErrors = {};
 
-      const title =
-        form.title.trim();
+    const title = form.title.trim();
 
-      const description =
-        form.description.trim();
+    const description = form.description.trim();
 
-      if (!form.projectId) {
-        nextErrors.projectId =
-          "Please select a project.";
+    if (!form.projectId) {
+      nextErrors.projectId = "Please select a project.";
+    }
+
+    if (!form.assignedToId) {
+      nextErrors.assignedToId = "Please select an employee.";
+    }
+
+    if (!title) {
+      nextErrors.title = "Task title is required.";
+    } else if (title.length < 3) {
+      nextErrors.title = "Task title must be at least 3 characters.";
+    } else if (title.length > 150) {
+      nextErrors.title = "Task title cannot exceed 150 characters.";
+    }
+
+    if (description.length > 5000) {
+      nextErrors.description = "Description cannot exceed 5000 characters.";
+    }
+
+    if (form.dueDate) {
+      const date = new Date(form.dueDate);
+
+      if (Number.isNaN(date.getTime())) {
+        nextErrors.dueDate = "Please enter a valid due date.";
       }
+    }
 
-      if (
-        !form.assignedToId
-      ) {
-        nextErrors.assignedToId =
-          "Please select an employee.";
-      }
+    setErrors(nextErrors);
 
-      if (!title) {
-        nextErrors.title =
-          "Task title is required.";
-      } else if (
-        title.length < 3
-      ) {
-        nextErrors.title =
-          "Task title must be at least 3 characters.";
-      } else if (
-        title.length > 150
-      ) {
-        nextErrors.title =
-          "Task title cannot exceed 150 characters.";
-      }
-
-      if (
-        description.length >
-        5000
-      ) {
-        nextErrors.description =
-          "Description cannot exceed 5000 characters.";
-      }
-
-      if (
-        form.dueDate
-      ) {
-        const date =
-          new Date(
-            form.dueDate
-          );
-
-        if (
-          Number.isNaN(
-            date.getTime()
-          )
-        ) {
-          nextErrors.dueDate =
-            "Please enter a valid due date.";
-        }
-      }
-
-      setErrors(
-        nextErrors
-      );
-
-      return (
-        Object.keys(
-          nextErrors
-        ).length === 0
-      );
-    };
-
-  const handleProjectChange = (
-    projectId: string
-  ) => {
-    setForm(
-      (previous) => ({
-        ...previous,
-
-        projectId,
-
-        /*
-         * Changing project means
-         * the current assignee is no
-         * longer valid until members
-         * are loaded.
-         */
-        assignedToId:
-          "",
-      })
-    );
-
-    setErrors(
-      (previous) => ({
-        ...previous,
-        projectId:
-          undefined,
-        assignedToId:
-          undefined,
-      })
-    );
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleProjectChange = (projectId: string) => {
+    setForm((previous) => ({
+      ...previous,
+
+      projectId,
+
+      /*
+       * Changing project means
+       * the current assignee is no
+       * longer valid until members
+       * are loaded.
+       */
+      assignedToId: "",
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      projectId: undefined,
+      assignedToId: undefined,
+    }));
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) {
       return;
     }
 
-    const title =
-      form.title.trim();
+    const title = form.title.trim();
 
-    const description =
-      form.description.trim();
+    const description = form.description.trim();
 
-    const dueDate =
-      form.dueDate ||
-      undefined;
+    const dueDate = form.dueDate || undefined;
 
     if (isEdit) {
-      const payload:
-        UpdateTaskPayload =
-        {
-          assignedToId:
-            form.assignedToId,
-
-          title,
-
-          description:
-            description ||
-            undefined,
-
-          priority:
-            form.priority,
-
-          dueDate,
-        };
-
-      onUpdate(
-        payload
-      );
-
-      return;
-    }
-
-    const payload:
-      CreateTaskPayload =
-      {
-        projectId:
-          form.projectId,
-
-        assignedToId:
-          form.assignedToId,
+      const payload: UpdateTaskPayload = {
+        assignedToId: form.assignedToId,
 
         title,
 
-        description:
-          description ||
-          undefined,
+        description: description || undefined,
 
-        priority:
-          form.priority,
+        priority: form.priority,
 
         dueDate,
       };
 
-    onCreate(
-      payload
-    );
+      onUpdate(payload);
+
+      return;
+    }
+
+    const payload: CreateTaskPayload = {
+      projectId: form.projectId,
+
+      assignedToId: form.assignedToId,
+
+      title,
+
+      description: description || undefined,
+
+      priority: form.priority,
+
+      dueDate,
+    };
+
+    onCreate(payload);
   };
 
   /*
@@ -449,8 +318,7 @@ export default function TaskFormModal({
    * UpdateTaskDTO does not contain
    * projectId.
    */
-  const projectLocked =
-    isEdit;
+  const projectLocked = isEdit;
 
   /*
    * Only active, non-terminal
@@ -461,14 +329,10 @@ export default function TaskFormModal({
    * rejects completed/cancelled
    * projects.
    */
-  const availableProjects =
-    projects.filter(
-      (project) =>
-        project.status !==
-          "COMPLETED" &&
-        project.status !==
-          "CANCELLED"
-    );
+  const availableProjects = projects.filter(
+    (project) =>
+      project.status !== "COMPLETED" && project.status !== "CANCELLED",
+  );
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
@@ -477,9 +341,7 @@ export default function TaskFormModal({
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {isEdit
-                ? "Edit Task"
-                : "Create Task"}
+              {isEdit ? "Edit Task" : "Create Task"}
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -492,9 +354,7 @@ export default function TaskFormModal({
           <button
             type="button"
             onClick={onClose}
-            disabled={
-              isSubmitting
-            }
+            disabled={isSubmitting}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Close modal"
           >
@@ -504,9 +364,7 @@ export default function TaskFormModal({
 
         {/* Form */}
         <form
-          onSubmit={
-            handleSubmit
-          }
+          onSubmit={handleSubmit}
           className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -516,53 +374,23 @@ export default function TaskFormModal({
                 htmlFor="taskProject"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Project{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Project <span className="text-red-500">*</span>
               </label>
 
               <select
                 id="taskProject"
-                value={
-                  form.projectId
-                }
-                onChange={(
-                  event
-                ) =>
-                  handleProjectChange(
-                    event.target
-                      .value
-                  )
-                }
-                disabled={
-                  isSubmitting ||
-                  projectLocked
-                }
-                className={inputClass(
-                  errors.projectId
-                )}
+                value={form.projectId}
+                onChange={(event) => handleProjectChange(event.target.value)}
+                disabled={isSubmitting || projectLocked}
+                className={inputClass(errors.projectId)}
               >
-                <option value="">
-                  Select project
-                </option>
+                <option value="">Select project</option>
 
-                {availableProjects.map(
-                  (
-                    project
-                  ) => (
-                    <option
-                      key={
-                        project.id
-                      }
-                      value={
-                        project.id
-                      }
-                    >
-                      {project.name}
-                    </option>
-                  )
-                )}
+                {availableProjects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
               </select>
 
               {projectLocked && (
@@ -571,11 +399,7 @@ export default function TaskFormModal({
                 </p>
               )}
 
-              <FieldError
-                message={
-                  errors.projectId
-                }
-              />
+              <FieldError message={errors.projectId} />
             </div>
 
             {/* Assignee */}
@@ -584,10 +408,7 @@ export default function TaskFormModal({
                 htmlFor="taskAssignee"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Assigned Employee{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Assigned Employee <span className="text-red-500">*</span>
               </label>
 
               <div className="relative">
@@ -595,83 +416,46 @@ export default function TaskFormModal({
 
                 <select
                   id="taskAssignee"
-                  value={
-                    form.assignedToId
+                  value={form.assignedToId}
+                  onChange={(event) =>
+                    updateField("assignedToId", event.target.value)
                   }
-                  onChange={(
-                    event
-                  ) =>
-                    updateField(
-                      "assignedToId",
-                      event.target
-                        .value
-                    )
-                  }
-                  disabled={
-                    isSubmitting ||
-                    !form.projectId ||
-                    isMembersLoading
-                  }
-                  className={`pl-9 ${inputClass(
-                    errors.assignedToId
-                  )}`}
+                  disabled={isSubmitting || !form.projectId || isMembersLoading}
+                  className={`pl-9 ${inputClass(errors.assignedToId)}`}
                 >
                   <option value="">
                     {!form.projectId
                       ? "Select a project first"
                       : isMembersLoading
-                      ? "Loading team members..."
-                      : "Select employee"}
+                        ? "Loading team members..."
+                        : "Select employee"}
                   </option>
 
-                  {employeeMembers.map(
-                    (
-                      member
-                    ) => (
-                      <option
-                        key={
-                          member.userId
-                        }
-                        value={
-                          member.userId
-                        }
-                      >
-                        {
-                          member.user
-                            .firstName
-                        }{" "}
-                        {
-                          member.user
-                            .lastName
-                        }
-                      </option>
-                    )
-                  )}
+                  {employeeMembers.map((member) => (
+                    <option key={member.userId} value={member.userId}>
+                      {member.user.firstName} {member.user.lastName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {form.projectId &&
                 !isMembersLoading &&
                 !isMembersError &&
-                employeeMembers.length ===
-                  0 && (
+                employeeMembers.length === 0 && (
                   <p className="mt-1 text-xs text-slate-400">
-                    This project has no active employee members available for assignment.
+                    This project has no active employee members available for
+                    assignment.
                   </p>
                 )}
 
-              {isMembersError &&
-                form.projectId && (
-                  <p className="mt-1 text-xs text-red-600">
-                    Unable to load project members.
-                  </p>
-                )}
+              {isMembersError && form.projectId && (
+                <p className="mt-1 text-xs text-red-600">
+                  Unable to load project members.
+                </p>
+              )}
 
-              <FieldError
-                message={
-                  errors.assignedToId
-                }
-              />
+              <FieldError message={errors.assignedToId} />
             </div>
 
             {/* Priority */}
@@ -685,43 +469,18 @@ export default function TaskFormModal({
 
               <select
                 id="taskPriority"
-                value={
-                  form.priority
+                value={form.priority}
+                onChange={(event) =>
+                  updateField("priority", event.target.value)
                 }
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "priority",
-                    event.target
-                      .value
-                  )
-                }
-                disabled={
-                  isSubmitting
-                }
-                className={inputClass(
-                  errors.priority
-                )}
+                disabled={isSubmitting}
+                className={inputClass(errors.priority)}
               >
-                {PRIORITY_OPTIONS.map(
-                  (
-                    option
-                  ) => (
-                    <option
-                      key={
-                        option.value
-                      }
-                      value={
-                        option.value
-                      }
-                    >
-                      {
-                        option.label
-                      }
-                    </option>
-                  )
-                )}
+                {PRIORITY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -731,43 +490,22 @@ export default function TaskFormModal({
                 htmlFor="taskTitle"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Task Title{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Task Title <span className="text-red-500">*</span>
               </label>
 
               <input
                 id="taskTitle"
                 type="text"
-                value={
-                  form.title
-                }
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "title",
-                    event.target
-                      .value
-                  )
-                }
+                value={form.title}
+                onChange={(event) => updateField("title", event.target.value)}
                 placeholder="e.g. Implement authentication API"
                 maxLength={150}
                 autoFocus
-                disabled={
-                  isSubmitting
-                }
-                className={inputClass(
-                  errors.title
-                )}
+                disabled={isSubmitting}
+                className={inputClass(errors.title)}
               />
 
-              <FieldError
-                message={
-                  errors.title
-                }
-              />
+              <FieldError message={errors.title} />
             </div>
 
             {/* Description */}
@@ -784,42 +522,22 @@ export default function TaskFormModal({
 
               <textarea
                 id="taskDescription"
-                value={
-                  form.description
-                }
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "description",
-                    event.target
-                      .value
-                  )
+                value={form.description}
+                onChange={(event) =>
+                  updateField("description", event.target.value)
                 }
                 placeholder="Describe the work that needs to be completed..."
                 rows={4}
                 maxLength={5000}
-                disabled={
-                  isSubmitting
-                }
-                className={`${inputClass(
-                  errors.description
-                )} resize-none`}
+                disabled={isSubmitting}
+                className={`${inputClass(errors.description)} resize-none`}
               />
 
               <div className="mt-1 flex justify-between">
-                <FieldError
-                  message={
-                    errors.description
-                  }
-                />
+                <FieldError message={errors.description} />
 
                 <p className="text-xs text-slate-400">
-                  {
-                    form
-                      .description
-                      .length
-                  }
+                  {form.description.length}
                   /5000
                 </p>
               </div>
@@ -843,32 +561,16 @@ export default function TaskFormModal({
                 <input
                   id="taskDueDate"
                   type="date"
-                  value={
-                    form.dueDate
+                  value={form.dueDate}
+                  onChange={(event) =>
+                    updateField("dueDate", event.target.value)
                   }
-                  onChange={(
-                    event
-                  ) =>
-                    updateField(
-                      "dueDate",
-                      event.target
-                        .value
-                    )
-                  }
-                  disabled={
-                    isSubmitting
-                  }
-                  className={`pl-9 ${inputClass(
-                    errors.dueDate
-                  )}`}
+                  disabled={isSubmitting}
+                  className={`pl-9 ${inputClass(errors.dueDate)}`}
                 />
               </div>
 
-              <FieldError
-                message={
-                  errors.dueDate
-                }
-              />
+              <FieldError message={errors.dueDate} />
             </div>
 
             {/* Selected project information */}
@@ -880,16 +582,11 @@ export default function TaskFormModal({
                   </p>
 
                   <p className="mt-1 truncate text-sm font-semibold text-slate-800">
-                    {
-                      selectedProject.name
-                    }
+                    {selectedProject.name}
                   </p>
 
                   <p className="mt-0.5 text-xs text-slate-500">
-                    Status:{" "}
-                    {formatProjectStatus(
-                      selectedProject.status
-                    )}
+                    Status: {formatProjectStatus(selectedProject.status)}
                   </p>
                 </div>
               </div>
@@ -907,12 +604,8 @@ export default function TaskFormModal({
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={
-                onClose
-              }
-              disabled={
-                isSubmitting
-              }
+              onClick={onClose}
+              disabled={isSubmitting}
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
@@ -925,9 +618,8 @@ export default function TaskFormModal({
                 isMembersLoading ||
                 Boolean(
                   form.projectId &&
-                    !isMembersError &&
-                    employeeMembers.length ===
-                      0
+                  !isMembersError &&
+                  employeeMembers.length === 0,
                 )
               }
               className="flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
@@ -936,9 +628,7 @@ export default function TaskFormModal({
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
 
-                  {isEdit
-                    ? "Saving..."
-                    : "Creating..."}
+                  {isEdit ? "Saving..." : "Creating..."}
                 </>
               ) : (
                 <>
@@ -948,9 +638,7 @@ export default function TaskFormModal({
                     <Plus className="h-4 w-4" />
                   )}
 
-                  {isEdit
-                    ? "Save Changes"
-                    : "Create Task"}
+                  {isEdit ? "Save Changes" : "Create Task"}
                 </>
               )}
             </button>
@@ -965,9 +653,7 @@ export default function TaskFormModal({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function inputClass(
-  error?: string
-) {
+function inputClass(error?: string) {
   return `w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none transition ${
     error
       ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
@@ -975,57 +661,31 @@ function inputClass(
   } disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70`;
 }
 
-function FieldError({
-  message,
-}: {
-  message?: string;
-}) {
+function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
 
-  return (
-    <p className="mt-1 text-xs text-red-600">
-      {message}
-    </p>
-  );
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
-function toDateInputValue(
-  value?: string | null
-): string {
+function toDateInputValue(value?: string | null): string {
   if (!value) {
     return "";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return date
-    .toISOString()
-    .slice(0, 10);
+  return date.toISOString().slice(0, 10);
 }
 
-function formatProjectStatus(
-  status: Project["status"]
-): string {
+function formatProjectStatus(status: Project["status"]): string {
   return status
     .toLowerCase()
-    .replace(
-      /_/g,
-      " "
-    )
-    .replace(
-      /\b\w/g,
-      (character) =>
-        character.toUpperCase()
-    );
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }

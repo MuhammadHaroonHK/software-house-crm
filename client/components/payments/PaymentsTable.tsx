@@ -27,21 +27,13 @@ interface PaymentsTableProps {
   isFetching?: boolean;
   search?: string;
 
-  getPermissions: (
-    payment: Payment,
-  ) => PaymentTablePermissions;
+  getPermissions: (payment: Payment) => PaymentTablePermissions;
 
-  onView: (
-    payment: Payment,
-  ) => void;
+  onView: (payment: Payment) => void;
 
-  onVerify: (
-    payment: Payment,
-  ) => void;
+  onVerify: (payment: Payment) => void;
 
-  onReject: (
-    payment: Payment,
-  ) => void;
+  onReject: (payment: Payment) => void;
 }
 
 export default function PaymentsTable({
@@ -62,10 +54,7 @@ export default function PaymentsTable({
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            {payments.length}{" "}
-            {payments.length === 1
-              ? "payment"
-              : "payments"}{" "}
+            {payments.length} {payments.length === 1 ? "payment" : "payments"}{" "}
             shown.
           </p>
         </div>
@@ -82,9 +71,7 @@ export default function PaymentsTable({
           </div>
 
           <h3 className="mt-4 text-sm font-semibold text-slate-900">
-            {search
-              ? "No payments found"
-              : "No payments yet"}
+            {search ? "No payments found" : "No payments yet"}
           </h3>
 
           <p className="mt-1 max-w-sm text-sm text-slate-500">
@@ -132,8 +119,7 @@ export default function PaymentsTable({
 
               <tbody className="divide-y divide-slate-100">
                 {payments.map((payment) => {
-                  const permissions =
-                    getPermissions(payment);
+                  const permissions = getPermissions(payment);
 
                   return (
                     <tr
@@ -143,9 +129,7 @@ export default function PaymentsTable({
                       <td className="px-6 py-4">
                         <button
                           type="button"
-                          onClick={() =>
-                            onView(payment)
-                          }
+                          onClick={() => onView(payment)}
                           className="flex min-w-0 items-center gap-3 text-left"
                         >
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
@@ -154,15 +138,12 @@ export default function PaymentsTable({
 
                           <div className="min-w-0">
                             <p className="max-w-[180px] truncate text-sm font-medium text-slate-900">
-                              {formatCurrency(
-                                payment.amount,
-                              )}
+                              {formatCurrency(payment.amount)}
                             </p>
 
                             <p className="mt-0.5 max-w-[180px] truncate text-xs text-slate-400">
                               {formatDate(
-                                payment.paymentDate ||
-                                  payment.createdAt,
+                                payment.paymentDate || payment.createdAt,
                               )}
                             </p>
                           </div>
@@ -172,18 +153,11 @@ export default function PaymentsTable({
                       <td className="px-6 py-4">
                         <div>
                           <p className="text-sm font-medium text-slate-800">
-                            {
-                              payment.invoice
-                                .invoiceNumber
-                            }
+                            {payment.invoice.invoiceNumber}
                           </p>
 
                           <p className="mt-0.5 text-xs text-slate-400">
-                            {
-                              payment.invoice
-                                .quotation
-                                .quotationNumber
-                            }
+                            {payment.invoice.quotation.quotationNumber}
                           </p>
                         </div>
                       </td>
@@ -191,19 +165,11 @@ export default function PaymentsTable({
                       <td className="px-6 py-4">
                         <div>
                           <p className="max-w-[180px] truncate text-sm text-slate-700">
-                            {
-                              payment.invoice
-                                .quotation
-                                .client
-                                .companyName
-                            }
+                            {payment.invoice.quotation.client.companyName}
                           </p>
 
                           <p className="mt-0.5 max-w-[180px] truncate text-xs text-slate-400">
-                            {payment.invoice
-                              .quotation
-                              .project
-                              ?.name ??
+                            {payment.invoice.quotation.project?.name ??
                               "No project"}
                           </p>
                         </div>
@@ -211,41 +177,27 @@ export default function PaymentsTable({
 
                       <td className="px-6 py-4">
                         <p className="text-sm font-semibold text-slate-900">
-                          {formatCurrency(
-                            payment.amount,
-                          )}
+                          {formatCurrency(payment.amount)}
                         </p>
                       </td>
 
                       <td className="px-6 py-4">
                         <span className="text-sm text-slate-600">
-                          {formatPaymentMethod(
-                            payment.paymentMethod,
-                          )}
+                          {formatPaymentMethod(payment.paymentMethod)}
                         </span>
                       </td>
 
                       <td className="px-6 py-4">
-                        <PaymentStatusBadge
-                          status={
-                            payment.status
-                          }
-                        />
+                        <PaymentStatusBadge status={payment.status} />
                       </td>
 
                       <td className="px-6 py-4">
                         <PaymentActions
                           payment={payment}
-                          permissions={
-                            permissions
-                          }
+                          permissions={permissions}
                           onView={onView}
-                          onVerify={
-                            onVerify
-                          }
-                          onReject={
-                            onReject
-                          }
+                          onVerify={onVerify}
+                          onReject={onReject}
                         />
                       </td>
                     </tr>
@@ -258,20 +210,14 @@ export default function PaymentsTable({
           {/* Mobile */}
           <div className="divide-y divide-slate-100 md:hidden">
             {payments.map((payment) => {
-              const permissions =
-                getPermissions(payment);
+              const permissions = getPermissions(payment);
 
               return (
-                <div
-                  key={payment.id}
-                  className="p-4"
-                >
+                <div key={payment.id} className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <button
                       type="button"
-                      onClick={() =>
-                        onView(payment)
-                      }
+                      onClick={() => onView(payment)}
                       className="flex min-w-0 items-center gap-3 text-left"
                     >
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
@@ -280,82 +226,53 @@ export default function PaymentsTable({
 
                       <div className="min-w-0">
                         <h3 className="truncate text-sm font-semibold text-slate-900">
-                          {formatCurrency(
-                            payment.amount,
-                          )}
+                          {formatCurrency(payment.amount)}
                         </h3>
 
                         <p className="mt-1 truncate text-xs text-slate-400">
-                          {
-                            payment.invoice
-                              .invoiceNumber
-                          }
+                          {payment.invoice.invoiceNumber}
                         </p>
                       </div>
                     </button>
 
                     <PaymentActions
                       payment={payment}
-                      permissions={
-                        permissions
-                      }
+                      permissions={permissions}
                       onView={onView}
-                      onVerify={
-                        onVerify
-                      }
-                      onReject={
-                        onReject
-                      }
+                      onVerify={onVerify}
+                      onReject={onReject}
                     />
                   </div>
 
                   <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <PaymentStatusBadge
-                      status={
-                        payment.status
-                      }
-                    />
+                    <PaymentStatusBadge status={payment.status} />
 
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                      {formatPaymentMethod(
-                        payment.paymentMethod,
-                      )}
+                      {formatPaymentMethod(payment.paymentMethod)}
                     </span>
                   </div>
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <MobileDetail
                       label="Client"
-                      value={
-                        payment.invoice
-                          .quotation
-                          .client
-                          .companyName
-                      }
+                      value={payment.invoice.quotation.client.companyName}
                     />
 
                     <MobileDetail
                       label="Date"
                       value={formatDate(
-                        payment.paymentDate ||
-                          payment.createdAt,
+                        payment.paymentDate || payment.createdAt,
                       )}
                     />
 
                     <MobileDetail
                       label="Invoice Balance"
-                      value={formatCurrency(
-                        payment.invoice
-                          .balanceDue,
-                      )}
+                      value={formatCurrency(payment.invoice.balanceDue)}
                     />
 
                     <MobileDetail
                       label="Reference"
-                      value={
-                        payment.referenceNumber ??
-                        "No reference"
-                      }
+                      value={payment.referenceNumber ?? "No reference"}
                     />
                   </div>
                 </div>
@@ -376,17 +293,11 @@ interface PaymentActionsProps {
   payment: Payment;
   permissions: PaymentTablePermissions;
 
-  onView: (
-    payment: Payment,
-  ) => void;
+  onView: (payment: Payment) => void;
 
-  onVerify: (
-    payment: Payment,
-  ) => void;
+  onVerify: (payment: Payment) => void;
 
-  onReject: (
-    payment: Payment,
-  ) => void;
+  onReject: (payment: Payment) => void;
 }
 
 function PaymentActions({
@@ -401,9 +312,7 @@ function PaymentActions({
       {permissions.canView && (
         <button
           type="button"
-          onClick={() =>
-            onView(payment)
-          }
+          onClick={() => onView(payment)}
           className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           title="View payment"
           aria-label="View payment"
@@ -412,37 +321,29 @@ function PaymentActions({
         </button>
       )}
 
-      {permissions.canVerify &&
-        payment.status ===
-          "PENDING" && (
-          <button
-            type="button"
-            onClick={() =>
-              onVerify(payment)
-            }
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700"
-            title="Verify payment"
-            aria-label="Verify payment"
-          >
-            <CheckCircle2 className="h-4 w-4" />
-          </button>
-        )}
+      {permissions.canVerify && payment.status === "PENDING" && (
+        <button
+          type="button"
+          onClick={() => onVerify(payment)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700"
+          title="Verify payment"
+          aria-label="Verify payment"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </button>
+      )}
 
-      {permissions.canReject &&
-        payment.status ===
-          "PENDING" && (
-          <button
-            type="button"
-            onClick={() =>
-              onReject(payment)
-            }
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700"
-            title="Reject payment"
-            aria-label="Reject payment"
-          >
-            <XCircle className="h-4 w-4" />
-          </button>
-        )}
+      {permissions.canReject && payment.status === "PENDING" && (
+        <button
+          type="button"
+          onClick={() => onReject(payment)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700"
+          title="Reject payment"
+          aria-label="Reject payment"
+        >
+          <XCircle className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 }
@@ -451,15 +352,8 @@ function PaymentActions({
 /* Status                                                                     */
 /* -------------------------------------------------------------------------- */
 
-function PaymentStatusBadge({
-  status,
-}: {
-  status: Payment["status"];
-}) {
-  const config =
-    getPaymentStatusConfig(
-      status,
-    );
+function PaymentStatusBadge({ status }: { status: Payment["status"] }) {
+  const config = getPaymentStatusConfig(status);
 
   const Icon = config.icon;
 
@@ -473,40 +367,34 @@ function PaymentStatusBadge({
   );
 }
 
-function getPaymentStatusConfig(
-  status: Payment["status"],
-) {
+function getPaymentStatusConfig(status: Payment["status"]) {
   switch (status) {
     case "PENDING":
       return {
         label: "Pending",
         icon: Clock3,
-        className:
-          "bg-amber-50 text-amber-700",
+        className: "bg-amber-50 text-amber-700",
       };
 
     case "COMPLETED":
       return {
         label: "Completed",
         icon: CheckCircle2,
-        className:
-          "bg-emerald-50 text-emerald-700",
+        className: "bg-emerald-50 text-emerald-700",
       };
 
     case "FAILED":
       return {
         label: "Failed",
         icon: XCircle,
-        className:
-          "bg-red-50 text-red-700",
+        className: "bg-red-50 text-red-700",
       };
 
     case "REFUNDED":
       return {
         label: "Refunded",
         icon: XCircle,
-        className:
-          "bg-slate-100 text-slate-600",
+        className: "bg-slate-100 text-slate-600",
       };
   }
 }
@@ -515,13 +403,7 @@ function getPaymentStatusConfig(
 /* Mobile detail                                                              */
 /* -------------------------------------------------------------------------- */
 
-function MobileDetail({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function MobileDetail({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-slate-50 p-3">
       <p className="text-[11px] uppercase tracking-wide text-slate-400">
@@ -539,9 +421,7 @@ function MobileDetail({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function formatPaymentMethod(
-  method: PaymentMethod,
-) {
+function formatPaymentMethod(method: PaymentMethod) {
   switch (method) {
     case "BANK_TRANSFER":
       return "Bank Transfer";
@@ -557,45 +437,31 @@ function formatPaymentMethod(
   }
 }
 
-function formatDate(
-  value: string,
-) {
+function formatDate(value: string) {
   const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "N/A";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    },
-  ).format(date);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }
 
-function formatCurrency(
-  value: string | number,
-) {
+function formatCurrency(value: string | number) {
   const amount = Number(value);
 
   if (!Number.isFinite(amount)) {
     return "PKR 0.00";
   }
 
-  return new Intl.NumberFormat(
-    "en-PK",
-    {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-  ).format(amount);
+  return new Intl.NumberFormat("en-PK", {
+    style: "currency",
+    currency: "PKR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }

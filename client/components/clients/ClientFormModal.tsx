@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  Loader2,
-  Pencil,
-  Plus,
-  X,
-} from "lucide-react";
+import { Loader2, Pencil, Plus, X } from "lucide-react";
 
 import type {
   Client,
@@ -21,12 +16,8 @@ interface ClientFormModalProps {
   isSubmitting?: boolean;
   error?: string | null;
   onClose: () => void;
-  onCreate: (
-    data: CreateClientPayload
-  ) => void;
-  onUpdate: (
-    data: UpdateClientPayload
-  ) => void;
+  onCreate: (data: CreateClientPayload) => void;
+  onUpdate: (data: UpdateClientPayload) => void;
 }
 
 interface FormState {
@@ -76,11 +67,9 @@ export default function ClientFormModal({
 }: ClientFormModalProps) {
   const isEdit = Boolean(client);
 
-  const [form, setForm] =
-    useState<FormState>(emptyForm);
+  const [form, setForm] = useState<FormState>(emptyForm);
 
-  const [errors, setErrors] =
-    useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (!open) {
@@ -89,22 +78,15 @@ export default function ClientFormModal({
 
     if (client) {
       setForm({
-        companyName:
-          client.companyName,
-        industry:
-          client.industry ?? "",
-        website:
-          client.website ?? "",
+        companyName: client.companyName,
+        industry: client.industry ?? "",
+        website: client.website ?? "",
         email: client.email,
-        phone:
-          client.phone ?? "",
-        address:
-          client.address ?? "",
+        phone: client.phone ?? "",
+        address: client.address ?? "",
         city: client.city ?? "",
-        country:
-          client.country ?? "",
-        notes:
-          client.notes ?? "",
+        country: client.country ?? "",
+        notes: client.notes ?? "",
       });
     } else {
       setForm(emptyForm);
@@ -117,10 +99,7 @@ export default function ClientFormModal({
     return null;
   }
 
-  const updateField = (
-    field: keyof FormState,
-    value: string
-  ) => {
+  const updateField = (field: keyof FormState, value: string) => {
     setForm((previous) => ({
       ...previous,
       [field]: value,
@@ -133,50 +112,34 @@ export default function ClientFormModal({
   };
 
   const validate = (): boolean => {
-    const nextErrors: FormErrors =
-      {};
+    const nextErrors: FormErrors = {};
 
-    const companyName =
-      form.companyName.trim();
+    const companyName = form.companyName.trim();
 
-    const industry =
-      form.industry.trim();
+    const industry = form.industry.trim();
 
-    const website =
-      form.website.trim();
+    const website = form.website.trim();
 
-    const email =
-      form.email.trim();
+    const email = form.email.trim();
 
-    const city =
-      form.city.trim();
+    const city = form.city.trim();
 
-    const country =
-      form.country.trim();
+    const country = form.country.trim();
 
-    const notes =
-      form.notes.trim();
+    const notes = form.notes.trim();
 
     /* Company name */
     if (!companyName) {
-      nextErrors.companyName =
-        "Company name is required.";
-    } else if (
-      companyName.length < 2
-    ) {
-      nextErrors.companyName =
-        "Company name must be at least 2 characters.";
-    } else if (
-      companyName.length > 100
-    ) {
-      nextErrors.companyName =
-        "Company name cannot exceed 100 characters.";
+      nextErrors.companyName = "Company name is required.";
+    } else if (companyName.length < 2) {
+      nextErrors.companyName = "Company name must be at least 2 characters.";
+    } else if (companyName.length > 100) {
+      nextErrors.companyName = "Company name cannot exceed 100 characters.";
     }
 
     /* Industry */
     if (industry.length > 100) {
-      nextErrors.industry =
-        "Industry cannot exceed 100 characters.";
+      nextErrors.industry = "Industry cannot exceed 100 characters.";
     }
 
     /* Website */
@@ -184,53 +147,38 @@ export default function ClientFormModal({
       try {
         new URL(website);
       } catch {
-        nextErrors.website =
-          "Please enter a valid website URL.";
+        nextErrors.website = "Please enter a valid website URL.";
       }
     }
 
     /* Email */
     if (!email) {
-      nextErrors.email =
-        "Email address is required.";
-    } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        email
-      )
-    ) {
-      nextErrors.email =
-        "Please enter a valid email address.";
+      nextErrors.email = "Email address is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      nextErrors.email = "Please enter a valid email address.";
     }
 
     /* City */
     if (city.length > 100) {
-      nextErrors.city =
-        "City cannot exceed 100 characters.";
+      nextErrors.city = "City cannot exceed 100 characters.";
     }
 
     /* Country */
     if (country.length > 100) {
-      nextErrors.country =
-        "Country cannot exceed 100 characters.";
+      nextErrors.country = "Country cannot exceed 100 characters.";
     }
 
     /* Notes */
     if (notes.length > 1000) {
-      nextErrors.notes =
-        "Notes cannot exceed 1000 characters.";
+      nextErrors.notes = "Notes cannot exceed 1000 characters.";
     }
 
     setErrors(nextErrors);
 
-    return (
-      Object.keys(nextErrors).length ===
-      0
-    );
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) {
@@ -238,39 +186,23 @@ export default function ClientFormModal({
     }
 
     const payload = {
-      companyName:
-        form.companyName.trim(),
+      companyName: form.companyName.trim(),
 
-      industry:
-        form.industry.trim() ||
-        undefined,
+      industry: form.industry.trim() || undefined,
 
-      website:
-        form.website.trim() ||
-        undefined,
+      website: form.website.trim() || undefined,
 
-      email:
-        form.email.trim().toLowerCase(),
+      email: form.email.trim().toLowerCase(),
 
-      phone:
-        form.phone.trim() ||
-        undefined,
+      phone: form.phone.trim() || undefined,
 
-      address:
-        form.address.trim() ||
-        undefined,
+      address: form.address.trim() || undefined,
 
-      city:
-        form.city.trim() ||
-        undefined,
+      city: form.city.trim() || undefined,
 
-      country:
-        form.country.trim() ||
-        undefined,
+      country: form.country.trim() || undefined,
 
-      notes:
-        form.notes.trim() ||
-        undefined,
+      notes: form.notes.trim() || undefined,
     };
 
     if (isEdit) {
@@ -283,14 +215,12 @@ export default function ClientFormModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
-    <div className="my-4 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:my-8">
+      <div className="my-4 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:my-8">
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {isEdit
-                ? "Edit Client"
-                : "Add Client"}
+              {isEdit ? "Edit Client" : "Add Client"}
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -323,10 +253,7 @@ export default function ClientFormModal({
                 htmlFor="clientCompanyName"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Company Name{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Company Name <span className="text-red-500">*</span>
               </label>
 
               <input
@@ -334,25 +261,16 @@ export default function ClientFormModal({
                 type="text"
                 value={form.companyName}
                 onChange={(event) =>
-                  updateField(
-                    "companyName",
-                    event.target.value
-                  )
+                  updateField("companyName", event.target.value)
                 }
                 placeholder="e.g. Acme Solutions"
                 maxLength={100}
                 autoFocus
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.companyName
-                )}
+                className={inputClass(errors.companyName)}
               />
 
-              <FieldError
-                message={
-                  errors.companyName
-                }
-              />
+              <FieldError message={errors.companyName} />
             </div>
 
             {/* Industry */}
@@ -372,24 +290,15 @@ export default function ClientFormModal({
                 type="text"
                 value={form.industry}
                 onChange={(event) =>
-                  updateField(
-                    "industry",
-                    event.target.value
-                  )
+                  updateField("industry", event.target.value)
                 }
                 placeholder="e.g. Software"
                 maxLength={100}
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.industry
-                )}
+                className={inputClass(errors.industry)}
               />
 
-              <FieldError
-                message={
-                  errors.industry
-                }
-              />
+              <FieldError message={errors.industry} />
             </div>
 
             {/* Website */}
@@ -408,24 +317,13 @@ export default function ClientFormModal({
                 id="clientWebsite"
                 type="url"
                 value={form.website}
-                onChange={(event) =>
-                  updateField(
-                    "website",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("website", event.target.value)}
                 placeholder="https://example.com"
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.website
-                )}
+                className={inputClass(errors.website)}
               />
 
-              <FieldError
-                message={
-                  errors.website
-                }
-              />
+              <FieldError message={errors.website} />
             </div>
 
             {/* Email */}
@@ -434,32 +332,20 @@ export default function ClientFormModal({
                 htmlFor="clientEmail"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Email{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Email <span className="text-red-500">*</span>
               </label>
 
               <input
                 id="clientEmail"
                 type="email"
                 value={form.email}
-                onChange={(event) =>
-                  updateField(
-                    "email",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("email", event.target.value)}
                 placeholder="client@example.com"
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.email
-                )}
+                className={inputClass(errors.email)}
               />
 
-              <FieldError
-                message={errors.email}
-              />
+              <FieldError message={errors.email} />
             </div>
 
             {/* Phone */}
@@ -478,22 +364,13 @@ export default function ClientFormModal({
                 id="clientPhone"
                 type="tel"
                 value={form.phone}
-                onChange={(event) =>
-                  updateField(
-                    "phone",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("phone", event.target.value)}
                 placeholder="+92 300 1234567"
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.phone
-                )}
+                className={inputClass(errors.phone)}
               />
 
-              <FieldError
-                message={errors.phone}
-              />
+              <FieldError message={errors.phone} />
             </div>
 
             {/* Address */}
@@ -512,24 +389,13 @@ export default function ClientFormModal({
                 id="clientAddress"
                 type="text"
                 value={form.address}
-                onChange={(event) =>
-                  updateField(
-                    "address",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("address", event.target.value)}
                 placeholder="Street address"
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.address
-                )}
+                className={inputClass(errors.address)}
               />
 
-              <FieldError
-                message={
-                  errors.address
-                }
-              />
+              <FieldError message={errors.address} />
             </div>
 
             {/* City */}
@@ -548,23 +414,14 @@ export default function ClientFormModal({
                 id="clientCity"
                 type="text"
                 value={form.city}
-                onChange={(event) =>
-                  updateField(
-                    "city",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("city", event.target.value)}
                 placeholder="Peshawar"
                 maxLength={100}
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.city
-                )}
+                className={inputClass(errors.city)}
               />
 
-              <FieldError
-                message={errors.city}
-              />
+              <FieldError message={errors.city} />
             </div>
 
             {/* Country */}
@@ -583,25 +440,14 @@ export default function ClientFormModal({
                 id="clientCountry"
                 type="text"
                 value={form.country}
-                onChange={(event) =>
-                  updateField(
-                    "country",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("country", event.target.value)}
                 placeholder="Pakistan"
                 maxLength={100}
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.country
-                )}
+                className={inputClass(errors.country)}
               />
 
-              <FieldError
-                message={
-                  errors.country
-                }
-              />
+              <FieldError message={errors.country} />
             </div>
 
             {/* Notes */}
@@ -619,28 +465,17 @@ export default function ClientFormModal({
               <textarea
                 id="clientNotes"
                 value={form.notes}
-                onChange={(event) =>
-                  updateField(
-                    "notes",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("notes", event.target.value)}
                 placeholder="Additional notes about this client..."
                 rows={4}
                 disabled={isSubmitting}
-                className={`${inputClass(
-                  errors.notes
-                )} resize-none`}
+                className={`${inputClass(errors.notes)} resize-none`}
               />
 
               <div className="mt-1 flex justify-between">
-                <FieldError
-                  message={errors.notes}
-                />
+                <FieldError message={errors.notes} />
 
-                <p className="text-xs text-slate-400">
-                  {form.notes.length}
-                </p>
+                <p className="text-xs text-slate-400">{form.notes.length}</p>
               </div>
             </div>
           </div>
@@ -672,9 +507,7 @@ export default function ClientFormModal({
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
 
-                  {isEdit
-                    ? "Saving..."
-                    : "Creating..."}
+                  {isEdit ? "Saving..." : "Creating..."}
                 </>
               ) : (
                 <>
@@ -684,9 +517,7 @@ export default function ClientFormModal({
                     <Plus className="h-4 w-4" />
                   )}
 
-                  {isEdit
-                    ? "Save Changes"
-                    : "Create Client"}
+                  {isEdit ? "Save Changes" : "Create Client"}
                 </>
               )}
             </button>
@@ -701,9 +532,7 @@ export default function ClientFormModal({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function inputClass(
-  error?: string
-) {
+function inputClass(error?: string) {
   return `w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none transition ${
     error
       ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
@@ -711,18 +540,10 @@ function inputClass(
   } disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70`;
 }
 
-function FieldError({
-  message,
-}: {
-  message?: string;
-}) {
+function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
 
-  return (
-    <p className="mt-1 text-xs text-red-600">
-      {message}
-    </p>
-  );
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }

@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  CalendarDays,
-  FileText,
-  Loader2,
-  Plus,
-  Pencil,
-  X,
-} from "lucide-react";
+import { CalendarDays, FileText, Loader2, Plus, Pencil, X } from "lucide-react";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -31,12 +24,7 @@ interface InvoiceQuotationOption {
     id: string;
     name: string;
   } | null;
-  status:
-    | "DRAFT"
-    | "SENT"
-    | "ACCEPTED"
-    | "REJECTED"
-    | "EXPIRED";
+  status: "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "EXPIRED";
 
   invoice?: {
     id: string;
@@ -66,13 +54,9 @@ interface InvoiceFormModalProps {
 
   onClose: () => void;
 
-  onCreate: (
-    data: CreateInvoicePayload,
-  ) => void | Promise<void>;
+  onCreate: (data: CreateInvoicePayload) => void | Promise<void>;
 
-  onUpdate: (
-    data: UpdateInvoicePayload,
-  ) => void | Promise<void>;
+  onUpdate: (data: UpdateInvoicePayload) => void | Promise<void>;
 }
 
 interface FormState {
@@ -111,11 +95,9 @@ export default function InvoiceFormModal({
 }: InvoiceFormModalProps) {
   const isEdit = Boolean(invoice);
 
-  const [form, setForm] =
-    useState<FormState>(emptyForm);
+  const [form, setForm] = useState<FormState>(emptyForm);
 
-  const [errors, setErrors] =
-    useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   /* ------------------------------------------------------------------------ */
   /* Initialize form                                                          */
@@ -130,59 +112,36 @@ export default function InvoiceFormModal({
       setForm({
         quotationId: invoice.quotationId,
 
-        invoiceNumber:
-          invoice.invoiceNumber,
+        invoiceNumber: invoice.invoiceNumber,
 
-        issueDate:
-          toDateInputValue(
-            invoice.issueDate,
-          ),
+        issueDate: toDateInputValue(invoice.issueDate),
 
-        dueDate:
-          toDateInputValue(
-            invoice.dueDate,
-          ),
+        dueDate: toDateInputValue(invoice.dueDate),
 
-        notes:
-          invoice.notes ?? "",
+        notes: invoice.notes ?? "",
       });
     } else {
       setForm({
         quotationId: "",
-        invoiceNumber:
-          nextInvoiceNumber,
-        issueDate:
-          getTodayInputValue(),
-        dueDate:
-          getDefaultDueDate(),
+        invoiceNumber: nextInvoiceNumber,
+        issueDate: getTodayInputValue(),
+        dueDate: getDefaultDueDate(),
         notes: "",
       });
     }
 
     setErrors({});
-  }, [
-    open,
-    invoice,
-    nextInvoiceNumber,
-  ]);
+  }, [open, invoice, nextInvoiceNumber]);
 
   /* ------------------------------------------------------------------------ */
   /* Selected quotation                                                       */
   /* ------------------------------------------------------------------------ */
 
-  const selectedQuotation =
-    useMemo(
-      () =>
-        quotations.find(
-          (quotation) =>
-            quotation.id ===
-            form.quotationId,
-        ) ?? null,
-      [
-        form.quotationId,
-        quotations,
-      ],
-    );
+  const selectedQuotation = useMemo(
+    () =>
+      quotations.find((quotation) => quotation.id === form.quotationId) ?? null,
+    [form.quotationId, quotations],
+  );
 
   /* ------------------------------------------------------------------------ */
   /* Closed                                                                   */
@@ -196,126 +155,77 @@ export default function InvoiceFormModal({
   /* Helpers                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const updateField = (
-    field: keyof FormState,
-    value: string,
-  ) => {
-    setForm(
-      (previous) => ({
-        ...previous,
-        [field]: value,
-      }),
-    );
+  const updateField = (field: keyof FormState, value: string) => {
+    setForm((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
 
-    setErrors(
-      (previous) => ({
-        ...previous,
-        [field]:
-          undefined,
-      }),
-    );
+    setErrors((previous) => ({
+      ...previous,
+      [field]: undefined,
+    }));
   };
 
-  const validate =
-    (): boolean => {
-      const nextErrors: FormErrors =
-        {};
+  const validate = (): boolean => {
+    const nextErrors: FormErrors = {};
 
-      /* Quotation */
+    /* Quotation */
 
-      if (!isEdit && !form.quotationId) {
-        nextErrors.quotationId =
-          "Please select an accepted quotation.";
+    if (!isEdit && !form.quotationId) {
+      nextErrors.quotationId = "Please select an accepted quotation.";
+    }
+
+    /* Issue date */
+
+    if (!form.issueDate) {
+      nextErrors.issueDate = "Issue date is required.";
+    } else {
+      const issueDate = new Date(form.issueDate);
+
+      if (Number.isNaN(issueDate.getTime())) {
+        nextErrors.issueDate = "Please enter a valid issue date.";
       }
+    }
 
-      /* Issue date */
+    /* Due date */
 
-      if (!form.issueDate) {
-        nextErrors.issueDate =
-          "Issue date is required.";
-      } else {
-        const issueDate =
-          new Date(
-            form.issueDate,
-          );
+    if (!form.dueDate) {
+      nextErrors.dueDate = "Due date is required.";
+    } else {
+      const issueDate = new Date(form.issueDate);
 
-        if (
-          Number.isNaN(
-            issueDate.getTime(),
-          )
-        ) {
-          nextErrors.issueDate =
-            "Please enter a valid issue date.";
-        }
+      const dueDate = new Date(form.dueDate);
+
+      if (Number.isNaN(dueDate.getTime())) {
+        nextErrors.dueDate = "Please enter a valid due date.";
       }
-
-      /* Due date */
-
-      if (!form.dueDate) {
-        nextErrors.dueDate =
-          "Due date is required.";
-      } else {
-        const issueDate =
-          new Date(
-            form.issueDate,
-          );
-
-        const dueDate =
-          new Date(
-            form.dueDate,
-          );
-
-        if (
-          Number.isNaN(
-            dueDate.getTime(),
-          )
-        ) {
-          nextErrors.dueDate =
-            "Please enter a valid due date.";
-        }
-
-        if (
-          !Number.isNaN(
-            issueDate.getTime(),
-          ) &&
-          !Number.isNaN(
-            dueDate.getTime(),
-          ) &&
-          dueDate < issueDate
-        ) {
-          nextErrors.dueDate =
-            "Due date cannot be before the issue date.";
-        }
-      }
-
-      /* Notes */
 
       if (
-        form.notes.trim()
-          .length > 5000
+        !Number.isNaN(issueDate.getTime()) &&
+        !Number.isNaN(dueDate.getTime()) &&
+        dueDate < issueDate
       ) {
-        nextErrors.notes =
-          "Notes cannot exceed 5000 characters.";
+        nextErrors.dueDate = "Due date cannot be before the issue date.";
       }
+    }
 
-      setErrors(
-        nextErrors,
-      );
+    /* Notes */
 
-      return (
-        Object.keys(
-          nextErrors,
-        ).length === 0
-      );
-    };
+    if (form.notes.trim().length > 5000) {
+      nextErrors.notes = "Notes cannot exceed 5000 characters.";
+    }
+
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Submit                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) {
@@ -324,17 +234,12 @@ export default function InvoiceFormModal({
 
     if (isEdit) {
       const payload: UpdateInvoicePayload = {
-        dueDate:
-          form.dueDate,
+        dueDate: form.dueDate,
 
-        notes:
-          form.notes.trim() ||
-          undefined,
+        notes: form.notes.trim() || undefined,
       };
 
-      await onUpdate(
-        payload,
-      );
+      await onUpdate(payload);
 
       return;
     }
@@ -343,28 +248,19 @@ export default function InvoiceFormModal({
       return;
     }
 
-    const payload: CreateInvoicePayload =
-      {
-        quotationId:
-          form.quotationId,
+    const payload: CreateInvoicePayload = {
+      quotationId: form.quotationId,
 
-        invoiceNumber:
-          form.invoiceNumber,
+      invoiceNumber: form.invoiceNumber,
 
-        issueDate:
-          form.issueDate,
+      issueDate: form.issueDate,
 
-        dueDate:
-          form.dueDate,
+      dueDate: form.dueDate,
 
-        notes:
-          form.notes.trim() ||
-          undefined,
-      };
+      notes: form.notes.trim() || undefined,
+    };
 
-    await onCreate(
-      payload,
-    );
+    await onCreate(payload);
   };
 
   /* ------------------------------------------------------------------------ */
@@ -379,9 +275,7 @@ export default function InvoiceFormModal({
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {isEdit
-                ? "Edit Invoice"
-                : "Create Invoice"}
+              {isEdit ? "Edit Invoice" : "Create Invoice"}
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -393,12 +287,8 @@ export default function InvoiceFormModal({
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
-            disabled={
-              isSubmitting
-            }
+            onClick={onClose}
+            disabled={isSubmitting}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Close modal"
           >
@@ -409,9 +299,7 @@ export default function InvoiceFormModal({
         {/* Form */}
 
         <form
-          onSubmit={
-            handleSubmit
-          }
+          onSubmit={handleSubmit}
           className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -431,13 +319,9 @@ export default function InvoiceFormModal({
                 <input
                   id="invoiceNumber"
                   type="text"
-                  value={
-                    form.invoiceNumber
-                  }
+                  value={form.invoiceNumber}
                   readOnly
-                  disabled={
-                    isSubmitting
-                  }
+                  disabled={isSubmitting}
                   className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 pl-9 text-sm font-medium text-slate-700 outline-none"
                 />
               </div>
@@ -455,18 +339,13 @@ export default function InvoiceFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Accepted Quotation
-                <span className="ml-1 text-red-500">
-                  *
-                </span>
+                <span className="ml-1 text-red-500">*</span>
               </label>
 
               {isEdit ? (
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                   <p className="text-sm font-semibold text-slate-900">
-                    {
-                      invoice?.quotation
-                        ?.quotationNumber
-                    }
+                    {invoice?.quotation?.quotationNumber}
                   </p>
 
                   <p className="mt-1 text-xs text-slate-500">
@@ -477,67 +356,30 @@ export default function InvoiceFormModal({
                 <>
                   <select
                     id="invoiceQuotation"
-                    value={
-                      form.quotationId
+                    value={form.quotationId}
+                    onChange={(event) =>
+                      updateField("quotationId", event.target.value)
                     }
-                    onChange={(
-                      event,
-                    ) =>
-                      updateField(
-                        "quotationId",
-                        event.target
-                          .value,
-                      )
-                    }
-                    disabled={
-                      isSubmitting
-                    }
-                    className={inputClass(
-                      errors.quotationId,
-                    )}
+                    disabled={isSubmitting}
+                    className={inputClass(errors.quotationId)}
                   >
-                    <option value="">
-                      Select accepted quotation
-                    </option>
+                    <option value="">Select accepted quotation</option>
 
-                    {quotations.map(
-                      (
-                        quotation,
-                      ) => (
-                        <option
-                          key={
-                            quotation.id
-                          }
-                          value={
-                            quotation.id
-                          }
-                        >
-                          {
-                            quotation.quotationNumber
-                          }{" "}
-                          —{" "}
-                          {quotation.client
-                            ?.companyName ??
-                            "Unknown client"}{" "}
-                          —{" "}
-                          {formatCurrency(
-                            quotation.totalAmount,
-                          )}
-                        </option>
-                      ),
-                    )}
+                    {quotations.map((quotation) => (
+                      <option key={quotation.id} value={quotation.id}>
+                        {quotation.quotationNumber} —{" "}
+                        {quotation.client?.companyName ?? "Unknown client"} —{" "}
+                        {formatCurrency(quotation.totalAmount)}
+                      </option>
+                    ))}
                   </select>
 
-                  <FieldError
-                    message={
-                      errors.quotationId
-                    }
-                  />
+                  <FieldError message={errors.quotationId} />
 
-                  {quotations.length ===
-                    0 && (
+                  {quotations.length === 0 && (
                     <p className="mt-1 text-xs text-amber-600">
-                      No accepted quotations are currently available for invoicing.
+                      No accepted quotations are currently available for
+                      invoicing.
                     </p>
                   )}
                 </>
@@ -546,39 +388,26 @@ export default function InvoiceFormModal({
 
             {/* Selected quotation summary */}
 
-            {selectedQuotation &&
-              !isEdit && (
-                <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <SummaryField
-                      label="Client"
-                      value={
-                        selectedQuotation
-                          .client
-                          ?.companyName ??
-                        "No client"
-                      }
-                    />
+            {selectedQuotation && !isEdit && (
+              <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <SummaryField
+                    label="Client"
+                    value={selectedQuotation.client?.companyName ?? "No client"}
+                  />
 
-                    <SummaryField
-                      label="Project"
-                      value={
-                        selectedQuotation
-                          .project
-                          ?.name ??
-                        "No project"
-                      }
-                    />
+                  <SummaryField
+                    label="Project"
+                    value={selectedQuotation.project?.name ?? "No project"}
+                  />
 
-                    <SummaryField
-                      label="Quotation Total"
-                      value={formatCurrency(
-                        selectedQuotation.totalAmount,
-                      )}
-                    />
-                  </div>
+                  <SummaryField
+                    label="Quotation Total"
+                    value={formatCurrency(selectedQuotation.totalAmount)}
+                  />
                 </div>
-              )}
+              </div>
+            )}
 
             {/* Issue Date */}
 
@@ -588,9 +417,7 @@ export default function InvoiceFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Issue Date
-                <span className="ml-1 text-red-500">
-                  *
-                </span>
+                <span className="ml-1 text-red-500">*</span>
               </label>
 
               <div className="relative">
@@ -599,33 +426,16 @@ export default function InvoiceFormModal({
                 <input
                   id="invoiceIssueDate"
                   type="date"
-                  value={
-                    form.issueDate
+                  value={form.issueDate}
+                  onChange={(event) =>
+                    updateField("issueDate", event.target.value)
                   }
-                  onChange={(
-                    event,
-                  ) =>
-                    updateField(
-                      "issueDate",
-                      event.target
-                        .value,
-                    )
-                  }
-                  disabled={
-                    isSubmitting ||
-                    isEdit
-                  }
-                  className={`pl-9 ${inputClass(
-                    errors.issueDate,
-                  )}`}
+                  disabled={isSubmitting || isEdit}
+                  className={`pl-9 ${inputClass(errors.issueDate)}`}
                 />
               </div>
 
-              <FieldError
-                message={
-                  errors.issueDate
-                }
-              />
+              <FieldError message={errors.issueDate} />
             </div>
 
             {/* Due Date */}
@@ -636,9 +446,7 @@ export default function InvoiceFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Due Date
-                <span className="ml-1 text-red-500">
-                  *
-                </span>
+                <span className="ml-1 text-red-500">*</span>
               </label>
 
               <div className="relative">
@@ -647,36 +455,17 @@ export default function InvoiceFormModal({
                 <input
                   id="invoiceDueDate"
                   type="date"
-                  value={
-                    form.dueDate
+                  value={form.dueDate}
+                  min={form.issueDate || undefined}
+                  onChange={(event) =>
+                    updateField("dueDate", event.target.value)
                   }
-                  min={
-                    form.issueDate ||
-                    undefined
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    updateField(
-                      "dueDate",
-                      event.target
-                        .value,
-                    )
-                  }
-                  disabled={
-                    isSubmitting
-                  }
-                  className={`pl-9 ${inputClass(
-                    errors.dueDate,
-                  )}`}
+                  disabled={isSubmitting}
+                  className={`pl-9 ${inputClass(errors.dueDate)}`}
                 />
               </div>
 
-              <FieldError
-                message={
-                  errors.dueDate
-                }
-              />
+              <FieldError message={errors.dueDate} />
             </div>
 
             {/* Notes */}
@@ -694,41 +483,20 @@ export default function InvoiceFormModal({
 
               <textarea
                 id="invoiceNotes"
-                value={
-                  form.notes
-                }
-                onChange={(
-                  event,
-                ) =>
-                  updateField(
-                    "notes",
-                    event.target
-                      .value,
-                  )
-                }
+                value={form.notes}
+                onChange={(event) => updateField("notes", event.target.value)}
                 rows={4}
                 maxLength={5000}
                 placeholder="Additional invoice notes..."
-                disabled={
-                  isSubmitting
-                }
-                className={`${inputClass(
-                  errors.notes,
-                )} resize-none`}
+                disabled={isSubmitting}
+                className={`${inputClass(errors.notes)} resize-none`}
               />
 
               <div className="mt-1 flex justify-between gap-4">
-                <FieldError
-                  message={
-                    errors.notes
-                  }
-                />
+                <FieldError message={errors.notes} />
 
                 <p className="text-xs text-slate-400">
-                  {
-                    form.notes
-                      .length
-                  }
+                  {form.notes.length}
                   /5000
                 </p>
               </div>
@@ -747,11 +515,8 @@ export default function InvoiceFormModal({
                 <SummaryRow
                   label="Subtotal"
                   value={formatCurrency(
-                    selectedQuotation
-                      .id
-                      ? getQuotationSubtotal(
-                          selectedQuotation,
-                        )
+                    selectedQuotation.id
+                      ? getQuotationSubtotal(selectedQuotation)
                       : 0,
                   )}
                 />
@@ -759,27 +524,19 @@ export default function InvoiceFormModal({
                 <SummaryRow
                   label="Discount"
                   value={`- ${formatCurrency(
-                    getQuotationDiscount(
-                      selectedQuotation,
-                    ),
+                    getQuotationDiscount(selectedQuotation),
                   )}`}
                 />
 
                 <SummaryRow
                   label="Tax"
-                  value={formatCurrency(
-                    getQuotationTax(
-                      selectedQuotation,
-                    ),
-                  )}
+                  value={formatCurrency(getQuotationTax(selectedQuotation))}
                 />
 
                 <div className="border-t border-slate-200 pt-3">
                   <SummaryRow
                     label="Total"
-                    value={formatCurrency(
-                      selectedQuotation.totalAmount,
-                    )}
+                    value={formatCurrency(selectedQuotation.totalAmount)}
                     strong
                   />
                 </div>
@@ -800,12 +557,8 @@ export default function InvoiceFormModal({
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={
-                onClose
-              }
-              disabled={
-                isSubmitting
-              }
+              onClick={onClose}
+              disabled={isSubmitting}
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
@@ -813,21 +566,14 @@ export default function InvoiceFormModal({
 
             <button
               type="submit"
-              disabled={
-                isSubmitting ||
-                (!isEdit &&
-                  quotations.length ===
-                    0)
-              }
+              disabled={isSubmitting || (!isEdit && quotations.length === 0)}
               className="flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
 
-                  {isEdit
-                    ? "Saving..."
-                    : "Creating..."}
+                  {isEdit ? "Saving..." : "Creating..."}
                 </>
               ) : (
                 <>
@@ -837,9 +583,7 @@ export default function InvoiceFormModal({
                     <Plus className="h-4 w-4" />
                   )}
 
-                  {isEdit
-                    ? "Save Changes"
-                    : "Create Draft Invoice"}
+                  {isEdit ? "Save Changes" : "Create Draft Invoice"}
                 </>
               )}
             </button>
@@ -854,13 +598,7 @@ export default function InvoiceFormModal({
 /* Summary field                                                              */
 /* -------------------------------------------------------------------------- */
 
-function SummaryField({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function SummaryField({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -916,9 +654,7 @@ function SummaryRow({
 /* Input                                                                       */
 /* -------------------------------------------------------------------------- */
 
-function inputClass(
-  error?: string,
-) {
+function inputClass(error?: string) {
   return `w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none transition ${
     error
       ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
@@ -930,95 +666,63 @@ function inputClass(
 /* Error                                                                       */
 /* -------------------------------------------------------------------------- */
 
-function FieldError({
-  message,
-}: {
-  message?: string;
-}) {
+function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
 
-  return (
-    <p className="mt-1 text-xs text-red-600">
-      {message}
-    </p>
-  );
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Date helpers                                                                */
 /* -------------------------------------------------------------------------- */
 
-function toDateInputValue(
-  value?: string | null,
-) {
+function toDateInputValue(value?: string | null) {
   if (!value) {
     return "";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return date
-    .toISOString()
-    .slice(0, 10);
+  return date.toISOString().slice(0, 10);
 }
 
 function getTodayInputValue() {
-  return new Date()
-    .toISOString()
-    .slice(0, 10);
+  return new Date().toISOString().slice(0, 10);
 }
 
 function getDefaultDueDate() {
-  const date =
-    new Date();
+  const date = new Date();
 
-  date.setDate(
-    date.getDate() + 7,
-  );
+  date.setDate(date.getDate() + 7);
 
-  return date
-    .toISOString()
-    .slice(0, 10);
+  return date.toISOString().slice(0, 10);
 }
 
 /* -------------------------------------------------------------------------- */
 /* Quotation financial helpers                                                 */
 /* -------------------------------------------------------------------------- */
 
-function getQuotationSubtotal(
-  quotation: InvoiceQuotationOption,
-) {
+function getQuotationSubtotal(quotation: InvoiceQuotationOption) {
   /**
    * The list response may not expose subtotal in a lightweight quotation type.
    *
    * For the invoice creation flow, the authoritative total is still the
    * quotation total returned by the backend.
    */
-  return Number(
-    quotation.totalAmount,
-  );
+  return Number(quotation.totalAmount);
 }
 
-function getQuotationDiscount(
-  _quotation: InvoiceQuotationOption,
-) {
+function getQuotationDiscount(_quotation: InvoiceQuotationOption) {
   return 0;
 }
 
-function getQuotationTax(
-  _quotation: InvoiceQuotationOption,
-) {
+function getQuotationTax(_quotation: InvoiceQuotationOption) {
   return 0;
 }
 
@@ -1026,27 +730,17 @@ function getQuotationTax(
 /* Currency                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function formatCurrency(
-  value: string | number,
-) {
-  const amount =
-    Number(value);
+function formatCurrency(value: string | number) {
+  const amount = Number(value);
 
-  if (
-    !Number.isFinite(
-      amount,
-    )
-  ) {
+  if (!Number.isFinite(amount)) {
     return "PKR 0.00";
   }
 
-  return new Intl.NumberFormat(
-    "en-PK",
-    {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-  ).format(amount);
+  return new Intl.NumberFormat("en-PK", {
+    style: "currency",
+    currency: "PKR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }

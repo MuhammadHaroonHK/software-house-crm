@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 import {
   AlertCircle,
@@ -43,53 +38,39 @@ interface PasswordForm {
 }
 
 export default function ProfilePageContent() {
-  const {
-    data: profile,
-    isLoading,
-    isError,
-    refetch,
-  } = useProfile();
+  const { data: profile, isLoading, isError, refetch } = useProfile();
 
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
 
   const [isEditing, setIsEditing] = useState(false);
 
-  const [profileForm, setProfileForm] =
-    useState<ProfileForm>({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-    });
+  const [profileForm, setProfileForm] = useState<ProfileForm>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  });
 
-  const [passwordForm, setPasswordForm] =
-    useState<PasswordForm>({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+  const [passwordForm, setPasswordForm] = useState<PasswordForm>({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
-  const [showCurrentPassword, setShowCurrentPassword] =
-    useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
 
-  const [showNewPassword, setShowNewPassword] =
-    useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [profileMessage, setProfileMessage] =
-    useState<string | null>(null);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
 
-  const [profileError, setProfileError] =
-    useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
-  const [passwordMessage, setPasswordMessage] =
-    useState<string | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
-  const [passwordError, setPasswordError] =
-    useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile) {
@@ -104,20 +85,14 @@ export default function ProfilePageContent() {
     });
   }, [profile]);
 
-  const handleProfileChange = (
-    field: keyof ProfileForm,
-    value: string
-  ) => {
+  const handleProfileChange = (field: keyof ProfileForm, value: string) => {
     setProfileForm((previous) => ({
       ...previous,
       [field]: value,
     }));
   };
 
-  const handlePasswordChange = (
-    field: keyof PasswordForm,
-    value: string
-  ) => {
+  const handlePasswordChange = (field: keyof PasswordForm, value: string) => {
     setPasswordForm((previous) => ({
       ...previous,
       [field]: value,
@@ -155,9 +130,7 @@ export default function ProfilePageContent() {
     setIsEditing(false);
   };
 
-  const handleProfileSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
+  const handleProfileSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setProfileMessage(null);
@@ -168,39 +141,30 @@ export default function ProfilePageContent() {
       !profileForm.lastName.trim() ||
       !profileForm.email.trim()
     ) {
-      setProfileError(
-        "First name, last name and email are required."
-      );
+      setProfileError("First name, last name and email are required.");
 
       return;
     }
 
     try {
-      const response =
-        await updateProfile.mutateAsync({
-          firstName: profileForm.firstName.trim(),
-          lastName: profileForm.lastName.trim(),
-          email: profileForm.email.trim(),
-          phone: profileForm.phone.trim(),
-        });
+      const response = await updateProfile.mutateAsync({
+        firstName: profileForm.firstName.trim(),
+        lastName: profileForm.lastName.trim(),
+        email: profileForm.email.trim(),
+        phone: profileForm.phone.trim(),
+      });
 
-      setProfileMessage(
-        response.message ||
-          "Profile updated successfully."
-      );
+      setProfileMessage(response.message || "Profile updated successfully.");
 
       setIsEditing(false);
     } catch (error: any) {
       setProfileError(
-        error?.response?.data?.message ||
-          "Failed to update profile."
+        error?.response?.data?.message || "Failed to update profile.",
       );
     }
   };
 
-  const handlePasswordSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
+  const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setPasswordMessage(null);
@@ -211,63 +175,42 @@ export default function ProfilePageContent() {
       !passwordForm.newPassword ||
       !passwordForm.confirmPassword
     ) {
-      setPasswordError(
-        "Please fill in all password fields."
-      );
+      setPasswordError("Please fill in all password fields.");
 
       return;
     }
 
-    if (
-      passwordForm.newPassword !==
-      passwordForm.confirmPassword
-    ) {
-      setPasswordError(
-        "New password and confirmation password do not match."
-      );
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New password and confirmation password do not match.");
 
       return;
     }
 
     if (passwordForm.newPassword.length < 8) {
-      setPasswordError(
-        "New password must be at least 8 characters."
-      );
+      setPasswordError("New password must be at least 8 characters.");
 
       return;
     }
 
     if (
-      !/[A-Z]/.test(
-        passwordForm.newPassword
-      ) ||
-      !/[a-z]/.test(
-        passwordForm.newPassword
-      ) ||
-      !/\d/.test(
-        passwordForm.newPassword
-      )
+      !/[A-Z]/.test(passwordForm.newPassword) ||
+      !/[a-z]/.test(passwordForm.newPassword) ||
+      !/\d/.test(passwordForm.newPassword)
     ) {
       setPasswordError(
-        "New password must contain at least one uppercase letter, one lowercase letter, and one number."
+        "New password must contain at least one uppercase letter, one lowercase letter, and one number.",
       );
 
       return;
     }
 
     try {
-      const response =
-        await changePassword.mutateAsync({
-          currentPassword:
-            passwordForm.currentPassword,
-          newPassword:
-            passwordForm.newPassword,
-        });
+      const response = await changePassword.mutateAsync({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
 
-      setPasswordMessage(
-        response.message ||
-          "Password changed successfully."
-      );
+      setPasswordMessage(response.message || "Password changed successfully.");
 
       setPasswordForm({
         currentPassword: "",
@@ -280,8 +223,7 @@ export default function ProfilePageContent() {
       setShowConfirmPassword(false);
     } catch (error: any) {
       setPasswordError(
-        error?.response?.data?.message ||
-          "Failed to change password."
+        error?.response?.data?.message || "Failed to change password.",
       );
     }
   };
@@ -308,8 +250,7 @@ export default function ProfilePageContent() {
           </h2>
 
           <p className="mt-1 text-sm text-red-600">
-            Something went wrong while loading your
-            profile.
+            Something went wrong while loading your profile.
           </p>
 
           <button
@@ -324,35 +265,23 @@ export default function ProfilePageContent() {
     );
   }
 
-  const fullName =
-    `${profile.firstName} ${profile.lastName}`;
+  const fullName = `${profile.firstName} ${profile.lastName}`;
 
   const initials =
     `${profile.firstName?.charAt(0) ?? ""}${profile.lastName?.charAt(0) ?? ""}`.toUpperCase();
 
-  const roleName =
-    profile.role?.name?.replaceAll(
-      "_",
-      " "
-    ) ?? "N/A";
+  const roleName = profile.role?.name?.replaceAll("_", " ") ?? "N/A";
 
-  const accountStatus =
-    profile.status?.replaceAll(
-      "_",
-      " "
-    ) ?? "N/A";
+  const accountStatus = profile.status?.replaceAll("_", " ") ?? "N/A";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       {/* Page heading */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          My Profile
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-900">My Profile</h1>
 
         <p className="mt-1 text-sm text-slate-500">
-          View and manage your personal account
-          information.
+          View and manage your personal account information.
         </p>
       </div>
 
@@ -394,9 +323,7 @@ export default function ProfilePageContent() {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                initials || (
-                  <User className="h-7 w-7" />
-                )
+                initials || <User className="h-7 w-7" />
               )}
             </div>
 
@@ -405,41 +332,26 @@ export default function ProfilePageContent() {
                 {fullName}
               </h3>
 
-              <p className="mt-0.5 text-sm text-slate-500">
-                {profile.email}
-              </p>
+              <p className="mt-0.5 text-sm text-slate-500">{profile.email}</p>
             </div>
           </div>
         </div>
 
         {isEditing ? (
-          <form
-            onSubmit={handleProfileSubmit}
-            className="p-6"
-          >
+          <form onSubmit={handleProfileSubmit} className="p-6">
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 id="firstName"
                 label="First Name"
                 value={profileForm.firstName}
-                onChange={(value) =>
-                  handleProfileChange(
-                    "firstName",
-                    value
-                  )
-                }
+                onChange={(value) => handleProfileChange("firstName", value)}
               />
 
               <FormField
                 id="lastName"
                 label="Last Name"
                 value={profileForm.lastName}
-                onChange={(value) =>
-                  handleProfileChange(
-                    "lastName",
-                    value
-                  )
-                }
+                onChange={(value) => handleProfileChange("lastName", value)}
               />
 
               <FormField
@@ -451,12 +363,7 @@ export default function ProfilePageContent() {
                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 }
                 className="pl-9"
-                onChange={(value) =>
-                  handleProfileChange(
-                    "email",
-                    value
-                  )
-                }
+                onChange={(value) => handleProfileChange("email", value)}
               />
 
               <FormField
@@ -468,36 +375,21 @@ export default function ProfilePageContent() {
                   <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 }
                 className="pl-9"
-                onChange={(value) =>
-                  handleProfileChange(
-                    "phone",
-                    value
-                  )
-                }
+                onChange={(value) => handleProfileChange("phone", value)}
               />
             </div>
 
-            {profileError && (
-              <Message
-                type="error"
-                message={profileError}
-              />
-            )}
+            {profileError && <Message type="error" message={profileError} />}
 
             {profileMessage && (
-              <Message
-                type="success"
-                message={profileMessage}
-              />
+              <Message type="success" message={profileMessage} />
             )}
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                disabled={
-                  updateProfile.isPending
-                }
+                disabled={updateProfile.isPending}
                 className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <X className="h-4 w-4" />
@@ -506,9 +398,7 @@ export default function ProfilePageContent() {
 
               <button
                 type="submit"
-                disabled={
-                  updateProfile.isPending
-                }
+                disabled={updateProfile.isPending}
                 className="flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {updateProfile.isPending ? (
@@ -547,30 +437,20 @@ export default function ProfilePageContent() {
 
             <ProfileDetail
               label="Phone Number"
-              value={
-                profile.phone ||
-                "Not provided"
-              }
+              value={profile.phone || "Not provided"}
               icon={<Phone className="h-4 w-4" />}
             />
 
             <ProfileDetail
               label="Role"
               value={roleName}
-              icon={
-                <ShieldCheck className="h-4 w-4" />
-              }
+              icon={<ShieldCheck className="h-4 w-4" />}
             />
 
             <ProfileDetail
               label="Department"
-              value={
-                profile.department?.name ||
-                "Not assigned"
-              }
-              icon={
-                <ShieldCheck className="h-4 w-4" />
-              }
+              value={profile.department?.name || "Not assigned"}
+              icon={<ShieldCheck className="h-4 w-4" />}
             />
 
             <div>
@@ -610,79 +490,42 @@ export default function ProfilePageContent() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Update your password using your
-                current password.
+                Update your password using your current password.
               </p>
             </div>
           </div>
         </div>
 
-        <form
-          onSubmit={handlePasswordSubmit}
-          className="p-6"
-        >
+        <form onSubmit={handlePasswordSubmit} className="p-6">
           <div className="max-w-2xl space-y-5">
             <PasswordInput
               id="currentPassword"
               label="Current Password"
-              value={
-                passwordForm.currentPassword
-              }
-              visible={
-                showCurrentPassword
-              }
-              onToggle={() =>
-                setShowCurrentPassword(
-                  (previous) => !previous
-                )
-              }
+              value={passwordForm.currentPassword}
+              visible={showCurrentPassword}
+              onToggle={() => setShowCurrentPassword((previous) => !previous)}
               onChange={(value) =>
-                handlePasswordChange(
-                  "currentPassword",
-                  value
-                )
+                handlePasswordChange("currentPassword", value)
               }
             />
 
             <PasswordInput
               id="newPassword"
               label="New Password"
-              value={
-                passwordForm.newPassword
-              }
+              value={passwordForm.newPassword}
               visible={showNewPassword}
-              onToggle={() =>
-                setShowNewPassword(
-                  (previous) => !previous
-                )
-              }
-              onChange={(value) =>
-                handlePasswordChange(
-                  "newPassword",
-                  value
-                )
-              }
+              onToggle={() => setShowNewPassword((previous) => !previous)}
+              onChange={(value) => handlePasswordChange("newPassword", value)}
             />
 
             <PasswordInput
               id="confirmPassword"
               label="Confirm New Password"
-              value={
-                passwordForm.confirmPassword
-              }
-              visible={
-                showConfirmPassword
-              }
-              onToggle={() =>
-                setShowConfirmPassword(
-                  (previous) => !previous
-                )
-              }
+              value={passwordForm.confirmPassword}
+              visible={showConfirmPassword}
+              onToggle={() => setShowConfirmPassword((previous) => !previous)}
               onChange={(value) =>
-                handlePasswordChange(
-                  "confirmPassword",
-                  value
-                )
+                handlePasswordChange("confirmPassword", value)
               }
             />
           </div>
@@ -694,42 +537,25 @@ export default function ProfilePageContent() {
 
             <ul className="mt-2 space-y-1 text-xs text-slate-500">
               <li>• At least 8 characters</li>
-              <li>
-                • At least one uppercase letter
-              </li>
-              <li>
-                • At least one lowercase letter
-              </li>
+              <li>• At least one uppercase letter</li>
+              <li>• At least one lowercase letter</li>
               <li>• At least one number</li>
-              <li>
-                • Must be different from your
-                current password
-              </li>
+              <li>• Must be different from your current password</li>
             </ul>
           </div>
 
           {passwordError && (
-            <Message
-              type="error"
-              message={passwordError}
-              maxWidth
-            />
+            <Message type="error" message={passwordError} maxWidth />
           )}
 
           {passwordMessage && (
-            <Message
-              type="success"
-              message={passwordMessage}
-              maxWidth
-            />
+            <Message type="success" message={passwordMessage} maxWidth />
           )}
 
           <div className="mt-6">
             <button
               type="submit"
-              disabled={
-                changePassword.isPending
-              }
+              disabled={changePassword.isPending}
               className="flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {changePassword.isPending ? (
@@ -788,9 +614,7 @@ function FormField({
           id={id}
           type={type}
           value={value}
-          onChange={(event) =>
-            onChange(event.target.value)
-          }
+          onChange={(event) => onChange(event.target.value)}
           className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200 ${className}`}
         />
       </div>
@@ -814,13 +638,9 @@ function ProfileDetail({
       </p>
 
       <div className="mt-2 flex items-center gap-2">
-        <span className="text-slate-400">
-          {icon}
-        </span>
+        <span className="text-slate-400">{icon}</span>
 
-        <p className="text-sm font-medium text-slate-700">
-          {value}
-        </p>
+        <p className="text-sm font-medium text-slate-700">{value}</p>
       </div>
     </div>
   );
@@ -855,9 +675,7 @@ function PasswordInput({
           id={id}
           type={visible ? "text" : "password"}
           value={value}
-          onChange={(event) =>
-            onChange(event.target.value)
-          }
+          onChange={(event) => onChange(event.target.value)}
           className="w-full rounded-lg border border-slate-300 px-3 py-2.5 pr-11 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
         />
 
@@ -865,11 +683,7 @@ function PasswordInput({
           type="button"
           onClick={onToggle}
           className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-          aria-label={
-            visible
-              ? `Hide ${label}`
-              : `Show ${label}`
-          }
+          aria-label={visible ? `Hide ${label}` : `Show ${label}`}
         >
           {visible ? (
             <EyeOff className="h-4 w-4" />

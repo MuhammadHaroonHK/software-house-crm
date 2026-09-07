@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Loader2,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Loader2, Trash2, X } from "lucide-react";
 
 import type { Client } from "@/features/clients/types/client.types";
 

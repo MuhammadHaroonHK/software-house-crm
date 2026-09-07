@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  CalendarDays,
-  Loader2,
-  Pencil,
-  Plus,
-  X,
-} from "lucide-react";
+import { CalendarDays, Loader2, Pencil, Plus, X } from "lucide-react";
 
 import type {
   Project,
@@ -30,13 +24,9 @@ interface ProjectFormModalProps {
 
   onClose: () => void;
 
-  onCreate: (
-    data: CreateProjectPayload
-  ) => void;
+  onCreate: (data: CreateProjectPayload) => void;
 
-  onUpdate: (
-    data: UpdateProjectPayload
-  ) => void;
+  onUpdate: (data: UpdateProjectPayload) => void;
 }
 
 interface FormState {
@@ -82,11 +72,9 @@ export default function ProjectFormModal({
 }: ProjectFormModalProps) {
   const isEdit = Boolean(project);
 
-  const [form, setForm] =
-    useState<FormState>(emptyForm);
+  const [form, setForm] = useState<FormState>(emptyForm);
 
-  const [errors, setErrors] =
-    useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (!open) {
@@ -96,23 +84,13 @@ export default function ProjectFormModal({
     if (project) {
       setForm({
         name: project.name,
-        description:
-          project.description ?? "",
-        clientId:
-          project.clientId,
-        managerId:
-          project.managerId,
-        startDate:
-          toDateInputValue(
-            project.startDate
-          ),
-        endDate:
-          toDateInputValue(
-            project.endDate
-          ),
+        description: project.description ?? "",
+        clientId: project.clientId,
+        managerId: project.managerId,
+        startDate: toDateInputValue(project.startDate),
+        endDate: toDateInputValue(project.endDate),
         budget:
-          project.budget !== null &&
-          project.budget !== undefined
+          project.budget !== null && project.budget !== undefined
             ? String(project.budget)
             : "",
       });
@@ -127,10 +105,7 @@ export default function ProjectFormModal({
     return null;
   }
 
-  const updateField = (
-    field: keyof FormState,
-    value: string
-  ) => {
+  const updateField = (field: keyof FormState, value: string) => {
     setForm((previous) => ({
       ...previous,
       [field]: value,
@@ -143,161 +118,102 @@ export default function ProjectFormModal({
   };
 
   const validate = (): boolean => {
-    const nextErrors: FormErrors =
-      {};
+    const nextErrors: FormErrors = {};
 
-    const name =
-      form.name.trim();
+    const name = form.name.trim();
 
-    const description =
-      form.description.trim();
+    const description = form.description.trim();
 
-    const budget =
-      form.budget.trim();
+    const budget = form.budget.trim();
 
     /* Project name */
     if (!name) {
-      nextErrors.name =
-        "Project name is required.";
+      nextErrors.name = "Project name is required.";
     } else if (name.length < 2) {
-      nextErrors.name =
-        "Project name must be at least 2 characters.";
+      nextErrors.name = "Project name must be at least 2 characters.";
     } else if (name.length > 150) {
-      nextErrors.name =
-        "Project name cannot exceed 150 characters.";
+      nextErrors.name = "Project name cannot exceed 150 characters.";
     }
 
     /* Description */
     if (description.length > 5000) {
-      nextErrors.description =
-        "Description cannot exceed 5000 characters.";
+      nextErrors.description = "Description cannot exceed 5000 characters.";
     }
 
     /* Client */
     if (!form.clientId) {
-      nextErrors.clientId =
-        "Please select a client.";
+      nextErrors.clientId = "Please select a client.";
     }
 
     /* Manager */
     if (!form.managerId) {
-      nextErrors.managerId =
-        "Please select a project manager.";
+      nextErrors.managerId = "Please select a project manager.";
     }
 
     /* Dates */
-    if (
-      form.startDate &&
-      form.endDate
-    ) {
-      const start =
-        new Date(form.startDate);
+    if (form.startDate && form.endDate) {
+      const start = new Date(form.startDate);
 
-      const end =
-        new Date(form.endDate);
+      const end = new Date(form.endDate);
 
-      if (
-        Number.isNaN(
-          start.getTime()
-        )
-      ) {
-        nextErrors.startDate =
-          "Please enter a valid start date.";
+      if (Number.isNaN(start.getTime())) {
+        nextErrors.startDate = "Please enter a valid start date.";
+      }
+
+      if (Number.isNaN(end.getTime())) {
+        nextErrors.endDate = "Please enter a valid end date.";
       }
 
       if (
-        Number.isNaN(
-          end.getTime()
-        )
-      ) {
-        nextErrors.endDate =
-          "Please enter a valid end date.";
-      }
-
-      if (
-        !Number.isNaN(
-          start.getTime()
-        ) &&
-        !Number.isNaN(
-          end.getTime()
-        ) &&
+        !Number.isNaN(start.getTime()) &&
+        !Number.isNaN(end.getTime()) &&
         end < start
       ) {
-        nextErrors.endDate =
-          "End date cannot be before start date.";
+        nextErrors.endDate = "End date cannot be before start date.";
       }
     }
 
     /* Budget */
     if (budget) {
-      const numericBudget =
-        Number(budget);
+      const numericBudget = Number(budget);
 
-      if (
-        !Number.isFinite(
-          numericBudget
-        )
-      ) {
-        nextErrors.budget =
-          "Please enter a valid budget.";
-      } else if (
-        numericBudget < 0
-      ) {
-        nextErrors.budget =
-          "Budget cannot be negative.";
+      if (!Number.isFinite(numericBudget)) {
+        nextErrors.budget = "Please enter a valid budget.";
+      } else if (numericBudget < 0) {
+        nextErrors.budget = "Budget cannot be negative.";
       }
     }
 
     setErrors(nextErrors);
 
-    return (
-      Object.keys(nextErrors)
-        .length === 0
-    );
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) {
       return;
     }
 
-    const name =
-      form.name.trim();
+    const name = form.name.trim();
 
-    const description =
-      form.description.trim();
+    const description = form.description.trim();
 
     const payload = {
       name,
 
-      clientId:
-        form.clientId,
+      clientId: form.clientId,
 
-      managerId:
-        form.managerId,
+      managerId: form.managerId,
 
-      description:
-        description ||
-        undefined,
+      description: description || undefined,
 
-      startDate:
-        form.startDate ||
-        undefined,
+      startDate: form.startDate || undefined,
 
-      endDate:
-        form.endDate ||
-        undefined,
+      endDate: form.endDate || undefined,
 
-      budget:
-        form.budget.trim()
-          ? Number(
-              form.budget.trim()
-            )
-          : undefined,
+      budget: form.budget.trim() ? Number(form.budget.trim()) : undefined,
     };
 
     if (isEdit) {
@@ -308,51 +224,39 @@ export default function ProjectFormModal({
        * Therefore the normal update
        * payload does not include managerId.
        */
-      const updatePayload:
-        UpdateProjectPayload = {
+      const updatePayload: UpdateProjectPayload = {
         name: payload.name,
 
-        description:
-          payload.description,
+        description: payload.description,
 
-        clientId:
-          payload.clientId,
+        clientId: payload.clientId,
 
-        startDate:
-          payload.startDate,
+        startDate: payload.startDate,
 
-        endDate:
-          payload.endDate,
+        endDate: payload.endDate,
 
-        budget:
-          payload.budget,
+        budget: payload.budget,
       };
 
       onUpdate(updatePayload);
       return;
     }
 
-    onCreate(
-      payload as CreateProjectPayload
-    );
+    onCreate(payload as CreateProjectPayload);
   };
 
   /*
    * Client cannot be changed once
    * the project leaves PLANNING.
    */
-  const clientLocked =
-    isEdit &&
-    project?.status !==
-      "PLANNING";
+  const clientLocked = isEdit && project?.status !== "PLANNING";
 
   /*
    * Manager selection is only editable
    * through the dedicated manager workflow
    * when editing.
    */
-  const managerLocked =
-    isEdit;
+  const managerLocked = isEdit;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
@@ -361,9 +265,7 @@ export default function ProjectFormModal({
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {isEdit
-                ? "Edit Project"
-                : "Add Project"}
+              {isEdit ? "Edit Project" : "Add Project"}
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -396,34 +298,22 @@ export default function ProjectFormModal({
                 htmlFor="projectName"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Project Name{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Project Name <span className="text-red-500">*</span>
               </label>
 
               <input
                 id="projectName"
                 type="text"
                 value={form.name}
-                onChange={(event) =>
-                  updateField(
-                    "name",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("name", event.target.value)}
                 placeholder="e.g. CRM Development"
                 maxLength={150}
                 autoFocus
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.name
-                )}
+                className={inputClass(errors.name)}
               />
 
-              <FieldError
-                message={errors.name}
-              />
+              <FieldError message={errors.name} />
             </div>
 
             {/* Client */}
@@ -432,45 +322,25 @@ export default function ProjectFormModal({
                 htmlFor="projectClient"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Client{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Client <span className="text-red-500">*</span>
               </label>
 
               <select
                 id="projectClient"
                 value={form.clientId}
                 onChange={(event) =>
-                  updateField(
-                    "clientId",
-                    event.target.value
-                  )
+                  updateField("clientId", event.target.value)
                 }
-                disabled={
-                  isSubmitting ||
-                  clientLocked
-                }
-                className={inputClass(
-                  errors.clientId
-                )}
+                disabled={isSubmitting || clientLocked}
+                className={inputClass(errors.clientId)}
               >
-                <option value="">
-                  Select client
-                </option>
+                <option value="">Select client</option>
 
-                {clients.map(
-                  (client) => (
-                    <option
-                      key={client.id}
-                      value={client.id}
-                    >
-                      {
-                        client.companyName
-                      }
-                    </option>
-                  )
-                )}
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.companyName}
+                  </option>
+                ))}
               </select>
 
               {clientLocked && (
@@ -479,11 +349,7 @@ export default function ProjectFormModal({
                 </p>
               )}
 
-              <FieldError
-                message={
-                  errors.clientId
-                }
-              />
+              <FieldError message={errors.clientId} />
             </div>
 
             {/* Project Manager */}
@@ -492,44 +358,25 @@ export default function ProjectFormModal({
                 htmlFor="projectManager"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Project Manager{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Project Manager <span className="text-red-500">*</span>
               </label>
 
               <select
                 id="projectManager"
                 value={form.managerId}
                 onChange={(event) =>
-                  updateField(
-                    "managerId",
-                    event.target.value
-                  )
+                  updateField("managerId", event.target.value)
                 }
-                disabled={
-                  isSubmitting ||
-                  managerLocked
-                }
-                className={inputClass(
-                  errors.managerId
-                )}
+                disabled={isSubmitting || managerLocked}
+                className={inputClass(errors.managerId)}
               >
-                <option value="">
-                  Select project manager
-                </option>
+                <option value="">Select project manager</option>
 
-                {managers.map(
-                  (manager) => (
-                    <option
-                      key={manager.id}
-                      value={manager.id}
-                    >
-                      {manager.firstName}{" "}
-                      {manager.lastName}
-                    </option>
-                  )
-                )}
+                {managers.map((manager) => (
+                  <option key={manager.id} value={manager.id}>
+                    {manager.firstName} {manager.lastName}
+                  </option>
+                ))}
               </select>
 
               {managerLocked && (
@@ -538,11 +385,7 @@ export default function ProjectFormModal({
                 </p>
               )}
 
-              <FieldError
-                message={
-                  errors.managerId
-                }
-              />
+              <FieldError message={errors.managerId} />
             </div>
 
             {/* Description */}
@@ -561,32 +404,20 @@ export default function ProjectFormModal({
                 id="projectDescription"
                 value={form.description}
                 onChange={(event) =>
-                  updateField(
-                    "description",
-                    event.target.value
-                  )
+                  updateField("description", event.target.value)
                 }
                 placeholder="Describe the project..."
                 rows={4}
                 maxLength={5000}
                 disabled={isSubmitting}
-                className={`${inputClass(
-                  errors.description
-                )} resize-none`}
+                className={`${inputClass(errors.description)} resize-none`}
               />
 
               <div className="mt-1 flex justify-between">
-                <FieldError
-                  message={
-                    errors.description
-                  }
-                />
+                <FieldError message={errors.description} />
 
                 <p className="text-xs text-slate-400">
-                  {
-                    form.description
-                      .length
-                  }
+                  {form.description.length}
                   /5000
                 </p>
               </div>
@@ -610,29 +441,16 @@ export default function ProjectFormModal({
                 <input
                   id="projectStartDate"
                   type="date"
-                  value={
-                    form.startDate
-                  }
+                  value={form.startDate}
                   onChange={(event) =>
-                    updateField(
-                      "startDate",
-                      event.target.value
-                    )
+                    updateField("startDate", event.target.value)
                   }
-                  disabled={
-                    isSubmitting
-                  }
-                  className={`pl-9 ${inputClass(
-                    errors.startDate
-                  )}`}
+                  disabled={isSubmitting}
+                  className={`pl-9 ${inputClass(errors.startDate)}`}
                 />
               </div>
 
-              <FieldError
-                message={
-                  errors.startDate
-                }
-              />
+              <FieldError message={errors.startDate} />
             </div>
 
             {/* End Date */}
@@ -653,29 +471,16 @@ export default function ProjectFormModal({
                 <input
                   id="projectEndDate"
                   type="date"
-                  value={
-                    form.endDate
-                  }
+                  value={form.endDate}
                   onChange={(event) =>
-                    updateField(
-                      "endDate",
-                      event.target.value
-                    )
+                    updateField("endDate", event.target.value)
                   }
-                  disabled={
-                    isSubmitting
-                  }
-                  className={`pl-9 ${inputClass(
-                    errors.endDate
-                  )}`}
+                  disabled={isSubmitting}
+                  className={`pl-9 ${inputClass(errors.endDate)}`}
                 />
               </div>
 
-              <FieldError
-                message={
-                  errors.endDate
-                }
-              />
+              <FieldError message={errors.endDate} />
             </div>
 
             {/* Budget */}
@@ -696,22 +501,13 @@ export default function ProjectFormModal({
                 min="0"
                 step="0.01"
                 value={form.budget}
-                onChange={(event) =>
-                  updateField(
-                    "budget",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("budget", event.target.value)}
                 placeholder="e.g. 250000"
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.budget
-                )}
+                className={inputClass(errors.budget)}
               />
 
-              <FieldError
-                message={errors.budget}
-              />
+              <FieldError message={errors.budget} />
             </div>
           </div>
 
@@ -742,9 +538,7 @@ export default function ProjectFormModal({
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
 
-                  {isEdit
-                    ? "Saving..."
-                    : "Creating..."}
+                  {isEdit ? "Saving..." : "Creating..."}
                 </>
               ) : (
                 <>
@@ -754,9 +548,7 @@ export default function ProjectFormModal({
                     <Plus className="h-4 w-4" />
                   )}
 
-                  {isEdit
-                    ? "Save Changes"
-                    : "Create Project"}
+                  {isEdit ? "Save Changes" : "Create Project"}
                 </>
               )}
             </button>
@@ -771,9 +563,7 @@ export default function ProjectFormModal({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function inputClass(
-  error?: string
-) {
+function inputClass(error?: string) {
   return `w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none transition ${
     error
       ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
@@ -781,41 +571,24 @@ function inputClass(
   } disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70`;
 }
 
-function FieldError({
-  message,
-}: {
-  message?: string;
-}) {
+function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
 
-  return (
-    <p className="mt-1 text-xs text-red-600">
-      {message}
-    </p>
-  );
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
-function toDateInputValue(
-  value?: string | null
-): string {
+function toDateInputValue(value?: string | null): string {
   if (!value) {
     return "";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return date
-    .toISOString()
-    .slice(0, 10);
+  return date.toISOString().slice(0, 10);
 }

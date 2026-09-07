@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Loader2,
-  Pencil,
-  Plus,
-  X,
-} from "lucide-react";
+import { Loader2, Pencil, Plus, X } from "lucide-react";
 
 import type {
   CreateDepartmentPayload,
@@ -20,12 +15,8 @@ interface DepartmentFormModalProps {
   isSubmitting?: boolean;
   error?: string | null;
   onClose: () => void;
-  onCreate: (
-    data: CreateDepartmentPayload
-  ) => void;
-  onUpdate: (
-    data: UpdateDepartmentPayload
-  ) => void;
+  onCreate: (data: CreateDepartmentPayload) => void;
+  onUpdate: (data: UpdateDepartmentPayload) => void;
 }
 
 interface FormState {
@@ -49,14 +40,12 @@ export default function DepartmentFormModal({
 }: DepartmentFormModalProps) {
   const isEdit = Boolean(department);
 
-  const [form, setForm] =
-    useState<FormState>({
-      name: "",
-      description: "",
-    });
+  const [form, setForm] = useState<FormState>({
+    name: "",
+    description: "",
+  });
 
-  const [errors, setErrors] =
-    useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (!open) {
@@ -66,8 +55,7 @@ export default function DepartmentFormModal({
     if (department) {
       setForm({
         name: department.name,
-        description:
-          department.description ?? "",
+        description: department.description ?? "",
       });
     } else {
       setForm({
@@ -83,10 +71,7 @@ export default function DepartmentFormModal({
     return null;
   }
 
-  const updateField = (
-    field: keyof FormState,
-    value: string
-  ) => {
+  const updateField = (field: keyof FormState, value: string) => {
     setForm((previous) => ({
       ...previous,
       [field]: value,
@@ -102,23 +87,18 @@ export default function DepartmentFormModal({
     const nextErrors: FormErrors = {};
 
     const name = form.name.trim();
-    const description =
-      form.description.trim();
+    const description = form.description.trim();
 
     if (!name) {
-      nextErrors.name =
-        "Department name is required.";
+      nextErrors.name = "Department name is required.";
     } else if (name.length < 2) {
-      nextErrors.name =
-        "Department name must be at least 2 characters.";
+      nextErrors.name = "Department name must be at least 2 characters.";
     } else if (name.length > 100) {
-      nextErrors.name =
-        "Department name cannot exceed 100 characters.";
+      nextErrors.name = "Department name cannot exceed 100 characters.";
     }
 
     if (description.length > 500) {
-      nextErrors.description =
-        "Description cannot exceed 500 characters.";
+      nextErrors.description = "Description cannot exceed 500 characters.";
     }
 
     setErrors(nextErrors);
@@ -126,9 +106,7 @@ export default function DepartmentFormModal({
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) {
@@ -136,14 +114,12 @@ export default function DepartmentFormModal({
     }
 
     const name = form.name.trim();
-    const description =
-      form.description.trim();
+    const description = form.description.trim();
 
     if (isEdit) {
       onUpdate({
         name,
-        description:
-          description || undefined,
+        description: description || undefined,
       });
 
       return;
@@ -151,8 +127,7 @@ export default function DepartmentFormModal({
 
     onCreate({
       name,
-      description:
-        description || undefined,
+      description: description || undefined,
     });
   };
 
@@ -163,9 +138,7 @@ export default function DepartmentFormModal({
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {isEdit
-                ? "Edit Department"
-                : "Add Department"}
+              {isEdit ? "Edit Department" : "Add Department"}
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -187,10 +160,7 @@ export default function DepartmentFormModal({
         </div>
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="p-6"
-        >
+        <form onSubmit={handleSubmit} className="p-6">
           <div className="space-y-5">
             {/* Name */}
             <div>
@@ -198,22 +168,14 @@ export default function DepartmentFormModal({
                 htmlFor="departmentName"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Department Name{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Department Name <span className="text-red-500">*</span>
               </label>
 
               <input
                 id="departmentName"
                 type="text"
                 value={form.name}
-                onChange={(event) =>
-                  updateField(
-                    "name",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("name", event.target.value)}
                 placeholder="e.g. Development"
                 maxLength={100}
                 autoFocus
@@ -226,9 +188,7 @@ export default function DepartmentFormModal({
               />
 
               {errors.name && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.name}
-                </p>
+                <p className="mt-1 text-xs text-red-600">{errors.name}</p>
               )}
             </div>
 
@@ -248,10 +208,7 @@ export default function DepartmentFormModal({
                 id="departmentDescription"
                 value={form.description}
                 onChange={(event) =>
-                  updateField(
-                    "description",
-                    event.target.value
-                  )
+                  updateField("description", event.target.value)
                 }
                 placeholder="Brief description of the department..."
                 rows={4}
@@ -266,9 +223,7 @@ export default function DepartmentFormModal({
 
               <div className="mt-1 flex items-center justify-between">
                 {errors.description ? (
-                  <p className="text-xs text-red-600">
-                    {errors.description}
-                  </p>
+                  <p className="text-xs text-red-600">{errors.description}</p>
                 ) : (
                   <span />
                 )}
@@ -306,9 +261,7 @@ export default function DepartmentFormModal({
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  {isEdit
-                    ? "Saving..."
-                    : "Creating..."}
+                  {isEdit ? "Saving..." : "Creating..."}
                 </>
               ) : (
                 <>
@@ -318,9 +271,7 @@ export default function DepartmentFormModal({
                     <Plus className="h-4 w-4" />
                   )}
 
-                  {isEdit
-                    ? "Save Changes"
-                    : "Create Department"}
+                  {isEdit ? "Save Changes" : "Create Department"}
                 </>
               )}
             </button>

@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  Loader2,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Loader2, Trash2, X } from "lucide-react";
 
-import type {
-  Task,
-} from "@/features/tasks/types/task.types";
+import type { Task } from "@/features/tasks/types/task.types";
 
 interface DeleteTaskDialogProps {
   task: Task | null;
@@ -41,21 +35,15 @@ export default function DeleteTaskDialog({
 
         <p className="mt-2 text-sm leading-6 text-slate-500">
           Are you sure you want to delete{" "}
-          <span className="font-medium text-slate-700">
-            {task.title}
-          </span>
-          ? This action cannot be undone.
+          <span className="font-medium text-slate-700">{task.title}</span>? This
+          action cannot be undone.
         </p>
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             type="button"
-            disabled={
-              isDeleting
-            }
-            onClick={
-              onCancel
-            }
+            disabled={isDeleting}
+            onClick={onCancel}
             className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-4 w-4" />
@@ -64,12 +52,8 @@ export default function DeleteTaskDialog({
 
           <button
             type="button"
-            disabled={
-              isDeleting
-            }
-            onClick={
-              onConfirm
-            }
+            disabled={isDeleting}
+            onClick={onConfirm}
             className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isDeleting ? (

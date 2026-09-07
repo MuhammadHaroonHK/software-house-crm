@@ -8,9 +8,7 @@ import type {
 interface CompanyBankingFormProps {
   company: Company;
   errors?: Record<string, string>;
-  onChange: (
-    data: Partial<UpdateCompanyPayload>
-  ) => void;
+  onChange: (data: Partial<UpdateCompanyPayload>) => void;
   disabled?: boolean;
 }
 
@@ -38,9 +36,7 @@ export default function CompanyBankingForm({
           value={company.bankName ?? ""}
           error={errors.bankName}
           disabled={disabled}
-          onChange={(value) =>
-            onChange({ bankName: value })
-          }
+          onChange={(value) => onChange({ bankName: value })}
         />
 
         <Field
@@ -48,9 +44,7 @@ export default function CompanyBankingForm({
           value={company.accountTitle ?? ""}
           error={errors.accountTitle}
           disabled={disabled}
-          onChange={(value) =>
-            onChange({ accountTitle: value })
-          }
+          onChange={(value) => onChange({ accountTitle: value })}
         />
 
         <Field
@@ -58,9 +52,7 @@ export default function CompanyBankingForm({
           value={company.accountNumber ?? ""}
           error={errors.accountNumber}
           disabled={disabled}
-          onChange={(value) =>
-            onChange({ accountNumber: value })
-          }
+          onChange={(value) => onChange({ accountNumber: value })}
         />
 
         <Field
@@ -68,9 +60,7 @@ export default function CompanyBankingForm({
           value={company.iban ?? ""}
           error={errors.iban}
           disabled={disabled}
-          onChange={(value) =>
-            onChange({ iban: value })
-          }
+          onChange={(value) => onChange({ iban: value })}
         />
 
         <Field
@@ -126,9 +116,7 @@ function Field({
         type="text"
         value={value}
         disabled={disabled}
-        onChange={(event) =>
-          onChange(event.target.value)
-        }
+        onChange={(event) => onChange(event.target.value)}
         className={`h-10 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none focus:ring-1 disabled:cursor-not-allowed disabled:bg-slate-50 ${
           error
             ? "border-red-400 focus:border-red-500 focus:ring-red-500"
@@ -136,11 +124,7 @@ function Field({
         }`}
       />
 
-      {error && (
-        <p className="mt-1 text-xs text-red-500">
-          {error}
-        </p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );
 }

@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Loader2,
-  Pencil,
-  Plus,
-  ReceiptText,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Loader2, Pencil, Plus, ReceiptText, Trash2, X } from "lucide-react";
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -57,50 +50,27 @@ export default function InvoiceItemsEditor({
   invoice,
   onClose,
 }: InvoiceItemsEditorProps) {
-  const isDraft =
-    invoice?.status === "DRAFT";
+  const isDraft = invoice?.status === "DRAFT";
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useInvoiceItems(
+  const { data, isLoading, isFetching, isError, refetch } = useInvoiceItems(
     invoice?.id,
   );
 
-  const createItem =
-    useCreateInvoiceItem();
+  const createItem = useCreateInvoiceItem();
 
-  const updateItem =
-    useUpdateInvoiceItem();
+  const updateItem = useUpdateInvoiceItem();
 
-  const deleteItem =
-    useDeleteInvoiceItem();
+  const deleteItem = useDeleteInvoiceItem();
 
-  const [formOpen, setFormOpen] =
-    useState(false);
+  const [formOpen, setFormOpen] = useState(false);
 
-  const [editingItem, setEditingItem] =
-    useState<InvoiceItem | null>(
-      null,
-    );
+  const [editingItem, setEditingItem] = useState<InvoiceItem | null>(null);
 
-  const [form, setForm] =
-    useState<ItemFormState>(
-      emptyForm,
-    );
+  const [form, setForm] = useState<ItemFormState>(emptyForm);
 
-  const [errors, setErrors] =
-    useState<ItemFormErrors>(
-      {},
-    );
+  const [errors, setErrors] = useState<ItemFormErrors>({});
 
-  const [deleteTarget, setDeleteTarget] =
-    useState<InvoiceItem | null>(
-      null,
-    );
+  const [deleteTarget, setDeleteTarget] = useState<InvoiceItem | null>(null);
 
   useEffect(() => {
     if (!invoice) {
@@ -114,27 +84,18 @@ export default function InvoiceItemsEditor({
     setDeleteTarget(null);
   }, [invoice]);
 
-  const items: InvoiceItem[] =
-  data?.data ?? [];
+  const items: InvoiceItem[] = data?.data ?? [];
 
-  const subtotal =
-    useMemo(
-      () =>
-        items.reduce(
-          (
-            total: number,
-            item: InvoiceItem,
-          ) =>
-            total +
-            Number(item.totalPrice),
-          0,
-        ),
-      [items],
-    );
+  const subtotal = useMemo(
+    () =>
+      items.reduce(
+        (total: number, item: InvoiceItem) => total + Number(item.totalPrice),
+        0,
+      ),
+    [items],
+  );
 
-  const isSubmitting =
-    createItem.isPending ||
-    updateItem.isPending;
+  const isSubmitting = createItem.isPending || updateItem.isPending;
 
   const closeEditor = () => {
     if (isSubmitting) {
@@ -156,211 +117,131 @@ export default function InvoiceItemsEditor({
     setFormOpen(true);
   };
 
-  const openEditForm = (
-    item: InvoiceItem,
-  ) => {
+  const openEditForm = (item: InvoiceItem) => {
     setEditingItem(item);
 
     setForm({
-      serviceName:
-        item.serviceName,
-      description:
-        item.description ?? "",
-      quantity:
-        String(item.quantity),
-      unitPrice:
-        String(item.unitPrice),
+      serviceName: item.serviceName,
+      description: item.description ?? "",
+      quantity: String(item.quantity),
+      unitPrice: String(item.unitPrice),
     });
 
     setErrors({});
     setFormOpen(true);
   };
 
-  const updateField = (
-    field: keyof ItemFormState,
-    value: string,
-  ) => {
-    setForm(
-      (previous) => ({
-        ...previous,
-        [field]: value,
-      }),
-    );
+  const updateField = (field: keyof ItemFormState, value: string) => {
+    setForm((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
 
-    setErrors(
-      (previous) => ({
-        ...previous,
-        [field]: undefined,
-      }),
-    );
+    setErrors((previous) => ({
+      ...previous,
+      [field]: undefined,
+    }));
   };
 
-  const validateForm =
-    () => {
-      const nextErrors: ItemFormErrors =
-        {};
+  const validateForm = () => {
+    const nextErrors: ItemFormErrors = {};
 
-      const serviceName =
-        form.serviceName.trim();
+    const serviceName = form.serviceName.trim();
 
-      const quantity =
-        Number(form.quantity);
+    const quantity = Number(form.quantity);
 
-      const unitPrice =
-        Number(form.unitPrice);
+    const unitPrice = Number(form.unitPrice);
 
-      if (!serviceName) {
-        nextErrors.serviceName =
-          "Service name is required.";
-      } else if (
-        serviceName.length < 2
-      ) {
-        nextErrors.serviceName =
-          "Service name must be at least 2 characters.";
-      } else if (
-        serviceName.length > 150
-      ) {
-        nextErrors.serviceName =
-          "Service name cannot exceed 150 characters.";
-      }
+    if (!serviceName) {
+      nextErrors.serviceName = "Service name is required.";
+    } else if (serviceName.length < 2) {
+      nextErrors.serviceName = "Service name must be at least 2 characters.";
+    } else if (serviceName.length > 150) {
+      nextErrors.serviceName = "Service name cannot exceed 150 characters.";
+    }
 
-      if (
-        !Number.isInteger(
-          quantity,
-        ) ||
-        quantity <= 0
-      ) {
-        nextErrors.quantity =
-          "Quantity must be a positive whole number.";
-      }
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      nextErrors.quantity = "Quantity must be a positive whole number.";
+    }
 
-      if (
-        !Number.isFinite(
-          unitPrice,
-        ) ||
-        unitPrice < 0
-      ) {
-        nextErrors.unitPrice =
-          "Unit price must be a valid non-negative amount.";
-      }
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      nextErrors.unitPrice = "Unit price must be a valid non-negative amount.";
+    }
 
-      if (
-        form.description.trim()
-          .length > 5000
-      ) {
-        nextErrors.description =
-          "Description cannot exceed 5000 characters.";
-      }
+    if (form.description.trim().length > 5000) {
+      nextErrors.description = "Description cannot exceed 5000 characters.";
+    }
 
-      setErrors(
-        nextErrors,
-      );
+    setErrors(nextErrors);
 
-      return (
-        Object.keys(
-          nextErrors,
-        ).length === 0
-      );
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!invoice || !isDraft) {
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const payload = {
+      serviceName: form.serviceName.trim(),
+
+      description: form.description.trim() || undefined,
+
+      quantity: Number(form.quantity),
+
+      unitPrice: Number(form.unitPrice),
     };
 
-  const handleSubmit =
-    async (
-      event: React.FormEvent<HTMLFormElement>,
-    ) => {
-      event.preventDefault();
+    try {
+      if (editingItem) {
+        await updateItem.mutateAsync({
+          itemId: editingItem.id,
+          data: payload as UpdateInvoiceItemPayload,
+        });
 
-      if (!invoice || !isDraft) {
-        return;
+        toast.success("Invoice item updated successfully.");
+      } else {
+        await createItem.mutateAsync({
+          invoiceId: invoice.id,
+          data: payload as CreateInvoiceItemPayload,
+        });
+
+        toast.success("Invoice item added successfully.");
       }
 
-      if (!validateForm()) {
-        return;
-      }
+      closeEditor();
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message || "Unable to save invoice item.";
 
-      const payload = {
-        serviceName:
-          form.serviceName.trim(),
+      toast.error(message);
+    }
+  };
 
-        description:
-          form.description.trim() ||
-          undefined,
+  const handleDelete = async () => {
+    if (!deleteTarget || !invoice || !isDraft) {
+      return;
+    }
 
-        quantity:
-          Number(form.quantity),
+    try {
+      await deleteItem.mutateAsync(deleteTarget.id);
 
-        unitPrice:
-          Number(form.unitPrice),
-      };
+      toast.success("Invoice item deleted successfully.");
 
-      try {
-        if (editingItem) {
-          await updateItem.mutateAsync({
-            itemId:
-              editingItem.id,
-            data:
-              payload as UpdateInvoiceItemPayload,
-          });
+      setDeleteTarget(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message || "Unable to delete invoice item.";
 
-          toast.success(
-            "Invoice item updated successfully.",
-          );
-        } else {
-          await createItem.mutateAsync({
-            invoiceId:
-              invoice.id,
-            data:
-              payload as CreateInvoiceItemPayload,
-          });
-
-          toast.success(
-            "Invoice item added successfully.",
-          );
-        }
-
-        closeEditor();
-      } catch (error: any) {
-        const message =
-          error?.response?.data
-            ?.message ||
-          "Unable to save invoice item.";
-
-        toast.error(
-          message,
-        );
-      }
-    };
-
-  const handleDelete =
-    async () => {
-      if (
-        !deleteTarget ||
-        !invoice ||
-        !isDraft
-      ) {
-        return;
-      }
-
-      try {
-        await deleteItem.mutateAsync(
-          deleteTarget.id,
-        );
-
-        toast.success(
-          "Invoice item deleted successfully.",
-        );
-
-        setDeleteTarget(null);
-      } catch (error: any) {
-        const message =
-          error?.response?.data
-            ?.message ||
-          "Unable to delete invoice item.";
-
-        toast.error(
-          message,
-        );
-      }
-    };
+      toast.error(message);
+    }
+  };
 
   if (!invoice) {
     return null;
@@ -384,9 +265,7 @@ export default function InvoiceItemsEditor({
             <p className="mt-1 text-sm text-slate-500">
               {invoice.invoiceNumber}
               {" • "}
-              {invoice.quotation
-                ?.client?.companyName ??
-                "Invoice"}
+              {invoice.quotation?.client?.companyName ?? "Invoice"}
             </p>
 
             {!isDraft && (
@@ -399,10 +278,7 @@ export default function InvoiceItemsEditor({
           <button
             type="button"
             onClick={onClose}
-            disabled={
-              isSubmitting ||
-              deleteItem.isPending
-            }
+            disabled={isSubmitting || deleteItem.isPending}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Close invoice items"
           >
@@ -416,25 +292,16 @@ export default function InvoiceItemsEditor({
           {/* Invoice summary */}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <SummaryCard
-              label="Invoice"
-              value={
-                invoice.invoiceNumber
-              }
-            />
+            <SummaryCard label="Invoice" value={invoice.invoiceNumber} />
 
             <SummaryCard
               label="Status"
-              value={formatInvoiceStatus(
-                invoice.status,
-              )}
+              value={formatInvoiceStatus(invoice.status)}
             />
 
             <SummaryCard
               label="Current Total"
-              value={formatCurrency(
-                invoice.totalAmount,
-              )}
+              value={formatCurrency(invoice.totalAmount)}
             />
           </div>
 
@@ -448,9 +315,7 @@ export default function InvoiceItemsEditor({
 
               <button
                 type="button"
-                onClick={() =>
-                  refetch()
-                }
+                onClick={() => refetch()}
                 className="mt-2 text-sm font-medium text-red-700 underline"
               >
                 Try again
@@ -478,26 +343,17 @@ export default function InvoiceItemsEditor({
                   </h3>
 
                   <p className="mt-1 text-xs text-slate-500">
-                    {items.length}{" "}
-                    {items.length === 1
-                      ? "item"
-                      : "items"}
+                    {items.length} {items.length === 1 ? "item" : "items"}
                     {" • "}
-                    {isFetching &&
-                      "Refreshing..."}
+                    {isFetching && "Refreshing..."}
                   </p>
                 </div>
 
                 {isDraft && (
                   <button
                     type="button"
-                    onClick={
-                      openCreateForm
-                    }
-                    disabled={
-                      isSubmitting ||
-                      deleteItem.isPending
-                    }
+                    onClick={openCreateForm}
+                    disabled={isSubmitting || deleteItem.isPending}
                     className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Plus className="h-4 w-4" />
@@ -508,305 +364,207 @@ export default function InvoiceItemsEditor({
 
               {/* Add / Edit form */}
 
-              {formOpen &&
-                isDraft && (
-                  <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-900">
-                          {editingItem
-                            ? "Edit Invoice Item"
-                            : "Add Invoice Item"}
-                        </h4>
+              {formOpen && isDraft && (
+                <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-900">
+                        {editingItem ? "Edit Invoice Item" : "Add Invoice Item"}
+                      </h4>
 
-                        <p className="mt-1 text-xs text-slate-500">
-                          Enter the service and pricing details.
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={
-                          closeEditor
-                        }
-                        disabled={
-                          isSubmitting
-                        }
-                        className="rounded-lg p-1.5 text-slate-400 transition hover:bg-white hover:text-slate-600"
-                        aria-label="Close item form"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Enter the service and pricing details.
+                      </p>
                     </div>
 
-                    <form
-                      onSubmit={
-                        handleSubmit
-                      }
-                      className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2"
+                    <button
+                      type="button"
+                      onClick={closeEditor}
+                      disabled={isSubmitting}
+                      className="rounded-lg p-1.5 text-slate-400 transition hover:bg-white hover:text-slate-600"
+                      aria-label="Close item form"
                     >
-                      {/* Service */}
-
-                      <div className="sm:col-span-2">
-                        <label
-                          htmlFor="invoiceItemService"
-                          className="mb-1.5 block text-sm font-medium text-slate-700"
-                        >
-                          Service Name
-                          <span className="ml-1 text-red-500">
-                            *
-                          </span>
-                        </label>
-
-                        <input
-                          id="invoiceItemService"
-                          type="text"
-                          value={
-                            form.serviceName
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            updateField(
-                              "serviceName",
-                              event.target
-                                .value,
-                            )
-                          }
-                          maxLength={
-                            150
-                          }
-                          autoFocus
-                          disabled={
-                            isSubmitting
-                          }
-                          placeholder="e.g. Website Development"
-                          className={inputClass(
-                            errors.serviceName,
-                          )}
-                        />
-
-                        <FieldError
-                          message={
-                            errors.serviceName
-                          }
-                        />
-                      </div>
-
-                      {/* Description */}
-
-                      <div className="sm:col-span-2">
-                        <label
-                          htmlFor="invoiceItemDescription"
-                          className="mb-1.5 block text-sm font-medium text-slate-700"
-                        >
-                          Description
-                          <span className="ml-1 font-normal text-slate-400">
-                            (Optional)
-                          </span>
-                        </label>
-
-                        <textarea
-                          id="invoiceItemDescription"
-                          value={
-                            form.description
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            updateField(
-                              "description",
-                              event.target
-                                .value,
-                            )
-                          }
-                          rows={3}
-                          maxLength={
-                            5000
-                          }
-                          disabled={
-                            isSubmitting
-                          }
-                          placeholder="Describe the service..."
-                          className={`${inputClass()} resize-none`}
-                        />
-
-                        <div className="mt-1 flex justify-between">
-                          <FieldError
-                            message={
-                              errors.description
-                            }
-                          />
-
-                          <span className="text-xs text-slate-400">
-                            {
-                              form
-                                .description
-                                .length
-                            }
-                            /5000
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Quantity */}
-
-                      <div>
-                        <label
-                          htmlFor="invoiceItemQuantity"
-                          className="mb-1.5 block text-sm font-medium text-slate-700"
-                        >
-                          Quantity
-                          <span className="ml-1 text-red-500">
-                            *
-                          </span>
-                        </label>
-
-                        <input
-                          id="invoiceItemQuantity"
-                          type="number"
-                          min="1"
-                          step="1"
-                          value={
-                            form.quantity
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            updateField(
-                              "quantity",
-                              event.target
-                                .value,
-                            )
-                          }
-                          disabled={
-                            isSubmitting
-                          }
-                          className={inputClass(
-                            errors.quantity,
-                          )}
-                        />
-
-                        <FieldError
-                          message={
-                            errors.quantity
-                          }
-                        />
-                      </div>
-
-                      {/* Unit Price */}
-
-                      <div>
-                        <label
-                          htmlFor="invoiceItemUnitPrice"
-                          className="mb-1.5 block text-sm font-medium text-slate-700"
-                        >
-                          Unit Price
-                          <span className="ml-1 text-red-500">
-                            *
-                          </span>
-                        </label>
-
-                        <input
-                          id="invoiceItemUnitPrice"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={
-                            form.unitPrice
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            updateField(
-                              "unitPrice",
-                              event.target
-                                .value,
-                            )
-                          }
-                          disabled={
-                            isSubmitting
-                          }
-                          placeholder="0.00"
-                          className={inputClass(
-                            errors.unitPrice,
-                          )}
-                        />
-
-                        <FieldError
-                          message={
-                            errors.unitPrice
-                          }
-                        />
-                      </div>
-
-                      {/* Preview */}
-
-                      <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-white px-4 py-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-500">
-                            Line Total
-                          </span>
-
-                          <span className="text-base font-semibold text-slate-900">
-                            {formatCurrency(
-                              Number(
-                                form.quantity,
-                              ) *
-                                Number(
-                                  form.unitPrice,
-                                ),
-                            )}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Form actions */}
-
-                      <div className="sm:col-span-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                        <button
-                          type="button"
-                          onClick={
-                            closeEditor
-                          }
-                          disabled={
-                            isSubmitting
-                          }
-                          className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          Cancel
-                        </button>
-
-                        <button
-                          type="submit"
-                          disabled={
-                            isSubmitting
-                          }
-                          className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              {editingItem ? (
-                                <Pencil className="h-4 w-4" />
-                              ) : (
-                                <Plus className="h-4 w-4" />
-                              )}
-
-                              {editingItem
-                                ? "Save Changes"
-                                : "Add Item"}
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </form>
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
-                )}
+
+                  <form
+                    onSubmit={handleSubmit}
+                    className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2"
+                  >
+                    {/* Service */}
+
+                    <div className="sm:col-span-2">
+                      <label
+                        htmlFor="invoiceItemService"
+                        className="mb-1.5 block text-sm font-medium text-slate-700"
+                      >
+                        Service Name
+                        <span className="ml-1 text-red-500">*</span>
+                      </label>
+
+                      <input
+                        id="invoiceItemService"
+                        type="text"
+                        value={form.serviceName}
+                        onChange={(event) =>
+                          updateField("serviceName", event.target.value)
+                        }
+                        maxLength={150}
+                        autoFocus
+                        disabled={isSubmitting}
+                        placeholder="e.g. Website Development"
+                        className={inputClass(errors.serviceName)}
+                      />
+
+                      <FieldError message={errors.serviceName} />
+                    </div>
+
+                    {/* Description */}
+
+                    <div className="sm:col-span-2">
+                      <label
+                        htmlFor="invoiceItemDescription"
+                        className="mb-1.5 block text-sm font-medium text-slate-700"
+                      >
+                        Description
+                        <span className="ml-1 font-normal text-slate-400">
+                          (Optional)
+                        </span>
+                      </label>
+
+                      <textarea
+                        id="invoiceItemDescription"
+                        value={form.description}
+                        onChange={(event) =>
+                          updateField("description", event.target.value)
+                        }
+                        rows={3}
+                        maxLength={5000}
+                        disabled={isSubmitting}
+                        placeholder="Describe the service..."
+                        className={`${inputClass()} resize-none`}
+                      />
+
+                      <div className="mt-1 flex justify-between">
+                        <FieldError message={errors.description} />
+
+                        <span className="text-xs text-slate-400">
+                          {form.description.length}
+                          /5000
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Quantity */}
+
+                    <div>
+                      <label
+                        htmlFor="invoiceItemQuantity"
+                        className="mb-1.5 block text-sm font-medium text-slate-700"
+                      >
+                        Quantity
+                        <span className="ml-1 text-red-500">*</span>
+                      </label>
+
+                      <input
+                        id="invoiceItemQuantity"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={form.quantity}
+                        onChange={(event) =>
+                          updateField("quantity", event.target.value)
+                        }
+                        disabled={isSubmitting}
+                        className={inputClass(errors.quantity)}
+                      />
+
+                      <FieldError message={errors.quantity} />
+                    </div>
+
+                    {/* Unit Price */}
+
+                    <div>
+                      <label
+                        htmlFor="invoiceItemUnitPrice"
+                        className="mb-1.5 block text-sm font-medium text-slate-700"
+                      >
+                        Unit Price
+                        <span className="ml-1 text-red-500">*</span>
+                      </label>
+
+                      <input
+                        id="invoiceItemUnitPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={form.unitPrice}
+                        onChange={(event) =>
+                          updateField("unitPrice", event.target.value)
+                        }
+                        disabled={isSubmitting}
+                        placeholder="0.00"
+                        className={inputClass(errors.unitPrice)}
+                      />
+
+                      <FieldError message={errors.unitPrice} />
+                    </div>
+
+                    {/* Preview */}
+
+                    <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-white px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-500">
+                          Line Total
+                        </span>
+
+                        <span className="text-base font-semibold text-slate-900">
+                          {formatCurrency(
+                            Number(form.quantity) * Number(form.unitPrice),
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Form actions */}
+
+                    <div className="sm:col-span-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                      <button
+                        type="button"
+                        onClick={closeEditor}
+                        disabled={isSubmitting}
+                        className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            {editingItem ? (
+                              <Pencil className="h-4 w-4" />
+                            ) : (
+                              <Plus className="h-4 w-4" />
+                            )}
+
+                            {editingItem ? "Save Changes" : "Add Item"}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
 
               {/* Empty state */}
 
@@ -829,9 +587,7 @@ export default function InvoiceItemsEditor({
                   {isDraft && (
                     <button
                       type="button"
-                      onClick={
-                        openCreateForm
-                      }
+                      onClick={openCreateForm}
                       className="mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                     >
                       <Plus className="h-4 w-4" />
@@ -872,94 +628,65 @@ export default function InvoiceItemsEditor({
                       </thead>
 
                       <tbody className="divide-y divide-slate-100">
-                        {items.map(
-                          (
-                            item: InvoiceItem,
-                          ) => (
-                            <tr
-                              key={
-                                item.id
-                              }
-                              className="hover:bg-slate-50"
-                            >
-                              <td className="px-5 py-4">
-                                <p className="text-sm font-medium text-slate-900">
-                                  {
-                                    item.serviceName
-                                  }
+                        {items.map((item: InvoiceItem) => (
+                          <tr key={item.id} className="hover:bg-slate-50">
+                            <td className="px-5 py-4">
+                              <p className="text-sm font-medium text-slate-900">
+                                {item.serviceName}
+                              </p>
+
+                              {item.description && (
+                                <p className="mt-1 max-w-[350px] truncate text-xs text-slate-400">
+                                  {item.description}
                                 </p>
-
-                                {item.description && (
-                                  <p className="mt-1 max-w-[350px] truncate text-xs text-slate-400">
-                                    {
-                                      item.description
-                                    }
-                                  </p>
-                                )}
-                              </td>
-
-                              <td className="px-5 py-4 text-sm text-slate-600">
-                                {
-                                  item.quantity
-                                }
-                              </td>
-
-                              <td className="px-5 py-4 text-sm text-slate-600">
-                                {formatCurrency(
-                                  item.unitPrice,
-                                )}
-                              </td>
-
-                              <td className="px-5 py-4 text-sm font-semibold text-slate-900">
-                                {formatCurrency(
-                                  item.totalPrice,
-                                )}
-                              </td>
-
-                              {isDraft && (
-                                <td className="px-5 py-4">
-                                  <div className="flex justify-end gap-1">
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        openEditForm(
-                                          item,
-                                        )
-                                      }
-                                      disabled={
-                                        isSubmitting ||
-                                        deleteItem.isPending
-                                      }
-                                      className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
-                                      title="Edit item"
-                                      aria-label="Edit item"
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setDeleteTarget(
-                                          item,
-                                        )
-                                      }
-                                      disabled={
-                                        isSubmitting ||
-                                        deleteItem.isPending
-                                      }
-                                      className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                                      title="Delete item"
-                                      aria-label="Delete item"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </button>
-                                  </div>
-                                </td>
                               )}
-                            </tr>
-                          ),
-                        )}
+                            </td>
+
+                            <td className="px-5 py-4 text-sm text-slate-600">
+                              {item.quantity}
+                            </td>
+
+                            <td className="px-5 py-4 text-sm text-slate-600">
+                              {formatCurrency(item.unitPrice)}
+                            </td>
+
+                            <td className="px-5 py-4 text-sm font-semibold text-slate-900">
+                              {formatCurrency(item.totalPrice)}
+                            </td>
+
+                            {isDraft && (
+                              <td className="px-5 py-4">
+                                <div className="flex justify-end gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditForm(item)}
+                                    disabled={
+                                      isSubmitting || deleteItem.isPending
+                                    }
+                                    className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                                    title="Edit item"
+                                    aria-label="Edit item"
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteTarget(item)}
+                                    disabled={
+                                      isSubmitting || deleteItem.isPending
+                                    }
+                                    className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    title="Delete item"
+                                    aria-label="Delete item"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -967,97 +694,64 @@ export default function InvoiceItemsEditor({
                   {/* Mobile list */}
 
                   <div className="mt-5 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 md:hidden">
-                    {items.map(
-                      (
-                        item: InvoiceItem,
-                      ) => (
-                        <div
-                          key={
-                            item.id
-                          }
-                          className="p-4"
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0">
-                              <h4 className="truncate text-sm font-semibold text-slate-900">
-                                {
-                                  item.serviceName
-                                }
-                              </h4>
+                    {items.map((item: InvoiceItem) => (
+                      <div key={item.id} className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <h4 className="truncate text-sm font-semibold text-slate-900">
+                              {item.serviceName}
+                            </h4>
 
-                              {item.description && (
-                                <p className="mt-1 text-xs text-slate-400">
-                                  {
-                                    item.description
-                                  }
-                                </p>
-                              )}
-                            </div>
-
-                            {isDraft && (
-                              <div className="flex shrink-0 gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    openEditForm(
-                                      item,
-                                    )
-                                  }
-                                  disabled={
-                                    isSubmitting ||
-                                    deleteItem.isPending
-                                  }
-                                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50"
-                                  aria-label="Edit item"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setDeleteTarget(
-                                      item,
-                                    )
-                                  }
-                                  disabled={
-                                    isSubmitting ||
-                                    deleteItem.isPending
-                                  }
-                                  className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 hover:bg-red-50 disabled:opacity-50"
-                                  aria-label="Delete item"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
+                            {item.description && (
+                              <p className="mt-1 text-xs text-slate-400">
+                                {item.description}
+                              </p>
                             )}
                           </div>
 
-                          <div className="mt-4 grid grid-cols-3 gap-3">
-                            <SummaryField
-                              label="Qty"
-                              value={String(
-                                item.quantity,
-                              )}
-                            />
+                          {isDraft && (
+                            <div className="flex shrink-0 gap-1">
+                              <button
+                                type="button"
+                                onClick={() => openEditForm(item)}
+                                disabled={isSubmitting || deleteItem.isPending}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                                aria-label="Edit item"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
 
-                            <SummaryField
-                              label="Unit"
-                              value={formatCurrency(
-                                item.unitPrice,
-                              )}
-                            />
-
-                            <SummaryField
-                              label="Total"
-                              value={formatCurrency(
-                                item.totalPrice,
-                              )}
-                            />
-                          </div>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteTarget(item)}
+                                disabled={isSubmitting || deleteItem.isPending}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 hover:bg-red-50 disabled:opacity-50"
+                                aria-label="Delete item"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      ),
-                    )}
+
+                        <div className="mt-4 grid grid-cols-3 gap-3">
+                          <SummaryField
+                            label="Qty"
+                            value={String(item.quantity)}
+                          />
+
+                          <SummaryField
+                            label="Unit"
+                            value={formatCurrency(item.unitPrice)}
+                          />
+
+                          <SummaryField
+                            label="Total"
+                            value={formatCurrency(item.totalPrice)}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
@@ -1068,31 +762,23 @@ export default function InvoiceItemsEditor({
                 <div className="space-y-3">
                   <SummaryRow
                     label="Items Subtotal"
-                    value={formatCurrency(
-                      subtotal,
-                    )}
+                    value={formatCurrency(subtotal)}
                   />
 
                   <SummaryRow
                     label="Invoice Discount"
-                    value={`- ${formatCurrency(
-                      invoice.discount,
-                    )}`}
+                    value={`- ${formatCurrency(invoice.discount)}`}
                   />
 
                   <SummaryRow
                     label="Invoice Tax"
-                    value={formatCurrency(
-                      invoice.tax,
-                    )}
+                    value={formatCurrency(invoice.tax)}
                   />
 
                   <div className="border-t border-slate-200 pt-3">
                     <SummaryRow
                       label="Invoice Total"
-                      value={formatCurrency(
-                        invoice.totalAmount,
-                      )}
+                      value={formatCurrency(invoice.totalAmount)}
                       strong
                     />
                   </div>
@@ -1104,7 +790,9 @@ export default function InvoiceItemsEditor({
               {isDraft && (
                 <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
                   <p className="text-xs leading-5 text-blue-700">
-                    Changes to invoice items automatically recalculate the invoice subtotal, total amount, and balance due on the server.
+                    Changes to invoice items automatically recalculate the
+                    invoice subtotal, total amount, and balance due on the
+                    server.
                   </p>
                 </div>
               )}
@@ -1117,13 +805,8 @@ export default function InvoiceItemsEditor({
         <div className="flex shrink-0 justify-end border-t border-slate-200 px-6 py-4">
           <button
             type="button"
-            onClick={
-              onClose
-            }
-            disabled={
-              isSubmitting ||
-              deleteItem.isPending
-            }
+            onClick={onClose}
+            disabled={isSubmitting || deleteItem.isPending}
             className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Done
@@ -1144,9 +827,7 @@ export default function InvoiceItemsEditor({
               <p className="mt-2 text-sm leading-6 text-slate-500">
                 Are you sure you want to remove{" "}
                 <span className="font-medium text-slate-700">
-                  {
-                    deleteTarget.serviceName
-                  }
+                  {deleteTarget.serviceName}
                 </span>
                 ? This will recalculate the invoice totals.
               </p>
@@ -1155,14 +836,8 @@ export default function InvoiceItemsEditor({
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() =>
-                  setDeleteTarget(
-                    null,
-                  )
-                }
-                disabled={
-                  deleteItem.isPending
-                }
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteItem.isPending}
                 className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancel
@@ -1170,18 +845,13 @@ export default function InvoiceItemsEditor({
 
               <button
                 type="button"
-                onClick={
-                  handleDelete
-                }
-                disabled={
-                  deleteItem.isPending
-                }
+                onClick={handleDelete}
+                disabled={deleteItem.isPending}
                 className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {deleteItem.isPending && (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
-
                 Delete Item
               </button>
             </div>
@@ -1196,13 +866,7 @@ export default function InvoiceItemsEditor({
 /* Summary card                                                               */
 /* -------------------------------------------------------------------------- */
 
-function SummaryCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-200 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -1220,13 +884,7 @@ function SummaryCard({
 /* Summary field                                                              */
 /* -------------------------------------------------------------------------- */
 
-function SummaryField({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function SummaryField({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -1282,9 +940,7 @@ function SummaryRow({
 /* Input                                                                       */
 /* -------------------------------------------------------------------------- */
 
-function inputClass(
-  error?: string,
-) {
+function inputClass(error?: string) {
   return `w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none transition ${
     error
       ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
@@ -1296,58 +952,38 @@ function inputClass(
 /* Error                                                                       */
 /* -------------------------------------------------------------------------- */
 
-function FieldError({
-  message,
-}: {
-  message?: string;
-}) {
+function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
 
-  return (
-    <p className="mt-1 text-xs text-red-600">
-      {message}
-    </p>
-  );
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Currency                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function formatCurrency(
-  value: string | number,
-) {
-  const amount =
-    Number(value);
+function formatCurrency(value: string | number) {
+  const amount = Number(value);
 
-  if (
-    !Number.isFinite(
-      amount,
-    )
-  ) {
+  if (!Number.isFinite(amount)) {
     return "PKR 0.00";
   }
 
-  return new Intl.NumberFormat(
-    "en-PK",
-    {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-  ).format(amount);
+  return new Intl.NumberFormat("en-PK", {
+    style: "currency",
+    currency: "PKR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
 /* -------------------------------------------------------------------------- */
 /* Status                                                                      */
 /* -------------------------------------------------------------------------- */
 
-function formatInvoiceStatus(
-  status: Invoice["status"],
-) {
+function formatInvoiceStatus(status: Invoice["status"]) {
   switch (status) {
     case "DRAFT":
       return "Draft";

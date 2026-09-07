@@ -9,23 +9,15 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { toast } from "sonner";
 
-import {
-  useProjectMembers,
-} from "@/features/projects/hooks/useProjectMembers";
+import { useProjectMembers } from "@/features/projects/hooks/useProjectMembers";
 
 import type { Meeting } from "@/features/meetings/types/meeting.types";
 
-import type {
-  MeetingParticipant,
-} from "@/features/meetings/types/meetingParticipant.types";
+import type { MeetingParticipant } from "@/features/meetings/types/meetingParticipant.types";
 
 interface MeetingParticipantsModalProps {
   meeting: Meeting | null;
@@ -44,13 +36,9 @@ interface MeetingParticipantsModalProps {
 
   onClose: () => void;
 
-  onAddParticipant: (
-    userId: string
-  ) => Promise<void>;
+  onAddParticipant: (userId: string) => Promise<void>;
 
-  onRemoveParticipant: (
-    userId: string
-  ) => Promise<void>;
+  onRemoveParticipant: (userId: string) => Promise<void>;
 }
 
 export default function MeetingParticipantsModal({
@@ -66,8 +54,7 @@ export default function MeetingParticipantsModal({
   onAddParticipant,
   onRemoveParticipant,
 }: MeetingParticipantsModalProps) {
-  const [selectedUserId, setSelectedUserId] =
-    useState("");
+  const [selectedUserId, setSelectedUserId] = useState("");
 
   const [removeCandidate, setRemoveCandidate] =
     useState<MeetingParticipant | null>(null);
@@ -76,36 +63,25 @@ export default function MeetingParticipantsModal({
     data: membersData,
     isLoading: isMembersLoading,
     isError: isMembersError,
-  } = useProjectMembers(
-    meeting?.projectId
-  );
+  } = useProjectMembers(meeting?.projectId);
 
   useEffect(() => {
     setSelectedUserId("");
     setRemoveCandidate(null);
   }, [meeting]);
 
-  const projectMembers =
-    membersData?.data ?? [];
+  const projectMembers = membersData?.data ?? [];
 
-  const availableMembers =
-    useMemo(() => {
-      const participantIds = new Set(
-        participants.map(
-          (participant) =>
-            participant.id
-        )
-      );
+  const availableMembers = useMemo(() => {
+    const participantIds = new Set(
+      participants.map((participant) => participant.id),
+    );
 
-      return projectMembers.filter(
-        (member) =>
-          member.user.status === "ACTIVE" &&
-          !participantIds.has(member.userId)
-      );
-    }, [
-      participants,
-      projectMembers,
-    ]);
+    return projectMembers.filter(
+      (member) =>
+        member.user.status === "ACTIVE" && !participantIds.has(member.userId),
+    );
+  }, [participants, projectMembers]);
 
   if (!meeting) {
     return null;
@@ -113,17 +89,13 @@ export default function MeetingParticipantsModal({
 
   const handleAdd = async () => {
     if (!selectedUserId) {
-      toast.error(
-        "Please select a participant."
-      );
+      toast.error("Please select a participant.");
 
       return;
     }
 
     try {
-      await onAddParticipant(
-        selectedUserId
-      );
+      await onAddParticipant(selectedUserId);
 
       setSelectedUserId("");
     } catch {
@@ -137,9 +109,7 @@ export default function MeetingParticipantsModal({
     }
 
     try {
-      await onRemoveParticipant(
-        removeCandidate.id
-      );
+      await onRemoveParticipant(removeCandidate.id);
 
       setRemoveCandidate(null);
     } catch {
@@ -174,10 +144,7 @@ export default function MeetingParticipantsModal({
           <button
             type="button"
             onClick={onClose}
-            disabled={
-              isAdding ||
-              Boolean(removingUserId)
-            }
+            disabled={isAdding || Boolean(removingUserId)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Close modal"
           >
@@ -212,14 +179,9 @@ export default function MeetingParticipantsModal({
                     <select
                       value={selectedUserId}
                       onChange={(event) =>
-                        setSelectedUserId(
-                          event.target.value
-                        )
+                        setSelectedUserId(event.target.value)
                       }
-                      disabled={
-                        isAdding ||
-                        isMembersLoading
-                      }
+                      disabled={isAdding || isMembersLoading}
                       className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70"
                     >
                       <option value="">
@@ -228,27 +190,17 @@ export default function MeetingParticipantsModal({
                           : "Select participant"}
                       </option>
 
-                      {availableMembers.map(
-                        (member) => (
-                          <option
-                            key={member.userId}
-                            value={member.userId}
-                          >
-                            {member.user.firstName}{" "}
-                            {member.user.lastName}
-                          </option>
-                        )
-                      )}
+                      {availableMembers.map((member) => (
+                        <option key={member.userId} value={member.userId}>
+                          {member.user.firstName} {member.user.lastName}
+                        </option>
+                      ))}
                     </select>
 
                     <button
                       type="button"
                       onClick={handleAdd}
-                      disabled={
-                        isAdding ||
-                        isMembersLoading ||
-                        !selectedUserId
-                      }
+                      disabled={isAdding || isMembersLoading || !selectedUserId}
                       className="flex shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {isAdding ? (
@@ -292,9 +244,7 @@ export default function MeetingParticipantsModal({
 
                 <p className="mt-1 text-xs text-slate-500">
                   {participants.length}{" "}
-                  {participants.length === 1
-                    ? "participant"
-                    : "participants"}
+                  {participants.length === 1 ? "participant" : "participants"}
                 </p>
               </div>
 
@@ -331,58 +281,49 @@ export default function MeetingParticipantsModal({
             ) : (
               <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
                 <div className="divide-y divide-slate-100">
-                  {participants.map(
-                    (participant) => {
-                      const isRemoving =
-                        removingUserId ===
-                        participant.id;
+                  {participants.map((participant) => {
+                    const isRemoving = removingUserId === participant.id;
 
-                      return (
-                        <div
-                          key={participant.id}
-                          className="flex items-center justify-between gap-4 px-4 py-4"
-                        >
-                          <div className="flex min-w-0 items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                              <UserRound className="h-5 w-5 text-slate-500" />
-                            </div>
-
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-slate-900">
-                                {participant.firstName}{" "}
-                                {participant.lastName}
-                              </p>
-
-                              <p className="mt-0.5 truncate text-xs text-slate-500">
-                                {participant.email}
-                              </p>
-                            </div>
+                    return (
+                      <div
+                        key={participant.id}
+                        className="flex items-center justify-between gap-4 px-4 py-4"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                            <UserRound className="h-5 w-5 text-slate-500" />
                           </div>
 
-                          {canManage && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setRemoveCandidate(
-                                  participant
-                                )
-                              }
-                              disabled={isRemoving}
-                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                              title="Remove participant"
-                              aria-label="Remove participant"
-                            >
-                              {isRemoving ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <UserMinus className="h-4 w-4" />
-                              )}
-                            </button>
-                          )}
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-slate-900">
+                              {participant.firstName} {participant.lastName}
+                            </p>
+
+                            <p className="mt-0.5 truncate text-xs text-slate-500">
+                              {participant.email}
+                            </p>
+                          </div>
                         </div>
-                      );
-                    }
-                  )}
+
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={() => setRemoveCandidate(participant)}
+                            disabled={isRemoving}
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Remove participant"
+                            aria-label="Remove participant"
+                          >
+                            {isRemoving ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <UserMinus className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -393,10 +334,7 @@ export default function MeetingParticipantsModal({
           <button
             type="button"
             onClick={onClose}
-            disabled={
-              isAdding ||
-              Boolean(removingUserId)
-            }
+            disabled={isAdding || Boolean(removingUserId)}
             className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Close
@@ -414,8 +352,7 @@ export default function MeetingParticipantsModal({
             <p className="mt-2 text-sm leading-6 text-slate-500">
               Are you sure you want to remove{" "}
               <span className="font-medium text-slate-700">
-                {removeCandidate.firstName}{" "}
-                {removeCandidate.lastName}
+                {removeCandidate.firstName} {removeCandidate.lastName}
               </span>{" "}
               from this meeting?
             </p>
@@ -423,9 +360,7 @@ export default function MeetingParticipantsModal({
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() =>
-                  setRemoveCandidate(null)
-                }
+                onClick={() => setRemoveCandidate(null)}
                 disabled={Boolean(removingUserId)}
                 className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
               >

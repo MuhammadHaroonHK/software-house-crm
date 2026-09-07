@@ -10,19 +10,11 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  useProjectMembers,
-} from "@/features/projects/hooks/useProjectMembers";
+import { useProjectMembers } from "@/features/projects/hooks/useProjectMembers";
 
-import type {
-  Project,
-} from "@/features/projects/types/project.types";
+import type { Project } from "@/features/projects/types/project.types";
 
 import type {
   Meeting,
@@ -42,13 +34,9 @@ interface MeetingFormModalProps {
 
   onClose: () => void;
 
-  onCreate: (
-    data: CreateMeetingPayload
-  ) => void;
+  onCreate: (data: CreateMeetingPayload) => void;
 
-  onUpdate: (
-    data: UpdateMeetingPayload
-  ) => void;
+  onUpdate: (data: UpdateMeetingPayload) => void;
 }
 
 interface FormState {
@@ -114,21 +102,15 @@ export default function MeetingFormModal({
 }: MeetingFormModalProps) {
   const isEdit = Boolean(meeting);
 
-  const [form, setForm] =
-    useState<FormState>(
-      emptyForm
-    );
+  const [form, setForm] = useState<FormState>(emptyForm);
 
-  const [errors, setErrors] =
-    useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const {
     data: membersData,
     isLoading: isMembersLoading,
     isError: isMembersError,
-  } = useProjectMembers(
-    form.projectId || undefined
-  );
+  } = useProjectMembers(form.projectId || undefined);
 
   useEffect(() => {
     if (!open) {
@@ -137,39 +119,24 @@ export default function MeetingFormModal({
 
     if (meeting) {
       setForm({
-        projectId:
-          meeting.projectId,
+        projectId: meeting.projectId,
 
-        organizerId:
-          meeting.organizerId,
+        organizerId: meeting.organizerId,
 
-        title:
-          meeting.title,
+        title: meeting.title,
 
-        agenda:
-          meeting.agenda ??
-          "",
+        agenda: meeting.agenda ?? "",
 
-        meetingDate:
-          toDateTimeLocalValue(
-            meeting.meetingDate
-          ),
+        meetingDate: toDateTimeLocalValue(meeting.meetingDate),
 
-        location:
-          meeting.location ??
-          "",
+        location: meeting.location ?? "",
 
-        notes:
-          meeting.notes ??
-          "",
+        notes: meeting.notes ?? "",
 
-        status:
-          meeting.status,
+        status: meeting.status,
       });
     } else {
-      setForm(
-        emptyForm
-      );
+      setForm(emptyForm);
     }
 
     setErrors({});
@@ -184,31 +151,20 @@ export default function MeetingFormModal({
    * Therefore we derive organizers directly
    * from the project's member list.
    */
-  const eligibleOrganizers =
-    useMemo(() => {
-      const members =
-        membersData?.data ??
-        [];
+  const eligibleOrganizers = useMemo(() => {
+    const members = membersData?.data ?? [];
 
-      return members.filter(
-        (member) =>
-          (
-            member.user.role.name ===
-              "SUPER_ADMIN" ||
-            member.user.role.name ===
-              "PROJECT_MANAGER"
-          ) &&
-          member.user.status ===
-            "ACTIVE"
-      );
-    }, [membersData]);
-
-  const selectedProject =
-    projects.find(
-      (project) =>
-        project.id ===
-        form.projectId
+    return members.filter(
+      (member) =>
+        (member.user.role.name === "SUPER_ADMIN" ||
+          member.user.role.name === "PROJECT_MANAGER") &&
+        member.user.status === "ACTIVE",
     );
+  }, [membersData]);
+
+  const selectedProject = projects.find(
+    (project) => project.id === form.projectId,
+  );
 
   /*
    * If project changes, the previous organizer
@@ -225,271 +181,164 @@ export default function MeetingFormModal({
       return;
     }
 
-    const exists =
-      eligibleOrganizers.some(
-        (member) =>
-          member.userId ===
-          form.organizerId
-      );
+    const exists = eligibleOrganizers.some(
+      (member) => member.userId === form.organizerId,
+    );
 
     if (!exists) {
-      setForm(
-        (previous) => ({
-          ...previous,
-          organizerId: "",
-        })
-      );
+      setForm((previous) => ({
+        ...previous,
+        organizerId: "",
+      }));
     }
-  }, [
-    eligibleOrganizers,
-    form.organizerId,
-    isMembersLoading,
-  ]);
+  }, [eligibleOrganizers, form.organizerId, isMembersLoading]);
 
   if (!open) {
     return null;
   }
 
-  const updateField = (
-    field: keyof FormState,
-    value: string
-  ) => {
-    setForm(
-      (previous) => ({
-        ...previous,
-        [field]:
-          value,
-      })
-    );
+  const updateField = (field: keyof FormState, value: string) => {
+    setForm((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
 
-    setErrors(
-      (previous) => ({
-        ...previous,
-        [field]:
-          undefined,
-      })
-    );
+    setErrors((previous) => ({
+      ...previous,
+      [field]: undefined,
+    }));
   };
 
-  const handleProjectChange = (
-    projectId: string
-  ) => {
-    setForm(
-      (previous) => ({
-        ...previous,
+  const handleProjectChange = (projectId: string) => {
+    setForm((previous) => ({
+      ...previous,
 
-        projectId,
+      projectId,
 
-        organizerId:
-          "",
-      })
-    );
+      organizerId: "",
+    }));
 
-    setErrors(
-      (previous) => ({
-        ...previous,
-        projectId:
-          undefined,
-        organizerId:
-          undefined,
-      })
-    );
+    setErrors((previous) => ({
+      ...previous,
+      projectId: undefined,
+      organizerId: undefined,
+    }));
   };
 
-  const validate =
-    (): boolean => {
-      const nextErrors: FormErrors =
-        {};
+  const validate = (): boolean => {
+    const nextErrors: FormErrors = {};
 
-      const title =
-        form.title.trim();
+    const title = form.title.trim();
 
-      const agenda =
-        form.agenda.trim();
+    const agenda = form.agenda.trim();
 
-      const location =
-        form.location.trim();
+    const location = form.location.trim();
 
-      const notes =
-        form.notes.trim();
+    const notes = form.notes.trim();
 
-      if (!form.projectId) {
-        nextErrors.projectId =
-          "Please select a project.";
+    if (!form.projectId) {
+      nextErrors.projectId = "Please select a project.";
+    }
+
+    if (!form.organizerId) {
+      nextErrors.organizerId = "Please select an organizer.";
+    }
+
+    if (!title) {
+      nextErrors.title = "Meeting title is required.";
+    } else if (title.length < 3) {
+      nextErrors.title = "Meeting title must be at least 3 characters.";
+    } else if (title.length > 150) {
+      nextErrors.title = "Meeting title cannot exceed 150 characters.";
+    }
+
+    if (!form.meetingDate) {
+      nextErrors.meetingDate = "Meeting date and time are required.";
+    } else {
+      const meetingDate = new Date(form.meetingDate);
+
+      if (Number.isNaN(meetingDate.getTime())) {
+        nextErrors.meetingDate = "Please enter a valid meeting date and time.";
+      } else if (meetingDate.getTime() <= Date.now()) {
+        nextErrors.meetingDate = "Meeting date and time must be in the future.";
       }
+    }
 
-      if (!form.organizerId) {
-        nextErrors.organizerId =
-          "Please select an organizer.";
-      }
+    if (agenda.length > 5000) {
+      nextErrors.agenda = "Agenda cannot exceed 5000 characters.";
+    }
 
-      if (!title) {
-        nextErrors.title =
-          "Meeting title is required.";
-      } else if (
-        title.length < 3
-      ) {
-        nextErrors.title =
-          "Meeting title must be at least 3 characters.";
-      } else if (
-        title.length > 150
-      ) {
-        nextErrors.title =
-          "Meeting title cannot exceed 150 characters.";
-      }
+    if (location.length > 500) {
+      nextErrors.location = "Location cannot exceed 500 characters.";
+    }
 
-      if (!form.meetingDate) {
-        nextErrors.meetingDate =
-          "Meeting date and time are required.";
-      } else {
-        const meetingDate =
-          new Date(
-            form.meetingDate
-          );
+    if (notes.length > 5000) {
+      nextErrors.notes = "Notes cannot exceed 5000 characters.";
+    }
 
-        if (
-          Number.isNaN(
-            meetingDate.getTime()
-          )
-        ) {
-          nextErrors.meetingDate =
-            "Please enter a valid meeting date and time.";
-        } else if (
-          meetingDate.getTime() <=
-          Date.now()
-        ) {
-          nextErrors.meetingDate =
-            "Meeting date and time must be in the future.";
-        }
-      }
+    setErrors(nextErrors);
 
-      if (
-        agenda.length >
-        5000
-      ) {
-        nextErrors.agenda =
-          "Agenda cannot exceed 5000 characters.";
-      }
+    return Object.keys(nextErrors).length === 0;
+  };
 
-      if (
-        location.length >
-        500
-      ) {
-        nextErrors.location =
-          "Location cannot exceed 500 characters.";
-      }
-
-      if (
-        notes.length >
-        5000
-      ) {
-        nextErrors.notes =
-          "Notes cannot exceed 5000 characters.";
-      }
-
-      setErrors(
-        nextErrors
-      );
-
-      return (
-        Object.keys(
-          nextErrors
-        ).length === 0
-      );
-    };
-
-  const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) {
       return;
     }
 
-    const title =
-      form.title.trim();
+    const title = form.title.trim();
 
-    const agenda =
-      form.agenda.trim();
+    const agenda = form.agenda.trim();
 
-    const location =
-      form.location.trim();
+    const location = form.location.trim();
 
-    const notes =
-      form.notes.trim();
+    const notes = form.notes.trim();
 
     if (isEdit) {
-      const payload:
-        UpdateMeetingPayload =
-        {
-          projectId:
-            form.projectId,
+      const payload: UpdateMeetingPayload = {
+        projectId: form.projectId,
 
-          organizerId:
-            form.organizerId,
+        organizerId: form.organizerId,
 
-          title,
+        title,
 
-          agenda:
-            agenda ||
-            undefined,
+        agenda: agenda || undefined,
 
-          meetingDate:
-            form.meetingDate,
+        meetingDate: form.meetingDate,
 
-          location:
-            location ||
-            null,
+        location: location || null,
 
-          notes:
-            notes ||
-            null,
+        notes: notes || null,
 
-          status:
-            form.status,
-        };
+        status: form.status,
+      };
 
-      onUpdate(
-        payload
-      );
+      onUpdate(payload);
 
       return;
     }
 
-    const payload:
-      CreateMeetingPayload =
-      {
-        projectId:
-          form.projectId,
+    const payload: CreateMeetingPayload = {
+      projectId: form.projectId,
 
-        organizerId:
-          form.organizerId,
+      organizerId: form.organizerId,
 
-        title,
+      title,
 
-        agenda:
-          agenda ||
-          undefined,
+      agenda: agenda || undefined,
 
-        meetingDate:
-          form.meetingDate,
+      meetingDate: form.meetingDate,
 
-        location:
-          location ||
-          undefined,
+      location: location || undefined,
 
-        notes:
-          notes ||
-          undefined,
+      notes: notes || undefined,
 
-        status:
-          form.status,
-      };
+      status: form.status,
+    };
 
-    onCreate(
-      payload
-    );
+    onCreate(payload);
   };
 
   /*
@@ -499,14 +348,10 @@ export default function MeetingFormModal({
    * The backend is the final authority, but we
    * hide those projects here for better UX.
    */
-  const availableProjects =
-    projects.filter(
-      (project) =>
-        project.status !==
-          "COMPLETED" &&
-        project.status !==
-          "CANCELLED"
-    );
+  const availableProjects = projects.filter(
+    (project) =>
+      project.status !== "COMPLETED" && project.status !== "CANCELLED",
+  );
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
@@ -515,9 +360,7 @@ export default function MeetingFormModal({
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {isEdit
-                ? "Edit Meeting"
-                : "Schedule Meeting"}
+              {isEdit ? "Edit Meeting" : "Schedule Meeting"}
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -529,12 +372,8 @@ export default function MeetingFormModal({
 
           <button
             type="button"
-            onClick={
-              onClose
-            }
-            disabled={
-              isSubmitting
-            }
+            onClick={onClose}
+            disabled={isSubmitting}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Close modal"
           >
@@ -544,9 +383,7 @@ export default function MeetingFormModal({
 
         {/* Form */}
         <form
-          onSubmit={
-            handleSubmit
-          }
+          onSubmit={handleSubmit}
           className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -556,61 +393,26 @@ export default function MeetingFormModal({
                 htmlFor="meetingProject"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Project{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Project <span className="text-red-500">*</span>
               </label>
 
               <select
                 id="meetingProject"
-                value={
-                  form.projectId
-                }
-                onChange={(
-                  event
-                ) =>
-                  handleProjectChange(
-                    event.target
-                      .value
-                  )
-                }
-                disabled={
-                  isSubmitting
-                }
-                className={inputClass(
-                  errors.projectId
-                )}
+                value={form.projectId}
+                onChange={(event) => handleProjectChange(event.target.value)}
+                disabled={isSubmitting}
+                className={inputClass(errors.projectId)}
               >
-                <option value="">
-                  Select project
-                </option>
+                <option value="">Select project</option>
 
-                {availableProjects.map(
-                  (
-                    project
-                  ) => (
-                    <option
-                      key={
-                        project.id
-                      }
-                      value={
-                        project.id
-                      }
-                    >
-                      {
-                        project.name
-                      }
-                    </option>
-                  )
-                )}
+                {availableProjects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
               </select>
 
-              <FieldError
-                message={
-                  errors.projectId
-                }
-              />
+              <FieldError message={errors.projectId} />
             </div>
 
             {/* Organizer */}
@@ -619,10 +421,7 @@ export default function MeetingFormModal({
                 htmlFor="meetingOrganizer"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Organizer{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Organizer <span className="text-red-500">*</span>
               </label>
 
               <div className="relative">
@@ -630,17 +429,9 @@ export default function MeetingFormModal({
 
                 <select
                   id="meetingOrganizer"
-                  value={
-                    form.organizerId
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    updateField(
-                      "organizerId",
-                      event.target
-                        .value
-                    )
+                  value={form.organizerId}
+                  onChange={(event) =>
+                    updateField("organizerId", event.target.value)
                   }
                   disabled={
                     isSubmitting ||
@@ -648,71 +439,44 @@ export default function MeetingFormModal({
                     isMembersLoading ||
                     isMembersError
                   }
-                  className={`pl-9 ${inputClass(
-                    errors.organizerId
-                  )}`}
+                  className={`pl-9 ${inputClass(errors.organizerId)}`}
                 >
                   <option value="">
                     {!form.projectId
                       ? "Select a project first"
                       : isMembersLoading
-                      ? "Loading project members..."
-                      : "Select organizer"}
+                        ? "Loading project members..."
+                        : "Select organizer"}
                   </option>
 
-                  {eligibleOrganizers.map(
-                    (
-                      member
-                    ) => (
-                      <option
-                        key={
-                          member.userId
-                        }
-                        value={
-                          member.userId
-                        }
-                      >
-                        {
-                          member.user
-                            .firstName
-                        }{" "}
-                        {
-                          member.user
-                            .lastName
-                        }{" "}
-                        —{" "}
-                        {member.user.role.name ===
-                        "SUPER_ADMIN"
-                          ? "Super Admin"
-                          : "Project Manager"}
-                      </option>
-                    )
-                  )}
+                  {eligibleOrganizers.map((member) => (
+                    <option key={member.userId} value={member.userId}>
+                      {member.user.firstName} {member.user.lastName} —{" "}
+                      {member.user.role.name === "SUPER_ADMIN"
+                        ? "Super Admin"
+                        : "Project Manager"}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {form.projectId &&
-                isMembersError && (
-                  <p className="mt-1 text-xs text-red-600">
-                    Unable to load project members.
-                  </p>
-                )}
+              {form.projectId && isMembersError && (
+                <p className="mt-1 text-xs text-red-600">
+                  Unable to load project members.
+                </p>
+              )}
 
               {form.projectId &&
                 !isMembersLoading &&
                 !isMembersError &&
-                eligibleOrganizers.length ===
-                  0 && (
+                eligibleOrganizers.length === 0 && (
                   <p className="mt-1 text-xs text-slate-400">
-                    No active Super Admin or Project Manager is available in this project.
+                    No active Super Admin or Project Manager is available in
+                    this project.
                   </p>
                 )}
 
-              <FieldError
-                message={
-                  errors.organizerId
-                }
-              />
+              <FieldError message={errors.organizerId} />
             </div>
 
             {/* Status */}
@@ -726,43 +490,16 @@ export default function MeetingFormModal({
 
               <select
                 id="meetingStatus"
-                value={
-                  form.status
-                }
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "status",
-                    event.target
-                      .value
-                  )
-                }
-                disabled={
-                  isSubmitting
-                }
-                className={inputClass(
-                  errors.status
-                )}
+                value={form.status}
+                onChange={(event) => updateField("status", event.target.value)}
+                disabled={isSubmitting}
+                className={inputClass(errors.status)}
               >
-                {STATUS_OPTIONS.map(
-                  (
-                    option
-                  ) => (
-                    <option
-                      key={
-                        option.value
-                      }
-                      value={
-                        option.value
-                      }
-                    >
-                      {
-                        option.label
-                      }
-                    </option>
-                  )
-                )}
+                {STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -772,43 +509,22 @@ export default function MeetingFormModal({
                 htmlFor="meetingTitle"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Meeting Title{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Meeting Title <span className="text-red-500">*</span>
               </label>
 
               <input
                 id="meetingTitle"
                 type="text"
-                value={
-                  form.title
-                }
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "title",
-                    event.target
-                      .value
-                  )
-                }
+                value={form.title}
+                onChange={(event) => updateField("title", event.target.value)}
                 placeholder="e.g. Sprint Planning Meeting"
                 maxLength={150}
                 autoFocus
-                disabled={
-                  isSubmitting
-                }
-                className={inputClass(
-                  errors.title
-                )}
+                disabled={isSubmitting}
+                className={inputClass(errors.title)}
               />
 
-              <FieldError
-                message={
-                  errors.title
-                }
-              />
+              <FieldError message={errors.title} />
             </div>
 
             {/* Meeting date/time */}
@@ -817,10 +533,7 @@ export default function MeetingFormModal({
                 htmlFor="meetingDate"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Meeting Date &amp; Time{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Meeting Date &amp; Time <span className="text-red-500">*</span>
               </label>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -830,27 +543,18 @@ export default function MeetingFormModal({
                   <input
                     id="meetingDate"
                     type="date"
-                    value={getDatePart(
-                      form.meetingDate
-                    )}
-                    onChange={(
-                      event
-                    ) =>
+                    value={getDatePart(form.meetingDate)}
+                    onChange={(event) =>
                       updateMeetingDatePart(
                         "date",
-                        event.target
-                          .value,
+                        event.target.value,
                         form,
                         setForm,
-                        setErrors
+                        setErrors,
                       )
                     }
-                    disabled={
-                      isSubmitting
-                    }
-                    className={`pl-9 ${inputClass(
-                      errors.meetingDate
-                    )}`}
+                    disabled={isSubmitting}
+                    className={`pl-9 ${inputClass(errors.meetingDate)}`}
                   />
                 </div>
 
@@ -859,36 +563,23 @@ export default function MeetingFormModal({
 
                   <input
                     type="time"
-                    value={getTimePart(
-                      form.meetingDate
-                    )}
-                    onChange={(
-                      event
-                    ) =>
+                    value={getTimePart(form.meetingDate)}
+                    onChange={(event) =>
                       updateMeetingDatePart(
                         "time",
-                        event.target
-                          .value,
+                        event.target.value,
                         form,
                         setForm,
-                        setErrors
+                        setErrors,
                       )
                     }
-                    disabled={
-                      isSubmitting
-                    }
-                    className={`pl-9 ${inputClass(
-                      errors.meetingDate
-                    )}`}
+                    disabled={isSubmitting}
+                    className={`pl-9 ${inputClass(errors.meetingDate)}`}
                   />
                 </div>
               </div>
 
-              <FieldError
-                message={
-                  errors.meetingDate
-                }
-              />
+              <FieldError message={errors.meetingDate} />
             </div>
 
             {/* Agenda */}
@@ -905,41 +596,20 @@ export default function MeetingFormModal({
 
               <textarea
                 id="meetingAgenda"
-                value={
-                  form.agenda
-                }
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "agenda",
-                    event.target
-                      .value
-                  )
-                }
+                value={form.agenda}
+                onChange={(event) => updateField("agenda", event.target.value)}
                 placeholder="Topics or objectives for the meeting..."
                 rows={4}
                 maxLength={5000}
-                disabled={
-                  isSubmitting
-                }
-                className={`${inputClass(
-                  errors.agenda
-                )} resize-none`}
+                disabled={isSubmitting}
+                className={`${inputClass(errors.agenda)} resize-none`}
               />
 
               <div className="mt-1 flex justify-between">
-                <FieldError
-                  message={
-                    errors.agenda
-                  }
-                />
+                <FieldError message={errors.agenda} />
 
                 <p className="text-xs text-slate-400">
-                  {
-                    form.agenda
-                      .length
-                  }
+                  {form.agenda.length}
                   /5000
                 </p>
               </div>
@@ -960,33 +630,17 @@ export default function MeetingFormModal({
               <input
                 id="meetingLocation"
                 type="text"
-                value={
-                  form.location
-                }
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "location",
-                    event.target
-                      .value
-                  )
+                value={form.location}
+                onChange={(event) =>
+                  updateField("location", event.target.value)
                 }
                 placeholder="e.g. Conference Room A / Google Meet"
                 maxLength={500}
-                disabled={
-                  isSubmitting
-                }
-                className={inputClass(
-                  errors.location
-                )}
+                disabled={isSubmitting}
+                className={inputClass(errors.location)}
               />
 
-              <FieldError
-                message={
-                  errors.location
-                }
-              />
+              <FieldError message={errors.location} />
             </div>
 
             {/* Notes */}
@@ -1003,41 +657,20 @@ export default function MeetingFormModal({
 
               <textarea
                 id="meetingNotes"
-                value={
-                  form.notes
-                }
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "notes",
-                    event.target
-                      .value
-                  )
-                }
+                value={form.notes}
+                onChange={(event) => updateField("notes", event.target.value)}
                 placeholder="Additional meeting notes..."
                 rows={4}
                 maxLength={5000}
-                disabled={
-                  isSubmitting
-                }
-                className={`${inputClass(
-                  errors.notes
-                )} resize-none`}
+                disabled={isSubmitting}
+                className={`${inputClass(errors.notes)} resize-none`}
               />
 
               <div className="mt-1 flex justify-between">
-                <FieldError
-                  message={
-                    errors.notes
-                  }
-                />
+                <FieldError message={errors.notes} />
 
                 <p className="text-xs text-slate-400">
-                  {
-                    form.notes
-                      .length
-                  }
+                  {form.notes.length}
                   /5000
                 </p>
               </div>
@@ -1052,16 +685,11 @@ export default function MeetingFormModal({
                   </p>
 
                   <p className="mt-1 text-sm font-semibold text-slate-800">
-                    {
-                      selectedProject.name
-                    }
+                    {selectedProject.name}
                   </p>
 
                   <p className="mt-0.5 text-xs text-slate-500">
-                    Status:{" "}
-                    {formatProjectStatus(
-                      selectedProject.status
-                    )}
+                    Status: {formatProjectStatus(selectedProject.status)}
                   </p>
                 </div>
               </div>
@@ -1079,12 +707,8 @@ export default function MeetingFormModal({
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={
-                onClose
-              }
-              disabled={
-                isSubmitting
-              }
+              onClick={onClose}
+              disabled={isSubmitting}
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
@@ -1097,9 +721,8 @@ export default function MeetingFormModal({
                 isMembersLoading ||
                 Boolean(
                   form.projectId &&
-                    !isMembersError &&
-                    eligibleOrganizers.length ===
-                      0
+                  !isMembersError &&
+                  eligibleOrganizers.length === 0,
                 )
               }
               className="flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
@@ -1108,9 +731,7 @@ export default function MeetingFormModal({
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
 
-                  {isEdit
-                    ? "Saving..."
-                    : "Scheduling..."}
+                  {isEdit ? "Saving..." : "Scheduling..."}
                 </>
               ) : (
                 <>
@@ -1120,9 +741,7 @@ export default function MeetingFormModal({
                     <Plus className="h-4 w-4" />
                   )}
 
-                  {isEdit
-                    ? "Save Changes"
-                    : "Schedule Meeting"}
+                  {isEdit ? "Save Changes" : "Schedule Meeting"}
                 </>
               )}
             </button>
@@ -1137,9 +756,7 @@ export default function MeetingFormModal({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function inputClass(
-  error?: string
-) {
+function inputClass(error?: string) {
   return `w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none transition ${
     error
       ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
@@ -1147,175 +764,95 @@ function inputClass(
   } disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70`;
 }
 
-function FieldError({
-  message,
-}: {
-  message?: string;
-}) {
+function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
 
-  return (
-    <p className="mt-1 text-xs text-red-600">
-      {message}
-    </p>
-  );
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
-function toDateTimeLocalValue(
-  value?: string | null
-): string {
+function toDateTimeLocalValue(value?: string | null): string {
   if (!value) {
     return "";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  const year =
-    date.getFullYear();
+  const year = date.getFullYear();
 
-  const month =
-    String(
-      date.getMonth() + 1
-    ).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
 
-  const day =
-    String(
-      date.getDate()
-    ).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-  const hours =
-    String(
-      date.getHours()
-    ).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
 
-  const minutes =
-    String(
-      date.getMinutes()
-    ).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
 
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
-function getDatePart(
-  value: string
-): string {
+function getDatePart(value: string): string {
   if (!value) {
     return "";
   }
 
-  return value.slice(
-    0,
-    10
-  );
+  return value.slice(0, 10);
 }
 
-function getTimePart(
-  value: string
-): string {
+function getTimePart(value: string): string {
   if (!value) {
     return "";
   }
 
-  if (
-    value.length >= 16
-  ) {
-    return value.slice(
-      11,
-      16
-    );
+  if (value.length >= 16) {
+    return value.slice(11, 16);
   }
 
   return "";
 }
 
 function updateMeetingDatePart(
-  part:
-    | "date"
-    | "time",
+  part: "date" | "time",
   value: string,
   form: FormState,
-  setForm: React.Dispatch<
-    React.SetStateAction<FormState>
-  >,
-  setErrors: React.Dispatch<
-    React.SetStateAction<FormErrors>
-  >
+  setForm: React.Dispatch<React.SetStateAction<FormState>>,
+  setErrors: React.Dispatch<React.SetStateAction<FormErrors>>,
 ) {
-  const currentDate =
-    getDatePart(
-      form.meetingDate
-    );
+  const currentDate = getDatePart(form.meetingDate);
 
-  const currentTime =
-    getTimePart(
-      form.meetingDate
-    );
+  const currentTime = getTimePart(form.meetingDate);
 
-  const nextDate =
-    part === "date"
-      ? value
-      : currentDate;
+  const nextDate = part === "date" ? value : currentDate;
 
-  const nextTime =
-    part === "time"
-      ? value
-      : currentTime;
+  const nextTime = part === "time" ? value : currentTime;
 
   let nextValue = "";
 
-  if (
-    nextDate &&
-    nextTime
-  ) {
-    nextValue =
-      `${nextDate}T${nextTime}`;
-  } else if (
-    nextDate
-  ) {
-    nextValue =
-      `${nextDate}T00:00`;
+  if (nextDate && nextTime) {
+    nextValue = `${nextDate}T${nextTime}`;
+  } else if (nextDate) {
+    nextValue = `${nextDate}T00:00`;
   }
 
-  setForm(
-    (previous) => ({
-      ...previous,
-      meetingDate:
-        nextValue,
-    })
-  );
+  setForm((previous) => ({
+    ...previous,
+    meetingDate: nextValue,
+  }));
 
-  setErrors(
-    (previous) => ({
-      ...previous,
-      meetingDate:
-        undefined,
-    })
-  );
+  setErrors((previous) => ({
+    ...previous,
+    meetingDate: undefined,
+  }));
 }
 
-function formatProjectStatus(
-  status: Project["status"]
-): string {
+function formatProjectStatus(status: Project["status"]): string {
   return status
     .toLowerCase()
-    .replace(
-      /_/g,
-      " "
-    )
-    .replace(
-      /\b\w/g,
-      (character) =>
-        character.toUpperCase()
-    );
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Loader2,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Loader2, Trash2, X } from "lucide-react";
 
 import type { ContactPerson } from "@/features/contact-persons/types/contactPerson.types";
 
@@ -42,15 +38,12 @@ export default function DeleteContactPersonDialog({
 
         <p className="mt-2 text-sm leading-6 text-slate-500">
           Are you sure you want to delete{" "}
-          <span className="font-medium text-slate-700">
-            {fullName}
-          </span>
-          ? This action cannot be undone.
+          <span className="font-medium text-slate-700">{fullName}</span>? This
+          action cannot be undone.
         </p>
 
         {/* Optional contact information */}
-        {(contactPerson.email ||
-          contactPerson.designation) && (
+        {(contactPerson.email || contactPerson.designation) && (
           <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2.5">
             {contactPerson.designation && (
               <p className="text-xs text-slate-500">

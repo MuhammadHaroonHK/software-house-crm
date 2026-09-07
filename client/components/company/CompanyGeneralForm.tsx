@@ -8,9 +8,7 @@ import type {
 interface CompanyGeneralFormProps {
   company: Company;
   errors?: Record<string, string>;
-  onChange: (
-    data: Partial<UpdateCompanyPayload>
-  ) => void;
+  onChange: (data: Partial<UpdateCompanyPayload>) => void;
   disabled?: boolean;
 }
 
@@ -96,8 +94,7 @@ export default function CompanyGeneralForm({
             disabled={disabled}
             onChange={(event) =>
               onChange({
-                companyAddress:
-                  event.target.value,
+                companyAddress: event.target.value,
               })
             }
             rows={3}
@@ -109,9 +106,7 @@ export default function CompanyGeneralForm({
           />
 
           {errors.companyAddress && (
-            <p className="mt-1 text-xs text-red-500">
-              {errors.companyAddress}
-            </p>
+            <p className="mt-1 text-xs text-red-500">{errors.companyAddress}</p>
           )}
         </div>
 
@@ -156,12 +151,7 @@ function Field({
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium text-slate-700">
-        {label}{" "}
-        {required && (
-          <span className="text-red-500">
-            *
-          </span>
-        )}
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
 
       <input
@@ -169,9 +159,7 @@ function Field({
         value={value}
         placeholder={placeholder}
         disabled={disabled}
-        onChange={(event) =>
-          onChange(event.target.value)
-        }
+        onChange={(event) => onChange(event.target.value)}
         className={`h-10 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-1 disabled:cursor-not-allowed disabled:bg-slate-50 ${
           error
             ? "border-red-400 focus:border-red-500 focus:ring-red-500"
@@ -179,11 +167,7 @@ function Field({
         }`}
       />
 
-      {error && (
-        <p className="mt-1 text-xs text-red-500">
-          {error}
-        </p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );
 }

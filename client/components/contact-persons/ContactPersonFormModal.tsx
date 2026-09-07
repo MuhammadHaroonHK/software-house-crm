@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  Loader2,
-  Pencil,
-  Plus,
-  Star,
-  X,
-} from "lucide-react";
+import { Loader2, Pencil, Plus, Star, X } from "lucide-react";
 
 import type {
   ContactPerson,
@@ -27,13 +21,9 @@ interface ContactPersonFormModalProps {
 
   onClose: () => void;
 
-  onCreate: (
-    data: CreateContactPersonPayload
-  ) => void;
+  onCreate: (data: CreateContactPersonPayload) => void;
 
-  onUpdate: (
-    data: UpdateContactPersonPayload
-  ) => void;
+  onUpdate: (data: UpdateContactPersonPayload) => void;
 }
 
 interface FormState {
@@ -77,11 +67,9 @@ export default function ContactPersonFormModal({
 }: ContactPersonFormModalProps) {
   const isEdit = Boolean(contactPerson);
 
-  const [form, setForm] =
-    useState<FormState>(emptyForm);
+  const [form, setForm] = useState<FormState>(emptyForm);
 
-  const [errors, setErrors] =
-    useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   /* ------------------------------------------------------------------------ */
   /* Initialize form                                                          */
@@ -94,26 +82,19 @@ export default function ContactPersonFormModal({
 
     if (contactPerson) {
       setForm({
-        clientId:
-          contactPerson.clientId,
+        clientId: contactPerson.clientId,
 
-        firstName:
-          contactPerson.firstName,
+        firstName: contactPerson.firstName,
 
-        lastName:
-          contactPerson.lastName,
+        lastName: contactPerson.lastName,
 
-        designation:
-          contactPerson.designation ?? "",
+        designation: contactPerson.designation ?? "",
 
-        email:
-          contactPerson.email ?? "",
+        email: contactPerson.email ?? "",
 
-        phone:
-          contactPerson.phone ?? "",
+        phone: contactPerson.phone ?? "",
 
-        isPrimary:
-          contactPerson.isPrimary,
+        isPrimary: contactPerson.isPrimary,
       });
     } else {
       setForm(emptyForm);
@@ -134,10 +115,7 @@ export default function ContactPersonFormModal({
   /* Update field                                                             */
   /* ------------------------------------------------------------------------ */
 
-  const updateField = (
-    field: keyof FormState,
-    value: string | boolean
-  ) => {
+  const updateField = (field: keyof FormState, value: string | boolean) => {
     setForm((previous) => ({
       ...previous,
       [field]: value,
@@ -156,92 +134,61 @@ export default function ContactPersonFormModal({
   const validate = (): boolean => {
     const nextErrors: FormErrors = {};
 
-    const clientId =
-      form.clientId.trim();
+    const clientId = form.clientId.trim();
 
-    const firstName =
-      form.firstName.trim();
+    const firstName = form.firstName.trim();
 
-    const lastName =
-      form.lastName.trim();
+    const lastName = form.lastName.trim();
 
-    const designation =
-      form.designation.trim();
+    const designation = form.designation.trim();
 
-    const email =
-      form.email.trim();
+    const email = form.email.trim();
 
     /* Client */
     if (!clientId) {
-      nextErrors.clientId =
-        "Client is required.";
+      nextErrors.clientId = "Client is required.";
     }
 
     /* First name */
     if (!firstName) {
-      nextErrors.firstName =
-        "First name is required.";
-    } else if (
-      firstName.length < 2
-    ) {
-      nextErrors.firstName =
-        "First name must be at least 2 characters.";
-    } else if (
-      firstName.length > 50
-    ) {
-      nextErrors.firstName =
-        "First name cannot exceed 50 characters.";
+      nextErrors.firstName = "First name is required.";
+    } else if (firstName.length < 2) {
+      nextErrors.firstName = "First name must be at least 2 characters.";
+    } else if (firstName.length > 50) {
+      nextErrors.firstName = "First name cannot exceed 50 characters.";
     }
 
     /* Last name */
     if (!lastName) {
-      nextErrors.lastName =
-        "Last name is required.";
-    } else if (
-      lastName.length < 2
-    ) {
-      nextErrors.lastName =
-        "Last name must be at least 2 characters.";
-    } else if (
-      lastName.length > 50
-    ) {
-      nextErrors.lastName =
-        "Last name cannot exceed 50 characters.";
+      nextErrors.lastName = "Last name is required.";
+    } else if (lastName.length < 2) {
+      nextErrors.lastName = "Last name must be at least 2 characters.";
+    } else if (lastName.length > 50) {
+      nextErrors.lastName = "Last name cannot exceed 50 characters.";
     }
 
     /* Designation */
     if (designation.length > 100) {
-      nextErrors.designation =
-        "Designation cannot exceed 100 characters.";
+      nextErrors.designation = "Designation cannot exceed 100 characters.";
     }
 
     /* Email */
     if (email) {
-      if (
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-          email
-        )
-      ) {
-        nextErrors.email =
-          "Please enter a valid email address.";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        nextErrors.email = "Please enter a valid email address.";
       }
     }
 
     setErrors(nextErrors);
 
-    return (
-      Object.keys(nextErrors).length ===
-      0
-    );
+    return Object.keys(nextErrors).length === 0;
   };
 
   /* ------------------------------------------------------------------------ */
   /* Submit                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) {
@@ -249,32 +196,19 @@ export default function ContactPersonFormModal({
     }
 
     const payload = {
-      clientId:
-        form.clientId.trim(),
+      clientId: form.clientId.trim(),
 
-      firstName:
-        form.firstName.trim(),
+      firstName: form.firstName.trim(),
 
-      lastName:
-        form.lastName.trim(),
+      lastName: form.lastName.trim(),
 
-      designation:
-        form.designation.trim() ||
-        undefined,
+      designation: form.designation.trim() || undefined,
 
-      email:
-        form.email.trim()
-          ? form.email
-              .trim()
-              .toLowerCase()
-          : undefined,
+      email: form.email.trim() ? form.email.trim().toLowerCase() : undefined,
 
-      phone:
-        form.phone.trim() ||
-        undefined,
+      phone: form.phone.trim() || undefined,
 
-      isPrimary:
-        form.isPrimary,
+      isPrimary: form.isPrimary,
     };
 
     if (isEdit) {
@@ -292,14 +226,11 @@ export default function ContactPersonFormModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6">
       <div className="my-4 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:my-8">
-
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {isEdit
-                ? "Edit Contact Person"
-                : "Add Contact Person"}
+              {isEdit ? "Edit Contact Person" : "Add Contact Person"}
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -326,52 +257,34 @@ export default function ContactPersonFormModal({
           className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-
             {/* Client */}
             <div className="sm:col-span-2">
               <label
                 htmlFor="contactPersonClient"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Client{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Client <span className="text-red-500">*</span>
               </label>
 
               <select
                 id="contactPersonClient"
                 value={form.clientId}
                 onChange={(event) =>
-                  updateField(
-                    "clientId",
-                    event.target.value
-                  )
+                  updateField("clientId", event.target.value)
                 }
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.clientId
-                )}
+                className={inputClass(errors.clientId)}
               >
-                <option value="">
-                  Select a client
-                </option>
+                <option value="">Select a client</option>
 
                 {clients.map((client) => (
-                  <option
-                    key={client.id}
-                    value={client.id}
-                  >
+                  <option key={client.id} value={client.id}>
                     {client.companyName}
                   </option>
                 ))}
               </select>
 
-              <FieldError
-                message={
-                  errors.clientId
-                }
-              />
+              <FieldError message={errors.clientId} />
             </div>
 
             {/* First Name */}
@@ -380,10 +293,7 @@ export default function ContactPersonFormModal({
                 htmlFor="contactPersonFirstName"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                First Name{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                First Name <span className="text-red-500">*</span>
               </label>
 
               <input
@@ -391,25 +301,16 @@ export default function ContactPersonFormModal({
                 type="text"
                 value={form.firstName}
                 onChange={(event) =>
-                  updateField(
-                    "firstName",
-                    event.target.value
-                  )
+                  updateField("firstName", event.target.value)
                 }
                 placeholder="e.g. John"
                 maxLength={50}
                 autoFocus
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.firstName
-                )}
+                className={inputClass(errors.firstName)}
               />
 
-              <FieldError
-                message={
-                  errors.firstName
-                }
-              />
+              <FieldError message={errors.firstName} />
             </div>
 
             {/* Last Name */}
@@ -418,10 +319,7 @@ export default function ContactPersonFormModal({
                 htmlFor="contactPersonLastName"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Last Name{" "}
-                <span className="text-red-500">
-                  *
-                </span>
+                Last Name <span className="text-red-500">*</span>
               </label>
 
               <input
@@ -429,24 +327,15 @@ export default function ContactPersonFormModal({
                 type="text"
                 value={form.lastName}
                 onChange={(event) =>
-                  updateField(
-                    "lastName",
-                    event.target.value
-                  )
+                  updateField("lastName", event.target.value)
                 }
                 placeholder="e.g. Smith"
                 maxLength={50}
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.lastName
-                )}
+                className={inputClass(errors.lastName)}
               />
 
-              <FieldError
-                message={
-                  errors.lastName
-                }
-              />
+              <FieldError message={errors.lastName} />
             </div>
 
             {/* Designation */}
@@ -456,7 +345,6 @@ export default function ContactPersonFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Designation
-
                 <span className="ml-1 font-normal text-slate-400">
                   (Optional)
                 </span>
@@ -467,24 +355,15 @@ export default function ContactPersonFormModal({
                 type="text"
                 value={form.designation}
                 onChange={(event) =>
-                  updateField(
-                    "designation",
-                    event.target.value
-                  )
+                  updateField("designation", event.target.value)
                 }
                 placeholder="e.g. Project Manager"
                 maxLength={100}
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.designation
-                )}
+                className={inputClass(errors.designation)}
               />
 
-              <FieldError
-                message={
-                  errors.designation
-                }
-              />
+              <FieldError message={errors.designation} />
             </div>
 
             {/* Email */}
@@ -494,7 +373,6 @@ export default function ContactPersonFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Email
-
                 <span className="ml-1 font-normal text-slate-400">
                   (Optional)
                 </span>
@@ -504,22 +382,13 @@ export default function ContactPersonFormModal({
                 id="contactPersonEmail"
                 type="email"
                 value={form.email}
-                onChange={(event) =>
-                  updateField(
-                    "email",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("email", event.target.value)}
                 placeholder="john@example.com"
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.email
-                )}
+                className={inputClass(errors.email)}
               />
 
-              <FieldError
-                message={errors.email}
-              />
+              <FieldError message={errors.email} />
             </div>
 
             {/* Phone */}
@@ -529,7 +398,6 @@ export default function ContactPersonFormModal({
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Phone
-
                 <span className="ml-1 font-normal text-slate-400">
                   (Optional)
                 </span>
@@ -539,22 +407,13 @@ export default function ContactPersonFormModal({
                 id="contactPersonPhone"
                 type="tel"
                 value={form.phone}
-                onChange={(event) =>
-                  updateField(
-                    "phone",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField("phone", event.target.value)}
                 placeholder="+92 300 1234567"
                 disabled={isSubmitting}
-                className={inputClass(
-                  errors.phone
-                )}
+                className={inputClass(errors.phone)}
               />
 
-              <FieldError
-                message={errors.phone}
-              />
+              <FieldError message={errors.phone} />
             </div>
 
             {/* Primary Contact */}
@@ -565,10 +424,7 @@ export default function ContactPersonFormModal({
                     type="checkbox"
                     checked={form.isPrimary}
                     onChange={(event) =>
-                      updateField(
-                        "isPrimary",
-                        event.target.checked
-                      )
+                      updateField("isPrimary", event.target.checked)
                     }
                     disabled={isSubmitting}
                     className="mt-1 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-2 focus:ring-slate-300"
@@ -584,10 +440,9 @@ export default function ContactPersonFormModal({
                     </div>
 
                     <p className="mt-1 text-xs leading-5 text-slate-500">
-                      Set this person as the primary
-                      contact for the selected client.
-                      If another person is currently
-                      primary, they will be replaced.
+                      Set this person as the primary contact for the selected
+                      client. If another person is currently primary, they will
+                      be replaced.
                     </p>
                   </div>
                 </label>
@@ -615,19 +470,14 @@ export default function ContactPersonFormModal({
 
             <button
               type="submit"
-              disabled={
-                isSubmitting ||
-                clients.length === 0
-              }
+              disabled={isSubmitting || clients.length === 0}
               className="flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
 
-                  {isEdit
-                    ? "Saving..."
-                    : "Creating..."}
+                  {isEdit ? "Saving..." : "Creating..."}
                 </>
               ) : (
                 <>
@@ -637,9 +487,7 @@ export default function ContactPersonFormModal({
                     <Plus className="h-4 w-4" />
                   )}
 
-                  {isEdit
-                    ? "Save Changes"
-                    : "Create Contact Person"}
+                  {isEdit ? "Save Changes" : "Create Contact Person"}
                 </>
               )}
             </button>
@@ -654,9 +502,7 @@ export default function ContactPersonFormModal({
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function inputClass(
-  error?: string
-) {
+function inputClass(error?: string) {
   return `w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none transition ${
     error
       ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
@@ -664,18 +510,10 @@ function inputClass(
   } disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70`;
 }
 
-function FieldError({
-  message,
-}: {
-  message?: string;
-}) {
+function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
 
-  return (
-    <p className="mt-1 text-xs text-red-600">
-      {message}
-    </p>
-  );
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }

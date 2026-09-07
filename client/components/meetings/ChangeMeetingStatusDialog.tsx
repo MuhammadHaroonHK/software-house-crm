@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  CheckCircle2,
-  Loader2,
-  X,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, Loader2, X, XCircle } from "lucide-react";
 
 import type {
   Meeting,
@@ -16,9 +11,7 @@ interface ChangeMeetingStatusDialogProps {
   meeting: Meeting | null;
   isUpdating?: boolean;
   onCancel: () => void;
-  onConfirm: (
-    status: MeetingStatus
-  ) => void;
+  onConfirm: (status: MeetingStatus) => void;
 }
 
 export default function ChangeMeetingStatusDialog({
@@ -68,18 +61,14 @@ export default function ChangeMeetingStatusDialog({
             Current status
           </p>
 
-          <p className="mt-1 text-sm font-semibold text-slate-900">
-            Scheduled
-          </p>
+          <p className="mt-1 text-sm font-semibold text-slate-900">Scheduled</p>
         </div>
 
         <div className="mt-5 space-y-2">
           <button
             type="button"
             disabled={isUpdating}
-            onClick={() =>
-              onConfirm("COMPLETED")
-            }
+            onClick={() => onConfirm("COMPLETED")}
             className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left transition hover:bg-slate-50 disabled:opacity-60"
           >
             <CheckCircle2 className="h-5 w-5 text-emerald-600" />
@@ -102,9 +91,7 @@ export default function ChangeMeetingStatusDialog({
           <button
             type="button"
             disabled={isUpdating}
-            onClick={() =>
-              onConfirm("CANCELLED")
-            }
+            onClick={() => onConfirm("CANCELLED")}
             className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left transition hover:bg-slate-50 disabled:opacity-60"
           >
             <XCircle className="h-5 w-5 text-red-600" />
