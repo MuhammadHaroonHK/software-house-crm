@@ -48,5 +48,21 @@ services:
       postgres:
         condition: service_healthy
 
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+
+    container_name: crm-client
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api
+
+    depends_on:
+      - server
+
 volumes:
   postgres_data:
